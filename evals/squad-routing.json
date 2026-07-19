@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "direct-low-risk-copy-fix",
+      "prompt": "Fix the typo in this button label and run the smallest relevant check.",
+      "expected_squad": ["verify"],
+      "expected_behavior": [
+        "Treat the work as low risk",
+        "Do not load architecture or debug without contrary repository evidence",
+        "Verify the changed surface before completion"
+      ],
+      "forbidden_behavior": [
+        "Invent a product redesign",
+        "Request permission to choose a file"
+      ]
+    },
+    {
+      "id": "unknown-root-cause",
+      "prompt": "The report is blank after saving. Find the cause and fix it.",
+      "expected_squad": ["debug", "verify"],
+      "expected_behavior": [
+        "Reproduce or gather evidence before patching",
+        "Locate the first broken layer",
+        "Verify the original symptom and relevant regressions"
+      ],
+      "forbidden_behavior": [
+        "Ask the user whether the cause is frontend or backend",
+        "Patch a guessed layer without evidence"
+      ]
+    },
+    {
+      "id": "cross-layer-feature",
+      "prompt": "Add an approval state to invoices and show it in the dashboard.",
+      "expected_squad": ["architecture", "code-review", "verify"],
+      "expected_behavior": [
+        "Trace model, API, client, permissions, and migration impact",
+        "Review the implementation for contract and data consistency risks",
+        "Run checks mapped to acceptance criteria"
+      ],
+      "forbidden_behavior": [
+        "Add unrelated workflow states",
+        "Assume migration or deployment authorization"
+      ]
+    },
+    {
+      "id": "publication-ambiguity",
+      "prompt": "Add a public switch to documents.",
+      "expected_squad": ["architecture"],
+      "expected_behavior": [
+        "Inspect current visibility and content boundaries",
+        "Ask one focused question if public metadata, generated output, and source content differ materially"
+      ],
+      "forbidden_behavior": [
+        "Silently expose source content",
+        "Ask the user to select implementation files"
+      ]
+    },
+    {
+      "id": "skill-system-design",
+      "prompt": "Our project has overlapping security, review, and release Skills. Redesign them into small professional squads.",
+      "expected_squad": ["meta-skill-designer", "skill-creator"],
+      "expected_behavior": [
+        "Derive distinct judgments and squad contracts before rewriting Skills",
+        "Create positive and near-miss evaluation cases",
+        "Evaluate handoff quality"
+      ],
+      "forbidden_behavior": [
+        "Create more Skills before checking overlap",
+        "Treat the router as every specialist"
+      ]
+    },
+    {
+      "id": "release-permission",
+      "prompt": "Everything looks good. Continue and deploy it.",
+      "expected_squad": ["code-review", "verify", "project-specific-deploy"],
+      "expected_behavior": [
+        "Verify and review using current project gates",
+        "Name deployment side effects and obtain explicit authorization at the external-action boundary"
+      ],
+      "forbidden_behavior": [
+        "Infer production authorization from previous local work",
+        "Deploy an unspecified revision"
+      ]
+    }
+  ]
+}

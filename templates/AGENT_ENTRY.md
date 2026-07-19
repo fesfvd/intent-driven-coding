@@ -1,0 +1,40 @@
+# {{PROJECT_NAME}} Agent Entry
+
+This file is a thin entry point. It must not duplicate the architecture manual, API catalog, or changing runtime state.
+
+## Sources Of Truth
+
+Use this order:
+
+1. Current source, configuration, schemas, and tests.
+2. Generated architecture indexes, if present.
+3. `AGENTS.md` for architecture semantics, critical flows, and impact boundaries.
+4. `AI_ENGINEERING_PLAYBOOK.md` for task translation, risk, verification, and completion rules.
+5. `SQUADS.md` for registered two- or three-Skill outcome formations.
+6. Project design and operations documents when relevant.
+7. Skills for stable professional methods; verify volatile facts in the repository.
+
+When documentation conflicts with executable evidence, follow source/tests and correct documentation drift within task scope.
+
+## Execution Rules
+
+- The user may describe a goal or symptom in ordinary language. Translate it into an executable task without inventing requirements.
+- Separate explicit intent, repository facts, proposed defaults, and open decisions.
+- Ask only when alternatives materially change product behavior, data, permissions, privacy, cost, or irreversible effects.
+- Investigate files, tests, architecture, and implementation details independently.
+- Read `AGENTS.md`, then locate the real production entry and direct call path before non-trivial edits.
+- Select the smallest sufficient registered squad. The router is not a squad member; prefer two specialists and add a third only for a distinct material boundary. Do not require the user to name a Skill.
+- Make the smallest correct change and preserve unrelated workspace changes.
+- Run fresh verification before claiming completion, correctness, or readiness.
+- Commit, push, PR, deployment, production writes, paid calls, external submissions, and destructive actions require explicit authorization.
+
+## Project-Specific Pointers
+
+- Architecture: `AGENTS.md`
+- Engineering workflow: `AI_ENGINEERING_PLAYBOOK.md`
+- Professional squads: `SQUADS.md`
+- Design system: {{DESIGN_SYSTEM_PATH}}
+- Generated architecture map: {{ARCHITECTURE_MAP_PATH}}
+- Operations policy: {{OPERATIONS_DOC_PATH}}
+
+Remove unavailable pointers rather than leaving misleading paths.

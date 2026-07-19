@@ -1,0 +1,62 @@
+# {{SQUAD_NAME}}
+
+## Outcome
+
+{{SQUAD_OUTCOME}}
+
+## Selection
+
+- Trigger language: {{SQUAD_TRIGGERS}}
+- Repository context: {{SQUAD_CONTEXT}}
+- Exclusions and near misses: {{SQUAD_EXCLUSIONS}}
+- Risk level: {{SQUAD_RISK}}
+
+## Members
+
+| Order | Skill | Unique judgment | Required output |
+|---|---|---|---|
+| 1 | {{MEMBER_1}} | {{MEMBER_1_JUDGMENT}} | {{MEMBER_1_OUTPUT}} |
+| 2 | {{MEMBER_2}} | {{MEMBER_2_JUDGMENT}} | {{MEMBER_2_OUTPUT}} |
+| 3, optional | {{MEMBER_3}} | {{MEMBER_3_JUDGMENT}} | {{MEMBER_3_OUTPUT}} |
+
+Delete the third row unless it guards a distinct material boundary.
+
+## Handoffs
+
+```text
+{{MEMBER_1}}
+  -> artifact: {{HANDOFF_1}}
+{{IMPLEMENTATION_OR_MEMBER_2}}
+  -> artifact: {{HANDOFF_2}}
+{{FINAL_MEMBER}}
+```
+
+State which work may run independently. Do not parallelize a consumer before its required handoff exists.
+
+## Exit Conditions
+
+- {{EXIT_CONDITION_1}}
+- {{EXIT_CONDITION_2}}
+- {{EXIT_CONDITION_3}}
+
+## Permission Gate
+
+{{SQUAD_PERMISSION_GATE}}
+
+Use `none` only when the complete squad is local, reversible, and free of external side effects.
+
+## Evaluation Cases
+
+| Case | Request | Expected route/behavior | Forbidden behavior |
+|---|---|---|---|
+| Positive | {{POSITIVE_CASE}} | {{POSITIVE_EXPECTED}} | {{POSITIVE_FORBIDDEN}} |
+| Near miss | {{NEGATIVE_CASE}} | {{NEGATIVE_EXPECTED}} | {{NEGATIVE_FORBIDDEN}} |
+| Handoff | {{HANDOFF_CASE}} | {{HANDOFF_EXPECTED}} | {{HANDOFF_FORBIDDEN}} |
+| Permission | {{PERMISSION_CASE}} | {{PERMISSION_EXPECTED}} | {{PERMISSION_FORBIDDEN}} |
+
+## Composition Check
+
+- Removing member 1 loses: {{MEMBER_1_NECESSITY}}
+- Removing member 2 loses: {{MEMBER_2_NECESSITY}}
+- Removing optional member 3 loses: {{MEMBER_3_NECESSITY}}
+- Overlap reviewed: {{OVERLAP_REVIEW}}

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "skill": "meta-skill-designer",
+  "cases": [
+    {
+      "id": "design-from-recurring-work",
+      "prompt": "We repeatedly build APIs, review permission rules, and verify releases. Turn this into a small Skill team.",
+      "should_trigger": true,
+      "expected_behavior": [
+        "Extract outcomes before naming Skills",
+        "Propose two- or three-Skill squads with handoff artifacts",
+        "Separate deterministic checks from professional judgment"
+      ],
+      "forbidden_behavior": [
+        "Produce a flat unstructured Skill catalog",
+        "Draft all Skills before defining boundaries"
+      ]
+    },
+    {
+      "id": "single-skill-iteration",
+      "prompt": "The debug Skill already has a clear role. Add near-miss trigger tests and improve its description.",
+      "should_trigger": false,
+      "expected_delegate": "skill-creator",
+      "expected_behavior": [
+        "Recognize that roster and squad design are already resolved"
+      ],
+      "forbidden_behavior": [
+        "Redesign the whole team without evidence"
+      ]
+    },
+    {
+      "id": "deterministic-lint-rule",
+      "prompt": "Every source file must end with a newline. Should we make a Skill for this?",
+      "should_trigger": true,
+      "expected_behavior": [
+        "Recommend a formatter, lint rule, or test rather than a professional Skill"
+      ],
+      "forbidden_behavior": [
+        "Create a newline-reviewer Skill"
+      ]
+    }
+  ]
+}
