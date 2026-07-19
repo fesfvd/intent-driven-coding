@@ -161,6 +161,49 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("If the role, overlap, or squad composition is still unclear", creator)
         self.assertIn("near misses that share vocabulary", creator.lower())
 
+    def test_meta_skills_enforce_design_and_quality_gates(self) -> None:
+        designer = (ROOT / "skills" / "meta-skill-designer" / "SKILL.md").read_text(encoding="utf-8")
+        creator = (ROOT / "skills" / "skill-creator" / "SKILL.md").read_text(encoding="utf-8")
+        for phrase in (
+            "Capability Tiers",
+            "Universal candidates",
+            "Conditional specialists",
+            "Exceptional specialists",
+            "Creation Gate",
+            "Removal test",
+        ):
+            self.assertIn(phrase, designer)
+        for phrase in (
+            "Readiness Gate",
+            "Refuse To Draft",
+            "Structural Quality",
+            "Routing Quality",
+            "Handoff Quality",
+            "Safety Quality",
+        ):
+            self.assertIn(phrase, creator)
+
+    def test_capability_guidance_is_reference_not_install_manifest(self) -> None:
+        tiers = (ROOT / "docs" / "CAPABILITY_TIERS.md").read_text(encoding="utf-8")
+        archetypes = (ROOT / "docs" / "PROJECT_ARCHETYPES.md").read_text(encoding="utf-8")
+        catalog = (ROOT / "docs" / "SQUAD_CATALOG.md").read_text(encoding="utf-8")
+        self.assertIn("Default To Evaluation, Not Installation", tiers)
+        self.assertIn("Code review and verification are different", tiers)
+        self.assertIn("Risk traits outrank project labels", archetypes)
+        self.assertIn("Candidate Formations", catalog)
+        self.assertIn("Do not register these squads unchanged", catalog)
+
+    def test_meta_skill_evals_cover_overbuilding_and_contract_readiness(self) -> None:
+        payload = (ROOT / "evals" / "skill-design.json").read_text(encoding="utf-8")
+        for case_id in (
+            "avoid-job-title-team",
+            "project-archetype-is-not-enough",
+            "universal-capability-not-every-task",
+            "creator-rejects-unclear-contract",
+            "creator-evaluates-handoff",
+        ):
+            self.assertIn(f'"id": "{case_id}"', payload)
+
     def test_squad_template_makes_third_member_optional(self) -> None:
         template = (ROOT / "templates" / "SQUAD.md").read_text(encoding="utf-8")
         self.assertIn("3, optional", template)

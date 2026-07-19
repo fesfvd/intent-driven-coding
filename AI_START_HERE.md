@@ -17,11 +17,13 @@ Read only as far as needed for the next adaptation decision:
 3. `docs/CONTEXT_ARCHITECTURE.md` for the three context layers.
 4. `docs/SQUAD_METHOD.md` for Skill, squad, and router boundaries.
 5. `docs/SQUAD_WORKSHOP.md` for deriving project-specific capabilities and squads.
-6. `skills/meta-skill-designer/SKILL.md` for roster and squad design.
-7. `skills/skill-creator/SKILL.md` for drafting and evaluating individual Skills.
-8. `templates/` only when producing target-project artifacts.
-9. `evals/` when creating routing, handoff, near-miss, and permission cases.
-10. `docs/PLATFORM_ADAPTERS.md` when mapping the result to the user's coding-agent platform.
+6. `docs/CAPABILITY_TIERS.md` when deciding which capabilities are universal candidates, conditional, or exceptional.
+7. `docs/PROJECT_ARCHETYPES.md` and `docs/SQUAD_CATALOG.md` only as reference hypotheses, never as install manifests.
+8. `skills/meta-skill-designer/SKILL.md` for roster and squad design.
+9. `skills/skill-creator/SKILL.md` for drafting and evaluating individual Skills.
+10. `templates/` only when producing target-project artifacts.
+11. `evals/` when creating routing, handoff, near-miss, and permission cases.
+12. `docs/PLATFORM_ADAPTERS.md` when mapping the result to the user's coding-agent platform.
 
 Do not load every document and Skill by default. Follow the framework's progressive context model.
 

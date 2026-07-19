@@ -79,6 +79,7 @@ AI 把用户的自然语言需求翻译为工程任务时，还需要区分四�
 - 专业 Skill 和 2-3 人小队的设计方法。
 - `team`、`architecture`、`debug`、`code-review`、`verify` 等基础能力。
 - `meta-skill-designer` 与 `skill-creator` 元小队，用来搭建你自己的角色体系。
+- 基础、条件和特殊能力的分级参考，以及按项目风险和结果组织的小队候选目录；这些用于评估，不是默认安装包。
 - 项目架构、工程流程、Skill 和小队合同模板。
 - 安装引导器、Skill 新鲜度巡检、路由与交接评测样例。
 
@@ -198,6 +199,8 @@ Typical formations:
 
 See [docs/SQUAD_METHOD.md](docs/SQUAD_METHOD.md) and [docs/SQUAD_WORKSHOP.md](docs/SQUAD_WORKSHOP.md) to derive formations from your own work.
 
+Use [docs/CAPABILITY_TIERS.md](docs/CAPABILITY_TIERS.md) to distinguish universal candidates, conditional specialists, and exceptional specialists. [docs/PROJECT_ARCHETYPES.md](docs/PROJECT_ARCHETYPES.md) and [docs/SQUAD_CATALOG.md](docs/SQUAD_CATALOG.md) provide investigation prompts and candidate formations, not a default team to install.
+
 ## Repository Contents
 
 ```text
@@ -213,6 +216,9 @@ intent-driven-coding/
 |   |-- TEAM_PLAYBOOK.md
 |   |-- SQUAD_METHOD.md
 |   |-- SQUAD_WORKSHOP.md
+|   |-- CAPABILITY_TIERS.md
+|   |-- PROJECT_ARCHETYPES.md
+|   |-- SQUAD_CATALOG.md
 |   |-- EVALUATION.md
 |   |-- PLATFORM_ADAPTERS.md
 |   |-- PERMISSIONS.md

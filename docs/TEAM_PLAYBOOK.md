@@ -10,7 +10,7 @@ The router receives ordinary language and selects the smallest registered squad 
 Intent -> translate -> classify risk -> select squad -> specialist handoffs -> build -> proof -> external action if authorized
 ```
 
-See `SQUAD_METHOD.md` for composition rules and `SQUAD_WORKSHOP.md` for deriving project-specific formations.
+See `SQUAD_METHOD.md` for composition rules, `SQUAD_WORKSHOP.md` for deriving project-specific formations, `CAPABILITY_TIERS.md` for capability selection, and `SQUAD_CATALOG.md` for reference formations.
 
 ## Capability Roster
 
@@ -114,6 +114,14 @@ Add a Skill when all are true:
 5. Its output can hand control back cleanly.
 
 After defining a specialist, decide which outcome squads need it. An unused capability is not automatically a squad.
+
+Classify candidates before drafting:
+
+- universal candidates are evaluated for most projects but are not installed or invoked automatically;
+- conditional specialists require a repeated material repository boundary;
+- exceptional specialists require domain-specific judgment or high failure cost.
+
+Project labels and technology choices seed investigation only. Risk traits and repeated outcomes decide the roster. See `CAPABILITY_TIERS.md` and `PROJECT_ARCHETYPES.md`.
 
 Potential Phase 2 specialists:
 

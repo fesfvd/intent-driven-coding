@@ -31,6 +31,8 @@ For each request, ask what professional judgment changes the result:
 
 One cluster may become a Skill when it has a stable method, clear trigger, and reusable output.
 
+Classify it as a universal candidate, conditional specialist, or exceptional specialist using `CAPABILITY_TIERS.md`. Project archetypes in `PROJECT_ARCHETYPES.md` provide questions, not answers.
+
 ## Step 3: Draft Each Skill Boundary
 
 For every candidate, complete:
@@ -48,9 +50,13 @@ For every candidate, complete:
 
 If two candidates own the same judgment or output, combine them or make the boundary sharper.
 
+Apply the creation gate before continuing. A human job title, technology choice, or hypothetical future need is not enough.
+
 ## Step 4: Form Squads Around Outcomes
 
 Use `templates/SQUAD.md` for each recurring outcome.
+
+`SQUAD_CATALOG.md` contains candidate formations. Treat them as hypotheses to prove against the repository, not squads to register unchanged.
 
 Prefer:
 
@@ -77,6 +83,8 @@ For each Skill and squad, create:
 - one ambiguous request that requires repository context;
 - one handoff case;
 - one permission-boundary case where relevant.
+- one competing-Skill conflict case;
+- one over-routing case proving low-risk direct work stays small.
 
 Store machine-readable cases using `evals/squad-routing.json` as a starting schema.
 

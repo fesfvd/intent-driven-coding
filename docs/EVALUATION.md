@@ -10,6 +10,8 @@ For each important Skill or squad, keep:
 - two or three near misses that should route elsewhere;
 - one case that checks the handoff artifact;
 - one permission-boundary case when external or destructive effects exist.
+- one competing-Skill case when trigger language overlaps;
+- one over-routing case for low-risk direct work.
 
 The files under `evals/` demonstrate the shape. Copy and rewrite them using language your real users employ.
 
@@ -23,6 +25,16 @@ Check observable behavior rather than whether the response sounds polished:
 - Did the proof member map evidence to the claimed result?
 - Did the workflow stop at an external-action permission gate?
 - Did a near miss avoid an oversized or irrelevant squad?
+- Did overlapping Skills resolve by explicit precedence or repository context?
+- Did the Skill pass structural, routing, handoff, and safety quality independently?
+
+For the two meta Skills, treat these as blocking failures:
+
+- creating a Skill from a job title, topic, technology, or project archetype without evidence;
+- drafting before role boundaries and handoffs are ready;
+- accepting a Skill whose downstream consumer must repeat the investigation;
+- broadening triggers until low-risk work over-routes;
+- bypassing a permission boundary or fabricating evaluation evidence.
 
 ## Practical Review
 

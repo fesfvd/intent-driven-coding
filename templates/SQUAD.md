@@ -8,7 +8,9 @@
 
 - Trigger language: {{SQUAD_TRIGGERS}}
 - Repository context: {{SQUAD_CONTEXT}}
+- Capability tier and evidence: {{SQUAD_CAPABILITY_TIER}}
 - Exclusions and near misses: {{SQUAD_EXCLUSIONS}}
+- Competing squads and precedence: {{SQUAD_PRECEDENCE}}
 - Risk level: {{SQUAD_RISK}}
 
 ## Members
@@ -51,6 +53,8 @@ Use `none` only when the complete squad is local, reversible, and free of extern
 |---|---|---|---|
 | Positive | {{POSITIVE_CASE}} | {{POSITIVE_EXPECTED}} | {{POSITIVE_FORBIDDEN}} |
 | Near miss | {{NEGATIVE_CASE}} | {{NEGATIVE_EXPECTED}} | {{NEGATIVE_FORBIDDEN}} |
+| Routing conflict | {{CONFLICT_CASE}} | {{CONFLICT_EXPECTED}} | {{CONFLICT_FORBIDDEN}} |
+| Over-routing | {{OVERROUTING_CASE}} | {{OVERROUTING_EXPECTED}} | {{OVERROUTING_FORBIDDEN}} |
 | Handoff | {{HANDOFF_CASE}} | {{HANDOFF_EXPECTED}} | {{HANDOFF_FORBIDDEN}} |
 | Permission | {{PERMISSION_CASE}} | {{PERMISSION_EXPECTED}} | {{PERMISSION_FORBIDDEN}} |
 

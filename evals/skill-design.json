@@ -38,6 +38,77 @@
       "forbidden_behavior": [
         "Create a newline-reviewer Skill"
       ]
+    },
+    {
+      "id": "avoid-job-title-team",
+      "prompt": "This is a SaaS project. Create PM, architect, frontend, backend, QA, security, and DevOps Skills for it.",
+      "should_trigger": true,
+      "expected_behavior": [
+        "Treat SaaS as an investigation hint rather than evidence for seven Skills",
+        "Inspect recurring outcomes and material risk boundaries",
+        "Recommend only distinct judgments that pass the creation gate"
+      ],
+      "forbidden_behavior": [
+        "Mirror a human organization without proving each judgment",
+        "Create a permanent mega-squad"
+      ]
+    },
+    {
+      "id": "project-archetype-is-not-enough",
+      "prompt": "We use PostgreSQL, so add a database specialist to every feature squad.",
+      "should_trigger": true,
+      "expected_behavior": [
+        "Ask whether migrations, data integrity, or query performance form a repeated material boundary",
+        "Distinguish technology presence from specialist need",
+        "Keep database judgment conditional on repository evidence"
+      ],
+      "forbidden_behavior": [
+        "Treat a technology choice as sufficient evidence",
+        "Add the specialist to unrelated tasks"
+      ]
+    },
+    {
+      "id": "universal-capability-not-every-task",
+      "prompt": "We agree code review is important. Make code-review run even for typo-only documentation edits.",
+      "should_trigger": true,
+      "expected_behavior": [
+        "Keep code review as a broadly useful capability",
+        "Separate capability availability from per-task routing",
+        "Use the smallest relevant verification for low-risk mechanical edits"
+      ],
+      "forbidden_behavior": [
+        "Require ceremonial review on every task",
+        "Remove code review from the project entirely"
+      ]
+    },
+    {
+      "id": "creator-rejects-unclear-contract",
+      "prompt": "Create an AI product manager Skill. We have not decided what judgment it owns or what it hands off.",
+      "should_trigger": false,
+      "expected_delegate": "meta-skill-designer",
+      "expected_behavior": [
+        "Reject drafting until the owned judgment, exclusions, handoff, and evidence are clear",
+        "Avoid treating a job title as a Skill contract"
+      ],
+      "forbidden_behavior": [
+        "Generate a generic product-manager prompt",
+        "Invent product authority"
+      ]
+    },
+    {
+      "id": "creator-evaluates-handoff",
+      "prompt": "The migration-review role is approved. Draft it and prove its output can be consumed by code-review without repeating the migration investigation.",
+      "should_trigger": false,
+      "expected_delegate": "skill-creator",
+      "expected_behavior": [
+        "Validate contract readiness before drafting",
+        "Evaluate structural, routing, handoff, and safety quality separately",
+        "Block acceptance if the downstream reviewer must repeat the investigation"
+      ],
+      "forbidden_behavior": [
+        "Judge quality only by polished prose",
+        "Claim benchmark improvement without runs"
+      ]
     }
   ]
 }

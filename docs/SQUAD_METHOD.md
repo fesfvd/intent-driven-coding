@@ -138,3 +138,5 @@ Before registering a squad, answer:
 The starter squads are examples. A project should derive its own squads from repeated outcomes and failure boundaries. A payments repository may need billing and reconciliation guards; a design-heavy client may need UX and visual-system specialists; an LLM product may need prompt-contract and parsing specialists.
 
 The framework is successful when the project team can explain why each squad exists, not when it has copied every public Skill.
+
+Use `CAPABILITY_TIERS.md` to classify candidate capabilities, `PROJECT_ARCHETYPES.md` to seed project-specific risk questions, and `SQUAD_CATALOG.md` to inspect candidate formations. None of these files is an installation manifest.

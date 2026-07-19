@@ -6,7 +6,7 @@ allowed-tools: [Read, Grep, Glob]
 
 # Meta Skill Designer
 
-Design the professional system before drafting individual Skills. The goal is not a larger catalog; it is a small set of distinct capabilities and squads that close real project outcomes.
+Design the professional system before drafting individual Skills. The goal is not a larger catalog or a simulated human company; it is a small set of distinct judgments and squads that close real project outcomes.
 
 ## Inputs
 
@@ -22,17 +22,69 @@ Ask the user only for missing product priorities or examples that cannot be esta
 
 ## Workflow
 
-1. Extract repeated outcomes and failure patterns before naming roles.
-2. Cluster work by distinct professional judgment, not by file type or personality.
-3. Draft each candidate Skill's trigger, owned judgment, output, exclusions, handoff, and safety boundary.
-4. Remove or merge candidates that duplicate another Skill.
-5. Form squads around outcomes, usually with two members and at most three:
+1. Build an evidence ledger before naming roles. Separate observed recurring work, repository-proven risks, user priorities, and unproven hypotheses.
+2. Map risk traits and recurring outcomes. Project labels such as "SaaS" or "CLI" are hints, not sufficient evidence.
+3. Cluster work by distinct professional judgment, not by file type, technology, personality, or human job title.
+4. Classify candidate capabilities using the Capability Tiers below.
+5. Apply the Creation Gate. Reject candidates that are deterministic, rare and low-cost, duplicative, unstable, or unable to produce a reusable handoff.
+6. Draft each surviving candidate's trigger, owned judgment, output, exclusions, competing Skills, handoff, exit condition, and safety boundary.
+7. Remove or merge candidates that duplicate another Skill. Apply the Removal test to every existing capability.
+8. Form squads around outcomes, usually with two members and at most three:
    - primary judgment;
    - optional distinct domain/risk guard;
    - independent proof.
-6. Define concrete handoff artifacts and exit conditions.
-7. Identify positive, near-miss, ambiguous, handoff, and permission evaluation cases.
-8. Hand the design package to `skill-creator` for drafting and iterative evaluation.
+9. Define concrete handoff artifacts, routing precedence, exit conditions, and permission gates.
+10. Identify positive, near-miss, ambiguous, conflict, handoff, permission, and over-routing evaluation cases.
+11. Hand the design package to `skill-creator` for drafting and iterative evaluation.
+
+## Capability Tiers
+
+Tiers guide evaluation; they are not an installation manifest.
+
+### Universal candidates
+
+Evaluate these for almost every maintained software project:
+
+- routing and requirement translation;
+- root-cause debugging;
+- code review;
+- fresh verification;
+- architecture impact analysis when cross-boundary change is common.
+
+A universal candidate belongs in the project's capability pool only when it adds value beyond the host agent's reliable built-in behavior. It does not run on every task. For example, a project should usually have code-review capability, but a typo fix should not automatically summon it.
+
+### Conditional specialists
+
+Add only when repository evidence exposes a repeated material boundary, such as authorization, migration safety, billing, UX, accessibility, performance, deployment, backward compatibility, LLM evaluation, or external integration recovery.
+
+### Exceptional specialists
+
+Reserve for domain-specific judgments with high error cost or repeated expert work, such as financial ledger integrity, medical safety, tenant isolation, embedded resource limits, or regulatory traceability.
+
+## Creation Gate
+
+A new Skill must satisfy all of these:
+
+1. A recurring outcome or material failure boundary is evidenced.
+2. Existing Skills or deterministic controls do not already cover the judgment.
+3. The method is stable enough to outlive current paths, versions, and incidents.
+4. Ordinary-language triggers and near misses can be distinguished.
+5. The Skill produces a concrete artifact another actor can consume.
+6. Failure has enough cost to justify added routing and context complexity.
+
+If any condition fails, recommend direct agent behavior, documentation, a script, schema, lint rule, test, or deferred observation instead.
+
+## Removal test
+
+For each proposed and existing Skill ask:
+
+- What necessary judgment is lost if this Skill is removed?
+- Can another Skill own that judgment without becoming incoherent?
+- Has it been selected by real work or only by hypothetical examples?
+- Is its stable method still distinct from repository facts?
+- Does its handoff save downstream investigation?
+
+Merge, narrow, archive, or remove capabilities that cannot answer these questions convincingly.
 
 ## Squad Design Rules
 
@@ -42,6 +94,8 @@ Ask the user only for missing product priorities or examples that cannot be esta
 - Do not use a Skill for deterministic work better enforced by a script, test, schema, or lint rule.
 - Skills store stable methods; routes, versions, service names, limits, and current feature lists stay in repository evidence.
 - A handoff is an artifact, not "then call the next Skill."
+- Possessing a capability does not imply invoking it for every task.
+- Project archetypes seed questions; repository risk traits decide the roster.
 
 ## Output
 
@@ -50,10 +104,15 @@ Ask the user only for missing product priorities or examples that cannot be esta
 - Repeated outcomes:
 - Quality failures:
 - Repository risks:
+- Evidence confidence: observed / repository-proven / user-priority / hypothesis
+
+## Capability Classification
+| Capability | Tier | Evidence | Decision | Reason |
+|---|---|---|---|---|
 
 ## Proposed Roster
-| Skill | Trigger | Owned judgment | Output | Exclusions |
-|---|---|---|---|---|
+| Skill | Trigger | Owned judgment | Output | Exclusions | Competing Skill |
+|---|---|---|---|---|---|
 
 ## Proposed Squads
 | Outcome | Members | Handoffs | Exit condition | Permission gate |
@@ -62,16 +121,20 @@ Ask the user only for missing product priorities or examples that cannot be esta
 ## Consolidation
 - Skills to merge/remove:
 - Rules to move into tests/scripts/docs:
+- Capabilities to observe before creating:
 
 ## Evaluation Plan
 - Positive cases:
 - Near misses:
+- Routing conflicts and precedence:
+- Over-routing cases:
 - Handoff cases:
 - Permission cases:
 
 ## Handoff To Skill Creator
 - Skills to draft or revise:
-- Evidence and expected behavior:
+- Contract readiness for each Skill: ready / blocked
+- Evidence, expected behavior, and acceptance rubric:
 ```
 
 ## Constraints
@@ -79,6 +142,8 @@ Ask the user only for missing product priorities or examples that cannot be esta
 - Do not write a Skill merely because a topic exists.
 - Do not copy the entire project manual into a Skill.
 - Do not design a permanent mega-squad.
+- Do not copy PM, architect, developer, tester, and operator job titles unless each owns a distinct evidenced judgment.
+- Do not turn project archetype recommendations into project facts.
 - Do not silently choose product semantics while designing triggers.
 - This Skill designs the system; `skill-creator` drafts and evaluates individual Skills.
 
