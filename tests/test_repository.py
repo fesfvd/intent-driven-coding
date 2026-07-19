@@ -36,6 +36,21 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("Design Before Copying", entry)
         self.assertIn("Optional Scaffolding", entry)
 
+    def test_author_discloses_las_origin_without_benchmark_claims(self) -> None:
+        author = (ROOT / "AUTHOR.md").read_text(encoding="utf-8")
+        self.assertIn("https://lasystem.cn/", author)
+        self.assertIn("LAS", author)
+        self.assertIn("个人实践", author)
+        self.assertIn("personal practice", author)
+        self.assertIn("not a benchmark", author.lower())
+
+    def test_requirement_translation_remains_router_control_plane(self) -> None:
+        router = (ROOT / "skills" / "team" / "SKILL.md").read_text(encoding="utf-8")
+        playbook = (ROOT / "docs" / "TEAM_PLAYBOOK.md").read_text(encoding="utf-8")
+        self.assertIn("Requirement Translation Gate", router)
+        self.assertIn("next smallest safe route", router)
+        self.assertIn("not a separate specialist", playbook)
+
     def test_platform_guide_covers_mainstream_tools(self) -> None:
         guide = (ROOT / "docs" / "PLATFORM_ADAPTERS.md").read_text(encoding="utf-8")
         for platform in ("Claude Code", "OpenCode", "Codex", "Cursor", "GitHub Copilot"):

@@ -8,6 +8,8 @@ allowed-tools: [Read, Grep, Glob, Skill]
 
 Translate natural language, classify risk, and select the minimum outcome-oriented squad. This router is the control plane, not a squad member. Do not copy specialist procedures into it.
 
+The router owns one control-plane decision: select the next smallest safe route from user intent, repository evidence, workflow state, risk traits, and permission boundaries. Requirement translation, risk classification, state tracking, and permission checks are inputs and constraints to that decision, not separate specialist conclusions.
+
 ## Requirement Translation Gate
 
 Classify information as:

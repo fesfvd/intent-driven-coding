@@ -155,7 +155,7 @@ The user describes a goal in ordinary language. The agent investigates the repos
 
 This repository is not a collection of project-specific prompts or a team that must be copied unchanged. It shares the method for designing distinct Skills and combining two or three of them into outcome-oriented squads for your own project.
 
-Created and shared by **凸( →_→ )凸**. Read [AUTHOR.md](AUTHOR.md) for the experience behind the framework and why it is public.
+Created and shared by **凸( →_→ )凸** from personal practice building the live [LAS literary-analysis system](https://lasystem.cn/). Read [AUTHOR.md](AUTHOR.md) for the experience behind the framework, its non-benchmark adoption stance, and why it is public.
 
 ## Why This Exists
 

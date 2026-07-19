@@ -6,6 +6,8 @@ An agent system should be organized around distinct professional judgments, not 
 
 The router receives ordinary language and selects the smallest registered squad that can safely complete the work. The router is the control plane and is not counted as a squad member. Specialists remain narrow: they provide a method and a handoff artifact, then return control to the main agent or next specialist.
 
+Requirement translation is part of this control plane, not a separate specialist by default. It classifies intent, repository facts, proposed defaults, and open decisions so the router can select the next smallest safe route. Create a project-specific product or requirements Skill only when repeated work requires an independent professional judgment, a concrete downstream artifact, and a boundary that the router must not decide.
+
 ```text
 Intent -> translate -> classify risk -> select squad -> specialist handoffs -> build -> proof -> external action if authorized
 ```

@@ -6,6 +6,12 @@
 
 ## 我为什么分享这套方法
 
+### 实践来源与采用方式
+
+这套方法是在我个人开发和持续维护文衡（LAS）文学分析系统的过程中逐步总结出来的：[https://lasystem.cn/](https://lasystem.cn/)。LAS 是一个真实运行的 AI 文学分析网站，也是这些上下文、Skill、小队、审查、验证和权限边界不断暴露问题并被修正的实践环境。
+
+这是个人实践经验的开源分享，不是 Benchmark、效果保证或第三方背书。我不要求使用者先相信一组宣传数据：克隆后在自己的项目里试用，适合就保留并继续调整；不适合就替换或停止使用。如果它节省了你的时间，点一个 Star 就足够了。
+
 这套框架不是我为了收集更多提示词而设计出来的。它来自我长期使用 AI 智能体参与一个真实生产项目的过程，也来自这个过程中反复遇到的问题和不断进行的修正。
 
 我曾经发现，用户为了让 AI 开始工作，往往需要先解释大量内部工程细节；一个不断膨胀的总提示词会越来越昂贵、越来越容易过期；单个 Skill 看起来很强，但真正协作时却经常没有明确交接；AI 也容易把工程自主权误解成产品决策权，甚至在缺少新鲜验证证据时就宣布任务已经完成。
@@ -41,6 +47,12 @@ Skill 是一项专业能力。小队才是围绕一个结果，由两到三个�
 **凸( →_→ )凸**
 
 ### Why I Am Sharing This
+
+#### Practice Origin And Adoption
+
+This framework grew from my personal practice while building and continuously maintaining the Literary Assessment System (LAS): [https://lasystem.cn/](https://lasystem.cn/). LAS is a live AI literary-analysis website and the working environment in which these context, Skill, squad, review, verification, and permission-boundary ideas repeatedly failed, changed, and improved.
+
+This is an open-source account of personal practice, not a benchmark, performance guarantee, or third-party endorsement. You do not need to trust promotional metrics before trying it: clone it, test it in your own repository, keep and adapt what works, and replace or stop using what does not. If it saves you time, a Star is enough.
 
 I did not arrive at this framework by trying to collect as many prompts or Skills as possible. It grew from repeatedly working with coding agents on a real production project and noticing the same failures:
 
