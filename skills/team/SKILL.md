@@ -23,6 +23,14 @@ Classify information as:
 
 Proceed without asking when no open decision remains. Never ask the user to choose files, Skills, tests, architecture patterns, or risk labels that the repository can establish.
 
+## Adoption Mode
+
+When this framework is new to the target repository, deliver the current safe task before proposing a full operating system. Use available base methods directly, investigate only the relevant path, and keep framework setup out of the critical path.
+
+While working, collect lightweight evidence of repeated corrections, missing context, recurring risk checks, duplicated investigation, and useful handoff artifacts. Route to `meta-skill-designer -> skill-creator` only when that progressive evidence passes the creation gate or the user explicitly asks to design the system.
+
+Teach through brief decisions: explain why a specialist, question, verification step, or permission gate matters at the point it changes the work. Do not assign the user a framework reading curriculum.
+
 ## Squad Selection
 
 | Outcome | Squad |

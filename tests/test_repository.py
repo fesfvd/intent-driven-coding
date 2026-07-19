@@ -36,6 +36,30 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("Design Before Copying", entry)
         self.assertIn("Optional Scaffolding", entry)
 
+    def test_ai_first_adoption_works_before_full_system_design(self) -> None:
+        entry = (ROOT / "AI_START_HERE.md").read_text(encoding="utf-8")
+        quickstart = (ROOT / "QUICKSTART.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        for phrase in (
+            "Learn While Delivering",
+            "Do not make full framework adaptation a prerequisite",
+            "Progressive Adoption Loop",
+        ):
+            self.assertIn(phrase, entry)
+        self.assertIn("First Useful Task", quickstart)
+        self.assertIn("The human does not need to study the framework first", quickstart)
+        self.assertIn("AI 先学、先做当前任务、边用边搭", readme)
+
+    def test_progressive_adoption_collects_evidence_before_creating_skills(self) -> None:
+        router = (ROOT / "skills" / "team" / "SKILL.md").read_text(encoding="utf-8")
+        designer = (ROOT / "skills" / "meta-skill-designer" / "SKILL.md").read_text(encoding="utf-8")
+        guide = (ROOT / "docs" / "ADAPTATION_GUIDE.md").read_text(encoding="utf-8")
+        self.assertIn("Adoption Mode", router)
+        self.assertIn("deliver the current safe task", router)
+        self.assertIn("progressive evidence", designer)
+        self.assertIn("Evidence Before Infrastructure", guide)
+        self.assertIn("teach through brief decisions", guide.lower())
+
     def test_author_discloses_las_origin_without_benchmark_claims(self) -> None:
         author = (ROOT / "AUTHOR.md").read_text(encoding="utf-8")
         self.assertIn("https://lasystem.cn/", author)
@@ -56,6 +80,16 @@ class RepositoryTests(unittest.TestCase):
         for platform in ("Claude Code", "OpenCode", "Codex", "Cursor", "GitHub Copilot"):
             self.assertIn(platform, guide)
         self.assertIn("does not claim automatic compatibility", guide)
+
+    def test_platforms_receive_self_recognizable_adoption_instructions(self) -> None:
+        entry = (ROOT / "AI_START_HERE.md").read_text(encoding="utf-8")
+        guide = (ROOT / "docs" / "PLATFORM_ADAPTERS.md").read_text(encoding="utf-8")
+        self.assertIn("Identify Your Host First", entry)
+        self.assertIn("If You Are Claude Code", guide)
+        self.assertIn("If You Are OpenCode", guide)
+        self.assertIn("If You Are Codex", guide)
+        self.assertIn("If You Are Cursor Or GitHub Copilot", guide)
+        self.assertIn("act on that section immediately", guide)
 
     def test_skill_auditor_passes(self) -> None:
         result = self.run_script(AUDITOR)

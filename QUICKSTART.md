@@ -1,8 +1,8 @@
-# 15-Minute Quick Start
+# AI-First Quick Start
 
-The recommended path is to let an AI coding agent understand this framework, investigate the target repository, and adapt only the relevant parts. The goal is not to install a fixed team or produce perfect documentation.
+The human does not need to study the framework first. The recommended path is for the coding agent to learn only what the current task requires, deliver useful work immediately, and grow project-specific guidance from evidence over time.
 
-## Recommended: AI-Assisted Adaptation
+## First Useful Task
 
 Place this repository beside the target project:
 
@@ -12,7 +12,29 @@ workspace/
 `-- intent-driven-coding/
 ```
 
-Start the coding agent in `my-project` and ask it to read `../intent-driven-coding/AI_START_HERE.md`. The agent should understand the framework, inspect the target repository, design the target's own Skills and squads, adapt to the host platform, and verify the result. It should not copy the examples unchanged.
+Start the coding agent in `my-project` and give it this instruction:
+
+```text
+Read ../intent-driven-coding/AI_START_HERE.md, identify your host-platform section, and then handle my next real task. Do not stop to install the full framework. Investigate the relevant repository path, use the smallest safe method, implement, and verify. Learn the project while working and propose durable Skills or squads only after repeated evidence justifies them.
+```
+
+Then give it a real bug, feature, review, or refactor request. The first useful result is a verified project outcome, not a generated framework directory.
+
+## What The Agent Does Incrementally
+
+During ordinary work the agent should:
+
+1. Learn the host platform's real entry, Skill, agent, and permission mechanisms.
+2. Investigate only the repository paths needed for the current goal.
+3. Apply requirement translation, the relevant specialist method, and fresh verification.
+4. Record repeated friction, risks, missing handoffs, and stable project knowledge.
+5. Add a thin entry, architecture note, Skill, squad, or evaluation only when it will help future work.
+
+The user steers direction, resolves product meaning, and authorizes risky effects. The agent owns framework learning and implementation details.
+
+## Optional: Deliberate System Build-Out
+
+Use the remaining steps when repeated work now justifies durable project artifacts. They are not prerequisites for the first task.
 
 Use the ready-to-paste Chinese prompt in `README.md`, or express the same goal in your own language.
 

@@ -4,6 +4,21 @@
 
 Turn the generic framework into a trustworthy local operating system for one repository. The target is not maximal documentation. The target is enough current context for an agent to make correct decisions and know what it must verify.
 
+## Evidence Before Infrastructure
+
+Adaptation is an AI responsibility performed alongside useful project work. Do not require the human to learn the framework, complete templates, enumerate Skills, or design squads before the first task can succeed.
+
+Start with the user's current goal. Apply the smallest safe methods, inspect the relevant production path, and verify the result. While doing so, gather evidence about repeated investigation, corrections, failure boundaries, missing handoffs, and stable project rules. Create durable files and Skills only when that evidence shows they will reduce future work or control a material risk.
+
+Teach through brief decisions at the moment they matter. Explain why you are asking a product question, loading a specialist, adding a permission gate, or proposing durable guidance; do not turn adoption into a reading assignment.
+
+Use two concurrent tracks:
+
+```text
+Delivery track: current goal -> smallest safe route -> implementation -> fresh proof
+Learning track: friction/risk evidence -> reusable rule or handoff -> creation gate -> incremental adaptation
+```
+
 ## Step 1: Establish Truth Sources
 
 Rank the repository's sources of truth. A common order is:

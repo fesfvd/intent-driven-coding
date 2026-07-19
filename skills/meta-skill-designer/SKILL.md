@@ -17,8 +17,11 @@ Collect evidence from:
 - repository architecture and risk boundaries;
 - existing Skills, descriptions, handoffs, and usage;
 - deterministic tasks that should become scripts or tests instead of Skills.
+- progressive evidence gathered while the agent completes ordinary project work, so system design can grow from use instead of requiring an upfront workshop.
 
 Ask the user only for missing product priorities or examples that cannot be established from the repository and conversation.
+
+Do not require the human to learn the framework or enumerate future workflows before useful work begins. When evidence is still sparse, preserve observations and defer Skill creation rather than blocking the current task.
 
 ## Workflow
 

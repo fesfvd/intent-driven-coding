@@ -8,30 +8,50 @@ Adapt the framework to a target repository so that users can express goals in or
 
 Every handoff should have an artifact, every completion claim should have fresh evidence, and product meaning plus risky external actions should remain human decisions.
 
+## Learn While Delivering
+
+The human does not need to study this framework before benefiting from it. You, the coding agent, own framework learning, repository investigation, host-platform adaptation, and incremental system design.
+
+Do not make full framework adaptation a prerequisite for the user's current task. Read only enough to act safely, deliver the current useful result, and collect evidence while working. Explain framework concepts briefly only when they affect a decision the user owns.
+
+## Identify Your Host First
+
+Before reading the full method, identify whether you are Claude Code, OpenCode, Codex, Cursor, GitHub Copilot, or another coding agent. Then read the matching section in `docs/PLATFORM_ADAPTERS.md` and use the host's real instruction, Skill, agent, permission, and task mechanisms. Do not ask the user to translate this framework into your platform conventions.
+
 ## Read In This Order
 
 Read only as far as needed for the next adaptation decision:
 
-1. `README.md` for purpose and the central model.
-2. `docs/PROTOCOL.md` for requirement translation.
-3. `docs/CONTEXT_ARCHITECTURE.md` for the three context layers.
-4. `docs/SQUAD_METHOD.md` for Skill, squad, and router boundaries.
-5. `docs/SQUAD_WORKSHOP.md` for deriving project-specific capabilities and squads.
-6. `docs/CAPABILITY_TIERS.md` when deciding which capabilities are universal candidates, conditional, or exceptional.
-7. `docs/PROJECT_ARCHETYPES.md` and `docs/SQUAD_CATALOG.md` only as reference hypotheses, never as install manifests.
-8. `skills/meta-skill-designer/SKILL.md` for roster and squad design.
-9. `skills/skill-creator/SKILL.md` for drafting and evaluating individual Skills.
-10. `templates/` only when producing target-project artifacts.
-11. `evals/` when creating routing, handoff, near-miss, and permission cases.
-12. `docs/PLATFORM_ADAPTERS.md` when mapping the result to the user's coding-agent platform.
+1. `docs/PLATFORM_ADAPTERS.md` for your own host-specific path.
+2. `docs/PROTOCOL.md` and the relevant base Skill for the current task.
+3. `docs/CONTEXT_ARCHITECTURE.md` when deciding where durable knowledge belongs.
+4. `docs/SQUAD_METHOD.md` when more than one professional judgment is needed.
+5. `skills/meta-skill-designer/SKILL.md` only when repeated evidence justifies system design.
+6. `skills/skill-creator/SKILL.md` only after a Skill contract is ready.
+7. Capability, archetype, squad, template, and evaluation references only when the current adoption decision needs them.
 
 Do not load every document and Skill by default. Follow the framework's progressive context model.
+
+## Progressive Adoption Loop
+
+Use this loop from the first real request:
+
+```text
+current user goal
+  -> inspect only the relevant repository path
+  -> use the smallest safe capability chain
+  -> implement and verify the result
+  -> record repeated friction, risk, and reusable handoffs
+  -> add or revise project guidance only when evidence passes the creation gate
+```
+
+The first successful task may produce no new framework files. That is acceptable. Build project infrastructure only when it will reduce future work or control a real risk.
 
 ## Adaptation Workflow
 
 ### 1. Understand The Target
 
-Inspect the target repository before writing framework files:
+Inspect the target repository around the current task before writing framework files. Expand only when architecture or risk requires it:
 
 - product purpose and current user-visible behavior;
 - executable source, configuration, schemas, and tests;
@@ -49,7 +69,7 @@ Separate explicit user intent, repository-proven facts, proposed defaults, and o
 
 ### 3. Design Before Copying
 
-Use `meta-skill-designer` to derive the minimum stable capability roster, decide which bundled Skills are relevant, identify repeated outcomes that deserve squads, define handoff artifacts and exit conditions, and move deterministic rules into tests or scripts instead of Skills.
+Use `meta-skill-designer` after progressive evidence reveals recurring work, repeated correction, a material failure boundary, or missing handoffs. Do not hold the current task hostage while attempting to design a complete future roster.
 
 Two members are the default closed loop. Add a third only for a distinct material judgment. Do not treat the bundled roster or example squads as mandatory architecture.
 
