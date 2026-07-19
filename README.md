@@ -6,9 +6,11 @@
 
 Intent-Driven Coding 是一套面向真实软件项目的 AI 编程工作框架，用来帮助开发者搭建属于自己项目的专业 Skill 小队。
 
-它不是一批要求你原样照搬的提示词，也不是一支固定不变的“万能团队”。这个仓库分享的是一套搭建方法：用户只需要用自然语言表达目标，AI 负责调查仓库、翻译需求、选择最小专业小队、完成工程实现并提供验证证据；产品语义、高风险权限和不可逆决定仍然由人掌握。
+它不是一批要求你原样照搬的提示词，也不是一支固定不变的“万能团队”。这个仓库分享的是一套搭建方法：用户可以先用自然语言表达目标，AI 负责调查仓库、翻译需求、选择最小专业小队、完成工程实现并提供验证证据；人则提供目标、经验、痛点、质疑和取舍，判断什么值得沉淀为长期体系。
 
-采用方式不是“人先读完 29 份文档再配置 AI”，而是 **AI 先学、先做当前任务、边用边搭**。AI 应识别自己是 Claude Code、Codex、OpenCode、Cursor 或其他宿主，读取对应适配说明，立即开始处理真实需求，并在使用过程中根据重复工作和风险证据增量建立项目体系。人只需要调方向、决定产品语义并授权高风险动作。
+采用方式不是“人先读完 29 份文档再配置 AI”，也不是“模型足够强就能替人自动搭好一切”，而是 **AI 先学并反哺核心概念，人机在真实任务中协作学习、共同判断、渐进搭建**。AI 应识别宿主、调查项目、执行与验证，并在关键时刻解释概念、证据、不确定性和取舍；人需要独立思考，用自身经验校准 AI，识别真正的痛点，并决定哪些方法值得长期保留。
+
+AI-first 是启动方式，人机协作是工作方式，人的判断是质量上限。模型能力会影响执行质量，使用者的能力、经验和判断也会影响最终体系；框架的目标是让两者互相增强，而不是让一方取代另一方。
 
 作者：**凸( →_→ )凸**。关于这套方法来自哪里、为什么愿意公开分享，请阅读 [作者自述](AUTHOR.md)。
 
@@ -31,6 +33,20 @@ Skill = 一项稳定、边界清楚的专业能力
 | 设计或优化 Skill 团队 | `meta-skill-designer` -> `skill-creator` | 先设计角色和小队，再创建、评测和迭代 Skill |
 
 两人小队通常是“主要专业判断 + 独立证明”；只有存在另一项不可替代的风险边界时，才增加第三名成员。更多 Skill 不等于更专业，职责清楚、交接明确、能够闭环才是关键。
+
+## 人为什么重要
+
+AI 可以更快阅读框架、检索代码、归纳模式和执行验证，但它无法仅凭仓库自动知道哪些摩擦最影响你、哪些妥协可以接受、哪些抽象会在长期工作中变成负担。人的开发经验、领域理解和独立判断决定了能否识别真实问题、审查 AI 建议并纠正错误抽象。
+
+人的职责不只是在权限门前点确认，还包括：
+
+- 说明真实目标、历史痛点和隐性约束；
+- 判断问题是偶发现象还是值得治理的重复模式；
+- 质疑 AI 的假设、证据和复杂度；
+- 决定哪些经验应该固化、继续观察、修改或删除；
+- 对产品语义、长期方向和高风险动作承担最终判断。
+
+AI 的职责是降低理解和执行成本，而不是隐藏推理或替代判断。它应该在真实任务中按需反哺核心概念，让用户逐步具备审查和演化自身体系的能力。
 
 ## 三层上下文模型
 
@@ -87,9 +103,9 @@ AI 把用户的自然语言需求翻译为工程任务时，还需要区分四�
 
 ## 快速开始
 
-### 推荐方式：让 AI 边工作边适配项目
+### 推荐方式：AI 先学，人机共学共建
 
-把这个仓库克隆到目标项目旁边，在目标项目中启动 Claude Code、OpenCode、Codex 或其他 AI 编程工具，然后让 AI 阅读 [`AI_START_HERE.md`](AI_START_HERE.md) 并直接处理一个真实任务。AI 不需要先完成全套适配，也不应要求你学习 Skill 名称或填写模板；它会识别宿主平台、按需读取方法、完成当前工作，并在证据足够时增量建立可复用能力。
+把这个仓库克隆到目标项目旁边，在目标项目中启动 Claude Code、OpenCode、Codex 或其他 AI 编程工具，然后让 AI 阅读 [`AI_START_HERE.md`](AI_START_HERE.md) 并直接处理一个真实任务。AI 不需要先完成全套适配，也不应要求你预先学习 Skill 名称或填写模板；它会识别宿主平台、按需读取方法、完成当前工作，并把会影响判断的核心概念、证据和取舍简短解释给你。你再用自己的目标、经验和质疑参与校准，共同决定何时建立可复用能力。
 
 可以直接使用下面这段指令：
 
@@ -98,7 +114,7 @@ AI 把用户的自然语言需求翻译为工程任务时，还需要区分四�
 
 不要把完整框架适配作为前置任务。先处理我接下来提出的真实需求：自行调查相关源码、配置和测试，选择最小安全能力链，完成实现并给出新鲜验证证据。
 
-在工作过程中，静默记录重复调查、反复修正、风险边界和可复用交接物。只有证据足够时，才增量建立或调整项目入口、架构说明、Skill 和小队，并在关键选择处简短告诉我原因。不要要求我先学习框架术语、选择 Skill、查文件或填写模板。
+在工作过程中，记录重复调查、反复修正、风险边界和可复用交接物。在影响工作方式的关键节点，向我简短解释相关核心概念、证据、不确定性和取舍，并主动吸收我提供的开发经验、真实痛点和纠正意见。只有证据足够且经过共同判断时，才增量建立或调整项目入口、架构说明、Skill 和小队。不要要求我预先学完整套框架、选择 Skill、查文件或填写模板，也不要把我降格为只负责授权的人。
 
 只有会改变产品行为、数据、隐私、权限、成本或不可逆结果的开放歧义才询问我。未经明确授权，不要 commit、push、部署或执行生产写操作。
 ```
@@ -140,9 +156,9 @@ python -m unittest discover -s tests -v
 
 Intent-Driven Coding is a portable framework for building professional AI engineering squads around a real software repository.
 
-The recommended adoption path is AI-assisted adaptation, not blind installation. Ask your coding agent to read [`AI_START_HERE.md`](AI_START_HERE.md), inspect the target repository, derive the project's own capabilities and squads, map them to the host platform, and verify the result. `scripts/bootstrap.py` is optional scaffolding only.
+The recommended adoption path is AI-first learning followed by human-AI collaborative adaptation, not blind installation or autonomous system generation. Ask your coding agent to read [`AI_START_HERE.md`](AI_START_HERE.md), inspect the target repository, teach back relevant concepts and tradeoffs, and work with the user to derive the project's own capabilities and squads. `scripts/bootstrap.py` is optional scaffolding only.
 
-The user describes a goal in ordinary language. The agent investigates the repository, translates intent into an executable contract, loads only the expertise that changes the result, makes the smallest correct change, and verifies it before claiming success. Product decisions and risky external actions remain human decisions.
+The user can begin with a goal in ordinary language. The agent investigates the repository, translates intent into an executable contract, loads only the expertise that changes the result, makes the smallest correct change, and verifies it before claiming success. The human contributes domain knowledge, engineering experience, pain signals, skepticism, and judgment about product meaning, tradeoffs, durable abstractions, and risky external actions.
 
 This repository is not a collection of project-specific prompts or a team that must be copied unchanged. It shares the method for designing distinct Skills and combining two or three of them into outcome-oriented squads for your own project.
 
@@ -155,11 +171,12 @@ AI coding workflows often fail in two opposite ways:
 - The agent asks the user to decide files, tests, architecture, and tools that it should discover itself.
 - The agent silently invents product behavior, broadens scope, or performs risky actions without meaningful confirmation.
 
-This framework separates those responsibilities:
+This framework separates mechanical responsibility without separating learning or judgment:
 
 ```text
-Human: intent, product meaning, risk authorization
-Agent: repository research, engineering decisions, implementation, verification
+Human: intent, lived pain, experience, product meaning, tradeoffs, correction, final judgment
+Agent: framework learning, repository research, proposals, implementation, verification, concept feedback
+Together: learn from real work and decide what becomes durable project practice
 ```
 
 ## Core Ideas
@@ -171,6 +188,7 @@ Agent: repository research, engineering decisions, implementation, verification
 5. **Human permission gates**: commit, push, deployment, production writes, paid calls, and destructive actions are not implied by a request to edit code.
 6. **Skills store methods, repositories store facts**: changing endpoints, paths, versions, and service names should be queried, not frozen into long-lived Skills.
 7. **Meta design is part of the system**: use one meta Skill to derive roles and squads, and another to draft, evaluate, and improve each Skill.
+8. **Collaborative learning**: AI learns first and teaches back relevant concepts; the human contributes experience, correction, and final judgment about durable practice.
 
 ## The Central Model
 

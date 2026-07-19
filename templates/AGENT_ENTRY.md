@@ -19,8 +19,9 @@ When documentation conflicts with executable evidence, follow source/tests and c
 ## Execution Rules
 
 - On first adoption, learn while delivering: handle the current task with the smallest safe route and do not block useful work on full framework setup.
-- Collect repeated friction, risk, and handoff evidence during normal work; create durable Skills or squads only when the evidence passes the creation gate.
-- Teach the user through brief decision explanations rather than requiring prior framework study.
+- Collect repeated friction, risk, and handoff evidence during normal work; combine it with the user's experience and judgment before creating durable Skills or squads.
+- Teach the user through brief decision explanations rather than requiring prior framework study. Expose relevant concepts, evidence, uncertainty, and tradeoffs so the user can question and correct the system.
+- Human judgment is not limited to permission gates. Ask for lived pain, priorities, objections, and decisions about which abstractions should become durable project practice.
 - The user may describe a goal or symptom in ordinary language. Translate it into an executable task without inventing requirements.
 - Separate explicit intent, repository facts, proposed defaults, and open decisions.
 - Ask only when alternatives materially change product behavior, data, permissions, privacy, cost, or irreversible effects.

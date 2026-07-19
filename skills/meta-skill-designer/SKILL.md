@@ -18,18 +18,19 @@ Collect evidence from:
 - existing Skills, descriptions, handoffs, and usage;
 - deterministic tasks that should become scripts or tests instead of Skills.
 - progressive evidence gathered while the agent completes ordinary project work, so system design can grow from use instead of requiring an upfront workshop.
+- human experience and judgment about lived pain, failed attempts, acceptable tradeoffs, and which recurring outcomes matter enough to formalize.
 
-Ask the user only for missing product priorities or examples that cannot be established from the repository and conversation.
+Ask the user for missing product priorities and for experiential evidence that repository inspection cannot establish. A repository can show structure and failures; it cannot fully reveal which friction matters most, which compromise is acceptable, or whether a proposed abstraction fits how the user wants to work.
 
 Do not require the human to learn the framework or enumerate future workflows before useful work begins. When evidence is still sparse, preserve observations and defer Skill creation rather than blocking the current task.
 
 ## Workflow
 
-1. Build an evidence ledger before naming roles. Separate observed recurring work, repository-proven risks, user priorities, and unproven hypotheses.
+1. Build an evidence ledger before naming roles. Separate observed recurring work, repository-proven risks, human experience, user priorities, and unproven hypotheses.
 2. Map risk traits and recurring outcomes. Project labels such as "SaaS" or "CLI" are hints, not sufficient evidence.
 3. Cluster work by distinct professional judgment, not by file type, technology, personality, or human job title.
 4. Classify candidate capabilities using the Capability Tiers below.
-5. Apply the Creation Gate. Reject candidates that are deterministic, rare and low-cost, duplicative, unstable, or unable to produce a reusable handoff.
+5. Apply the Creation Gate with the user. Reject candidates that are deterministic, rare and low-cost, duplicative, unstable, unable to produce a reusable handoff, or inconsistent with the user's experienced pain and preferred working model.
 6. Draft each surviving candidate's trigger, owned judgment, output, exclusions, competing Skills, handoff, exit condition, and safety boundary.
 7. Remove or merge candidates that duplicate another Skill. Apply the Removal test to every existing capability.
 8. Form squads around outcomes, usually with two members and at most three:
@@ -74,6 +75,7 @@ A new Skill must satisfy all of these:
 4. Ordinary-language triggers and near misses can be distinguished.
 5. The Skill produces a concrete artifact another actor can consume.
 6. Failure has enough cost to justify added routing and context complexity.
+7. The human has reviewed the evidence, tradeoff, and expected maintenance cost rather than merely approving a generated artifact.
 
 If any condition fails, recommend direct agent behavior, documentation, a script, schema, lint rule, test, or deferred observation instead.
 
@@ -148,6 +150,8 @@ Merge, narrow, archive, or remove capabilities that cannot answer these question
 - Do not copy PM, architect, developer, tester, and operator job titles unless each owns a distinct evidenced judgment.
 - Do not turn project archetype recommendations into project facts.
 - Do not silently choose product semantics while designing triggers.
+- Do not treat model confidence as a substitute for the user's experience or independent judgment.
+- Do not reduce the human role to goal input and permission approval; system evolution requires informed review and correction.
 - This Skill designs the system; `skill-creator` drafts and evaluates individual Skills.
 
 ## Example Triggers

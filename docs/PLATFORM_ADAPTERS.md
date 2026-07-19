@@ -6,6 +6,8 @@ Before adapting, identify the installed product and version. Platform convention
 
 If you are one of the products named below, recognize your section and act on that section immediately. Do not present the platform matrix to the user and ask them to choose files or translate tool names for you.
 
+Across every host, AI-first describes who takes the initial learning burden, not who owns the resulting system. Begin useful work without requiring prior framework study, teach back relevant concepts and tradeoffs when they affect a shared decision, and combine repository evidence with the user's experience and judgment before formalizing project guidance.
+
 ## Generic Setup
 
 1. Point the agent's project instruction entry at `.agent/AGENT_ENTRY.md`, or merge that thin entry into the platform's recognized project instruction file.

@@ -6,13 +6,17 @@ You are reading a framework for designing a project-specific AI engineering syst
 
 Adapt the framework to a target repository so that users can express goals in ordinary language, the agent translates intent without inventing product requirements, current facts come from repository evidence, stable professional methods live in Skills, and repeated outcomes are handled by small squads of usually two or three complementary Skills.
 
-Every handoff should have an artifact, every completion claim should have fresh evidence, and product meaning plus risky external actions should remain human decisions.
+Every handoff should have an artifact, every completion claim should have fresh evidence, and product meaning plus risky external actions should remain human decisions. The quality of the resulting system depends on both model capability and the human's experience, attention, and judgment.
 
 ## Learn While Delivering
 
-The human does not need to study this framework before benefiting from it. You, the coding agent, own framework learning, repository investigation, host-platform adaptation, and incremental system design.
+The human does not need to master this framework before benefiting from it. You, the coding agent, should learn the framework first, investigate the repository, identify the host platform, and reduce the mechanical cost of adaptation.
 
-Do not make full framework adaptation a prerequisite for the user's current task. Read only enough to act safely, deliver the current useful result, and collect evidence while working. Explain framework concepts briefly only when they affect a decision the user owns.
+Do not confuse reduced learning cost with reduced human importance. AI-first is the starting mode, not the ownership model. Human judgment sets the quality ceiling: the user contributes goals, lived pain, domain and engineering experience, skepticism, tradeoffs, and decisions about what should become durable practice.
+
+Do not make full framework adaptation a prerequisite for the user's current task. Read only enough to act safely, deliver the current useful result, and collect evidence while working. At the moments that matter, teach back the core concepts, evidence, uncertainty, and tradeoffs so the user can develop informed judgment rather than merely receive an opaque result.
+
+The intended pattern is collaborative learning: AI learns and explains; the human evaluates and corrects; both use real work to improve the project's rules, Skills, squads, and evaluation cases.
 
 ## Identify Your Host First
 
@@ -41,11 +45,15 @@ current user goal
   -> inspect only the relevant repository path
   -> use the smallest safe capability chain
   -> implement and verify the result
-  -> record repeated friction, risk, and reusable handoffs
-  -> add or revise project guidance only when evidence passes the creation gate
+  -> AI explains the relevant concept, evidence, and uncertainty
+  -> human contributes pain, experience, correction, and priorities
+  -> jointly identify repeated friction, risk, and reusable handoffs
+  -> add or revise project guidance only after evidence and human judgment pass the creation gate
 ```
 
 The first successful task may produce no new framework files. That is acceptable. Build project infrastructure only when it will reduce future work or control a real risk.
+
+Users with less development experience can still start immediately, but they may need more explanation and smaller decisions. Experienced users can contribute sharper failure patterns and tradeoffs. Do not pretend these differences disappear; adapt the teaching and decision process without turning the framework into a prerequisite course.
 
 ## Adaptation Workflow
 
@@ -60,16 +68,17 @@ Inspect the target repository around the current task before writing framework f
 - source/generated/deployed artifact relationships;
 - existing agent instructions, Skills, scripts, and verification commands;
 - recurring work, repeated failures, and manual quality checks.
+- the user's observed pain, prior attempts, preferences, and confidence about the domain.
 
 Repository evidence outranks examples in this framework.
 
 ### 2. Translate The Need
 
-Separate explicit user intent, repository-proven facts, proposed defaults, and open decisions. Ask only when alternatives change behavior, data, permissions, privacy, cost, or irreversible effects. Discover engineering details independently.
+Separate explicit user intent, repository-proven facts, proposed defaults, and open decisions. Discover engineering details independently, but invite human correction when experience may reveal hidden constraints, recurring pain, or a bad abstraction. Ask for decisions when alternatives materially change the product or the long-term working system.
 
 ### 3. Design Before Copying
 
-Use `meta-skill-designer` after progressive evidence reveals recurring work, repeated correction, a material failure boundary, or missing handoffs. Do not hold the current task hostage while attempting to design a complete future roster.
+Use `meta-skill-designer` after progressive evidence reveals recurring work, repeated correction, a material failure boundary, or missing handoffs. Treat system design as a proposal for human review, not an autonomous conclusion. Do not hold the current task hostage while attempting to design a complete future roster.
 
 Two members are the default closed loop. Add a third only for a distinct material judgment. Do not treat the bundled roster or example squads as mandatory architecture.
 
@@ -116,6 +125,8 @@ At minimum:
 - Do not count the router as a squad member.
 - Do not add a third member without a distinct material judgment.
 - Do not treat generated files as proof that adaptation is complete.
+- Do not treat the human as only a source of goals and permissions; seek their experience and judgment when evaluating pain, tradeoffs, and durable abstractions.
+- Do not hide framework reasoning so completely that the user cannot learn to evaluate or evolve the system.
 - Do not commit, push, publish, deploy, write production data, call paid services, or perform destructive actions without explicit authorization.
 
 ## Optional Scaffolding

@@ -6,18 +6,20 @@ Turn the generic framework into a trustworthy local operating system for one rep
 
 ## Evidence Before Infrastructure
 
-Adaptation is an AI responsibility performed alongside useful project work. Do not require the human to learn the framework, complete templates, enumerate Skills, or design squads before the first task can succeed.
+Adaptation begins with AI taking responsibility for framework learning and repository investigation alongside useful project work. It becomes trustworthy through human-AI collaboration. Do not require the human to learn the whole framework, complete templates, enumerate Skills, or design squads before the first task can succeed.
 
 Start with the user's current goal. Apply the smallest safe methods, inspect the relevant production path, and verify the result. While doing so, gather evidence about repeated investigation, corrections, failure boundaries, missing handoffs, and stable project rules. Create durable files and Skills only when that evidence shows they will reduce future work or control a material risk.
 
-Teach through brief decisions at the moment they matter. Explain why you are asking a product question, loading a specialist, adding a permission gate, or proposing durable guidance; do not turn adoption into a reading assignment.
+Teach through brief decisions at the moment they matter. Explain why you are asking a product question, loading a specialist, adding a permission gate, or proposing durable guidance; expose relevant evidence, uncertainty, and tradeoffs so the human can challenge the reasoning. Do not turn adoption into a reading assignment or hide the method behind opaque automation.
 
 Use two concurrent tracks:
 
 ```text
 Delivery track: current goal -> smallest safe route -> implementation -> fresh proof
-Learning track: friction/risk evidence -> reusable rule or handoff -> creation gate -> incremental adaptation
+Collaborative learning track: AI concept feedback + human experience/correction -> shared evidence -> creation gate -> incremental adaptation
 ```
+
+Model capability affects how well the agent investigates and executes. Human experience and judgment affect which pain is visible, which tradeoffs are acceptable, and which abstractions deserve to persist. Adapt the amount of explanation to the user, but never reduce the user to a permission gate.
 
 ## Step 1: Establish Truth Sources
 
@@ -99,6 +101,8 @@ Then form two- or three-Skill squads around repeated outcomes:
 - register accepted formations in `SQUADS.md`.
 
 Use `meta-skill-designer -> skill-creator` to design and evaluate the system itself.
+
+Treat every proposed Skill or squad as a reviewable hypothesis. Show the supporting evidence and expected benefit, invite the user's experience and objections, and record whether the decision is accepted, deferred, narrowed, or rejected.
 
 ## Step 6: Test Behavior, Not Just Files
 

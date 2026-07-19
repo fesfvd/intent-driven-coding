@@ -1,6 +1,6 @@
-# AI-First Quick Start
+# AI-First, Human-Guided Quick Start
 
-The human does not need to study the framework first. The recommended path is for the coding agent to learn only what the current task requires, deliver useful work immediately, and grow project-specific guidance from evidence over time.
+The human does not need to study the whole framework first. The recommended path is for the coding agent to learn what the current task requires, deliver useful work, and explain the relevant concepts back to the user. Human and AI then use real evidence, experience, and correction to grow project-specific guidance over time.
 
 ## First Useful Task
 
@@ -15,7 +15,7 @@ workspace/
 Start the coding agent in `my-project` and give it this instruction:
 
 ```text
-Read ../intent-driven-coding/AI_START_HERE.md, identify your host-platform section, and then handle my next real task. Do not stop to install the full framework. Investigate the relevant repository path, use the smallest safe method, implement, and verify. Learn the project while working and propose durable Skills or squads only after repeated evidence justifies them.
+Read ../intent-driven-coding/AI_START_HERE.md, identify your host-platform section, and then handle my next real task. Do not stop to install the full framework. Investigate the relevant repository path, use the smallest safe method, implement, and verify. Briefly teach me the core concept, evidence, uncertainty, or tradeoff when it affects how we should work. Learn the project with me and propose durable Skills or squads only after repeated evidence and my judgment justify them.
 ```
 
 Then give it a real bug, feature, review, or refactor request. The first useful result is a verified project outcome, not a generated framework directory.
@@ -27,14 +27,21 @@ During ordinary work the agent should:
 1. Learn the host platform's real entry, Skill, agent, and permission mechanisms.
 2. Investigate only the repository paths needed for the current goal.
 3. Apply requirement translation, the relevant specialist method, and fresh verification.
-4. Record repeated friction, risks, missing handoffs, and stable project knowledge.
-5. Add a thin entry, architecture note, Skill, squad, or evaluation only when it will help future work.
+4. Explain the core concept, evidence, uncertainty, or tradeoff when it affects a shared decision.
+5. Combine observed friction and risks with the user's experience, corrections, and priorities.
+6. Add a thin entry, architecture note, Skill, squad, or evaluation only when shared evidence and judgment show it will help future work.
 
-The user steers direction, resolves product meaning, and authorizes risky effects. The agent owns framework learning and implementation details.
+## Human And AI Learn Together
+
+The agent takes the first pass at framework learning, repository investigation, implementation, and verification. It also explains relevant concepts at decision time instead of requiring an upfront course.
+
+The human contributes more than approval. The user brings goals, domain knowledge, development experience, observed pain, preferences, skepticism, and the final judgment about whether an abstraction will improve future work. Less experienced users can begin with smaller, better-explained decisions; experienced users can challenge assumptions and identify deeper patterns sooner.
+
+The agent should propose, explain, and execute. The human should question, correct, and choose. Neither model capability nor user experience alone is sufficient for a strong project-specific system.
 
 ## Optional: Deliberate System Build-Out
 
-Use the remaining steps when repeated work now justifies durable project artifacts. They are not prerequisites for the first task.
+Use the remaining steps when repeated work and human judgment now justify durable project artifacts. They are not prerequisites for the first task.
 
 Use the ready-to-paste Chinese prompt in `README.md`, or express the same goal in your own language.
 

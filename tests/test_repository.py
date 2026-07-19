@@ -47,8 +47,29 @@ class RepositoryTests(unittest.TestCase):
         ):
             self.assertIn(phrase, entry)
         self.assertIn("First Useful Task", quickstart)
-        self.assertIn("The human does not need to study the framework first", quickstart)
-        self.assertIn("AI 先学、先做当前任务、边用边搭", readme)
+        self.assertIn("The human does not need to study the whole framework first", quickstart)
+        self.assertIn("AI 先学并反哺核心概念", readme)
+
+    def test_adoption_preserves_human_judgment_and_collaborative_learning(self) -> None:
+        entry = (ROOT / "AI_START_HERE.md").read_text(encoding="utf-8")
+        quickstart = (ROOT / "QUICKSTART.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        guide = (ROOT / "docs" / "ADAPTATION_GUIDE.md").read_text(encoding="utf-8")
+        router = (ROOT / "skills" / "team" / "SKILL.md").read_text(encoding="utf-8")
+        designer = (ROOT / "skills" / "meta-skill-designer" / "SKILL.md").read_text(encoding="utf-8")
+        template = (ROOT / "templates" / "AGENT_ENTRY.md").read_text(encoding="utf-8")
+        platforms = (ROOT / "docs" / "PLATFORM_ADAPTERS.md").read_text(encoding="utf-8")
+
+        self.assertIn("AI-first is the starting mode", entry)
+        self.assertIn("Human judgment sets the quality ceiling", entry)
+        self.assertIn("teach back the core concepts", entry)
+        self.assertIn("Human And AI Learn Together", quickstart)
+        self.assertIn("人机在真实任务中协作学习、共同判断、渐进搭建", readme)
+        self.assertIn("Collaborative learning track", guide)
+        self.assertIn("Collaborative Learning Mode", router)
+        self.assertIn("human experience and judgment", designer)
+        self.assertIn("Human judgment is not limited to permission gates", template)
+        self.assertIn("teach back relevant concepts", platforms)
 
     def test_progressive_adoption_collects_evidence_before_creating_skills(self) -> None:
         router = (ROOT / "skills" / "team" / "SKILL.md").read_text(encoding="utf-8")
