@@ -131,18 +131,25 @@ AI 应先理解框架，再调查 `my-project`，最后只迁移适合该项目�
 
 ### 可选方式：生成文件骨架
 
-如果 AI 已经理解框架和目标项目，只需要减少机械建文件工作，可以使用脚手架。需要 Git 和 Python 3.9 或更高版本：
+如果 AI 已经理解框架和目标项目，只需要减少机械建文件工作，可以使用脚手架。需要 Git、Python 3.9 或更高版本，以及用于合同校验的依赖：
 
 ```powershell
 git clone <your-repository-url> intent-driven-coding
 cd intent-driven-coding
+python -m pip install -r requirements.txt
 python scripts/bootstrap.py --target ../my-project --project-name "My Project" --dry-run
 python scripts/bootstrap.py --target ../my-project --project-name "My Project" --apply
 python scripts/validate_repository.py
+python scripts/validate_contracts.py
+python scripts/evaluate_contracts.py
 python scripts/audit_skills.py
 python scripts/validate_project.py --target ../my-project
 python -m unittest discover -s tests -v
 ```
+
+For the optional OpenCode-native Agent and Skill layout, add `--platform opencode` to `bootstrap.py` and `validate_project.py`. This creates `.opencode/agents/` and `.opencode/skills/` without replacing the target's `opencode.json`; see [OpenCode Adapter](docs/OPENCODE_ADAPTER.md).
+
+For the optional Claude Code-native layout, use `--platform claude-code`. This creates a thin `.claude/CLAUDE.md`, native subagents, and project Skills without replacing `settings.json`; see [Claude Code Adapter](docs/CLAUDE_CODE_ADAPTER.md).
 
 `bootstrap.py` 只是可选脚手架，不会理解目标项目、设计小队或完成平台适配。它默认只预览并保护已有文件。生成后仍需由 AI 基于目标项目填写和裁剪，再用 `validate_project.py` 检查占位符、Skill 引用和小队规模。详细步骤见 [QUICKSTART.md](QUICKSTART.md)。
 
@@ -219,6 +226,7 @@ intent-driven-coding/
 |-- AI_START_HERE.md
 |-- LICENSE
 |-- QUICKSTART.md
+|-- requirements.txt
 |-- docs/
 |   |-- PROTOCOL.md
 |   |-- CONTEXT_ARCHITECTURE.md
@@ -230,6 +238,9 @@ intent-driven-coding/
 |   |-- SQUAD_CATALOG.md
 |   |-- EVALUATION.md
 |   |-- PLATFORM_ADAPTERS.md
+|   |-- OPENCODE_ADAPTER.md
+|   |-- CLAUDE_CODE_ADAPTER.md
+|   |-- CONTRACTS.md
 |   |-- PERMISSIONS.md
 |   `-- ADAPTATION_GUIDE.md
 |-- templates/
@@ -249,12 +260,18 @@ intent-driven-coding/
 |-- evals/
 |   |-- squad-routing.json
 |   `-- skill-design.json
+|-- schemas/
+|   `-- intent-driven-coding-contract-v1.schema.json
+|-- contracts/
+|   `-- examples/
 |-- examples/
 |   `-- requirement-translations.md
 |-- scripts/
 |   |-- bootstrap.py
 |   |-- audit_skills.py
 |   |-- validate_project.py
+|   |-- validate_contracts.py
+|   |-- evaluate_contracts.py
 |   `-- validate_repository.py
 `-- tests/
     `-- test_repository.py
@@ -262,14 +279,16 @@ intent-driven-coding/
 
 ## Optional Scaffold Quick Start
 
-The recommended path is to ask a coding agent to read `AI_START_HERE.md`, inspect the target project, and perform a deliberate platform-aware adaptation. The commands below only create a neutral skeleton after that understanding exists. Requirements: Git and Python 3.9 or newer.
+The recommended path is to ask a coding agent to read `AI_START_HERE.md`, inspect the target project, and perform a deliberate platform-aware adaptation. The commands below only create a neutral skeleton after that understanding exists. Requirements: Git, Python 3.9 or newer, and the contract validation dependency.
 
 ```powershell
 git clone <your-repository-url> intent-driven-coding
 cd intent-driven-coding
+python -m pip install -r requirements.txt
 python scripts/bootstrap.py --target ../my-project --project-name "My Project" --dry-run
 python scripts/bootstrap.py --target ../my-project --project-name "My Project" --apply
 python scripts/validate_repository.py
+python scripts/validate_contracts.py
 python scripts/audit_skills.py
 python -m unittest discover -s tests -v
 ```

@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "kind": "squad-contract",
+  "id": "cross-layer-feature",
+  "outcome": "Implement a cross-layer feature with an explicit contract, risk review, and fresh evidence.",
+  "routing": {
+    "triggers": [
+      "Add an API field and show it in the client.",
+      "Change persistence and multiple consumers."
+    ],
+    "exclusions": [
+      "A local typo or one-file mechanical correction.",
+      "An unknown-root-cause bug."
+    ],
+    "precedence": "Use this contract after repository evidence confirms multiple affected layers; use debug first when the root cause is unknown."
+  },
+  "members": [
+    {
+      "skill": "architecture",
+      "role": "primary",
+      "required_output": "impact-contract"
+    },
+    {
+      "skill": "code-review",
+      "role": "guard",
+      "required_output": "review-findings"
+    },
+    {
+      "skill": "verify",
+      "role": "proof",
+      "required_output": "verification-report"
+    }
+  ],
+  "handoffs": [
+    {
+      "from": "architecture",
+      "to": "code-review",
+      "artifact_id": "impact-contract",
+      "consumer_requirements": [
+        "Production path, affected consumers, and compatibility boundaries are named.",
+        "Verification obligations are mapped to the changed contract."
+      ]
+    },
+    {
+      "from": "code-review",
+      "to": "verify",
+      "artifact_id": "review-findings",
+      "consumer_requirements": [
+        "Blocking findings are resolved or explicitly retained as residual risk.",
+        "Verification claims cover the implemented contract."
+      ]
+    }
+  ],
+  "verification": {
+    "claims": [
+      {
+        "id": "acceptance-supported",
+        "statement": "Each accepted behavior is supported by fresh evidence.",
+        "required_evidence": [
+          "Focused contract or consumer check.",
+          "Fresh command result and exit status."
+        ],
+        "omitted_checks_allowed": true
+      }
+    ]
+  },
+  "authorization": {
+    "required": true,
+    "effects": [
+      "Migration, release, and external write remain separately authorized."
+    ],
+    "state": "not-requested"
+  }
+}

@@ -26,11 +26,12 @@ Common project conventions include a root `CLAUDE.md` instruction entry and proj
 
 Recommended adaptation:
 
-1. Create a thin `CLAUDE.md` that points to `AGENTS.md`, `AI_ENGINEERING_PLAYBOOK.md`, and `SQUADS.md` instead of copying their complete content.
-2. Install only the selected project Skills under the project-local Skill location recognized by that Claude Code version.
-3. Preserve Skill frontmatter and map `allowed-tools` to tools actually available in the environment.
-4. Verify that the project entry loads and realistic prompts trigger or explicitly read the expected Skills.
-5. If subagents are available, they may execute distinct squad roles. Otherwise the main agent can apply Skills sequentially; the squad model does not require separate processes.
+1. Read [Claude Code Adapter](CLAUDE_CODE_ADAPTER.md) for the project-local generated layout and acceptance check.
+2. Create a thin `CLAUDE.md` that points to `AGENTS.md`, `AI_ENGINEERING_PLAYBOOK.md`, and `SQUADS.md` instead of copying their complete content.
+3. Install only the selected project Skills under the project-local Skill location recognized by that Claude Code version.
+4. Preserve Skill frontmatter and map `allowed-tools` to tools actually available in the environment.
+5. Verify that the project entry loads and realistic prompts trigger or explicitly read the expected Skills.
+6. If subagents are available, they may execute distinct squad roles. Otherwise the main agent can apply Skills sequentially; the squad model does not require separate processes.
 
 Do not assume the neutral `.agent/` directory is discovered automatically.
 
@@ -44,10 +45,10 @@ OpenCode can use repository guidance such as `AGENTS.md` and supports configurab
 
 Recommended adaptation:
 
-1. Keep architecture semantics in root `AGENTS.md`.
-2. Connect a thin OpenCode-recognized entry or configuration to the playbook and `SQUADS.md`.
+1. Read [OpenCode Adapter](OPENCODE_ADAPTER.md) for the project-local generated layout and acceptance check.
+2. Keep architecture semantics in root `AGENTS.md`.
 3. Install selected Skills in the project-local location recognized by the current OpenCode setup, or configure agents to read them on demand.
-4. Translate `allowed-tools` and permission gates into the actual OpenCode tool and permission names.
+4. Translate project-specific permission gates into actual OpenCode policy rules without overriding the user's global configuration.
 5. Test automatic routing, direct Skill loading, and confirmation behavior rather than assuming compatibility from file shape alone.
 
 Do not copy personal global OpenCode configuration into a shared project.

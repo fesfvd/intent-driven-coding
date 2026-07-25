@@ -8,6 +8,9 @@ import sys
 import json
 from pathlib import Path
 
+from validate_contracts import DEFAULT_CONTRACTS, DEFAULT_SCHEMA, validate as validate_contracts
+from evaluate_contracts import DEFAULT_RECORDS, evaluate as evaluate_contracts
+
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = (
@@ -26,6 +29,9 @@ REQUIRED_FILES = (
     "docs/SQUAD_CATALOG.md",
     "docs/EVALUATION.md",
     "docs/PLATFORM_ADAPTERS.md",
+    "docs/OPENCODE_ADAPTER.md",
+    "docs/CLAUDE_CODE_ADAPTER.md",
+    "docs/CONTRACTS.md",
     "docs/PERMISSIONS.md",
     "docs/ADAPTATION_GUIDE.md",
     "templates/AGENT_ENTRY.md",
@@ -33,6 +39,20 @@ REQUIRED_FILES = (
     "templates/AI_ENGINEERING_PLAYBOOK.md",
     "templates/SQUADS.md",
     "templates/SQUAD.md",
+    "templates/opencode/agents/team.md",
+    "templates/opencode/agents/architecture.md",
+    "templates/opencode/agents/debug.md",
+    "templates/opencode/agents/code-review.md",
+    "templates/opencode/agents/verify.md",
+    "templates/opencode/agents/meta-skill-designer.md",
+    "templates/opencode/agents/skill-creator.md",
+    "templates/claude/CLAUDE.md",
+    "templates/claude/agents/architecture.md",
+    "templates/claude/agents/debug.md",
+    "templates/claude/agents/code-review.md",
+    "templates/claude/agents/verify.md",
+    "templates/claude/agents/meta-skill-designer.md",
+    "templates/claude/agents/skill-creator.md",
     "skills/team/SKILL.md",
     "skills/architecture/SKILL.md",
     "skills/debug/SKILL.md",
@@ -42,10 +62,17 @@ REQUIRED_FILES = (
     "skills/skill-creator/SKILL.md",
     "evals/squad-routing.json",
     "evals/skill-design.json",
+    "evals/fixtures/cross-layer-feature.record.json",
+    "schemas/intent-driven-coding-contract-v1.schema.json",
+    "contracts/examples/cross-layer-feature.squad.json",
+    "contracts/examples/cross-layer-feature.evaluation.json",
     "examples/requirement-translations.md",
+    "requirements.txt",
     "scripts/bootstrap.py",
     "scripts/audit_skills.py",
     "scripts/validate_project.py",
+    "scripts/validate_contracts.py",
+    "scripts/evaluate_contracts.py",
 )
 ALLOWED_TEMPLATE_FILES = {
     Path("templates/AGENT_ENTRY.md"),
@@ -53,11 +80,29 @@ ALLOWED_TEMPLATE_FILES = {
     Path("templates/AI_ENGINEERING_PLAYBOOK.md"),
     Path("templates/SQUADS.md"),
     Path("templates/SQUAD.md"),
+    Path("templates/claude/CLAUDE.md"),
 }
 PRIVATE_PATTERNS = (
     ("private IPv4", re.compile(r"\b(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)\d{1,3}\.\d{1,3}\b")),
     ("Windows user path", re.compile(r"[A-Za-z]:\\Users\\[^\\\s]+", re.IGNORECASE)),
     ("secret assignment", re.compile(r"(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*['\"][^'\"]{8,}")),
+)
+OPENCODE_AGENT_MODES = {
+    "team": "primary",
+    "architecture": "subagent",
+    "debug": "subagent",
+    "code-review": "subagent",
+    "verify": "subagent",
+    "meta-skill-designer": "subagent",
+    "skill-creator": "subagent",
+}
+CLAUDE_AGENT_NAMES = (
+    "architecture",
+    "debug",
+    "code-review",
+    "verify",
+    "meta-skill-designer",
+    "skill-creator",
 )
 LINK_PATTERN = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
@@ -101,6 +146,38 @@ def validate() -> list[str]:
             errors.append(f"{path.relative_to(ROOT)}: missing Example Triggers section")
         if "## Safety Statement" not in text:
             errors.append(f"{path.relative_to(ROOT)}: missing Safety Statement section")
+
+    for name, expected_mode in OPENCODE_AGENT_MODES.items():
+        path = ROOT / "templates" / "opencode" / "agents" / f"{name}.md"
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        metadata = parse_frontmatter(text)
+        if not metadata.get("description"):
+            errors.append(f"{path.relative_to(ROOT)}: missing description")
+        if metadata.get("mode") != expected_mode:
+            errors.append(
+                f"{path.relative_to(ROOT)}: mode must be '{expected_mode}'"
+            )
+        if name == "team" and "permission:" in text:
+            errors.append(f"{path.relative_to(ROOT)}: must not override target permissions")
+        if name in {"architecture", "code-review", "meta-skill-designer"} and "bash: deny" not in text:
+            errors.append(f"{path.relative_to(ROOT)}: must deny Bash")
+
+    for name in CLAUDE_AGENT_NAMES:
+        path = ROOT / "templates" / "claude" / "agents" / f"{name}.md"
+        if not path.is_file():
+            continue
+        metadata = parse_frontmatter(path.read_text(encoding="utf-8"))
+        if metadata.get("name") != name:
+            errors.append(f"{path.relative_to(ROOT)}: name must be '{name}'")
+        if not metadata.get("description"):
+            errors.append(f"{path.relative_to(ROOT)}: missing description")
+        if not metadata.get("tools"):
+            errors.append(f"{path.relative_to(ROOT)}: missing tools")
+
+    errors.extend(validate_contracts(DEFAULT_SCHEMA, DEFAULT_CONTRACTS))
+    errors.extend(evaluate_contracts(DEFAULT_CONTRACTS, DEFAULT_RECORDS))
 
     known_skills = {path.parent.name for path in (ROOT / "skills").glob("*/SKILL.md")}
     for path in sorted((ROOT / "evals").glob("*.json")):

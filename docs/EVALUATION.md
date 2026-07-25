@@ -15,6 +15,10 @@ For each important Skill or squad, keep:
 
 The files under `evals/` demonstrate the shape. Copy and rewrite them using language your real users employ.
 
+When a repeated outcome needs machine-checkable routing, handoff, verification, or authorization boundaries, define a JSON contract under `.idc/` and validate it with `scripts/validate_contracts.py`. See [Machine-Readable Contracts](CONTRACTS.md). This remains offline validation; it does not prove an Agent selected the expected route.
+
+For a recorded Agent run, use `scripts/evaluate_contracts.py` to compare its `evaluation-record` with the contract and case. The script evaluates supplied records only; it never invokes a model.
+
 ## What To Check
 
 Check observable behavior rather than whether the response sounds polished:

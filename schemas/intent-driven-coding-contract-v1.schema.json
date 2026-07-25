@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intent-driven-coding.dev/schemas/intent-driven-coding-contract-v1.schema.json",
+  "title": "Intent-Driven Coding Contract v1",
+  "oneOf": [
+    {"$ref": "#/$defs/squadContract"},
+    {"$ref": "#/$defs/evaluationCase"},
+    {"$ref": "#/$defs/evaluationRecord"}
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "skillMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skill", "role", "required_output"],
+      "properties": {
+        "skill": {"$ref": "#/$defs/identifier"},
+        "role": {"enum": ["primary", "guard", "proof"]},
+        "required_output": {"$ref": "#/$defs/identifier"}
+      }
+    },
+    "handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "artifact_id", "consumer_requirements"],
+      "properties": {
+        "from": {"$ref": "#/$defs/identifier"},
+        "to": {"$ref": "#/$defs/identifier"},
+        "artifact_id": {"$ref": "#/$defs/identifier"},
+        "consumer_requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        }
+      }
+    },
+    "verificationClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "statement", "required_evidence"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "statement": {"$ref": "#/$defs/nonEmptyString"},
+        "required_evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "omitted_checks_allowed": {"type": "boolean"}
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "effects", "state"],
+      "properties": {
+        "required": {"type": "boolean"},
+        "effects": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "state": {
+          "enum": ["not-required", "not-requested", "authorized", "executed", "rejected"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"required": {"const": true}}},
+          "then": {
+            "properties": {
+              "effects": {"minItems": 1},
+              "state": {"enum": ["not-requested", "authorized", "executed", "rejected"]}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"required": {"const": false}}},
+          "then": {"properties": {"state": {"const": "not-required"}}}
+        }
+      ]
+    },
+    "squadContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "outcome",
+        "routing",
+        "members",
+        "handoffs",
+        "verification",
+        "authorization"
+      ],
+      "properties": {
+        "schema_version": {"const": 1},
+        "kind": {"const": "squad-contract"},
+        "id": {"$ref": "#/$defs/identifier"},
+        "outcome": {"$ref": "#/$defs/nonEmptyString"},
+        "routing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["triggers", "exclusions", "precedence"],
+          "properties": {
+            "triggers": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"$ref": "#/$defs/nonEmptyString"}
+            },
+            "exclusions": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/nonEmptyString"}
+            },
+            "precedence": {"$ref": "#/$defs/nonEmptyString"}
+          }
+        },
+        "members": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {"$ref": "#/$defs/skillMember"}
+        },
+        "handoffs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/handoff"}
+        },
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["claims"],
+          "properties": {
+            "claims": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"$ref": "#/$defs/verificationClaim"}
+            }
+          }
+        },
+        "authorization": {"$ref": "#/$defs/authorization"}
+      }
+    },
+    "evaluationCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "contract_id",
+        "prompt",
+        "expected_route",
+        "forbidden_behavior",
+        "required_artifacts",
+        "required_verification_claims",
+        "authorization"
+      ],
+      "properties": {
+        "schema_version": {"const": 1},
+        "kind": {"const": "evaluation-case"},
+        "id": {"$ref": "#/$defs/identifier"},
+        "contract_id": {"$ref": "#/$defs/identifier"},
+        "prompt": {"$ref": "#/$defs/nonEmptyString"},
+        "expected_route": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {"$ref": "#/$defs/identifier"}
+        },
+        "forbidden_behavior": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "required_artifacts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/identifier"}
+        },
+        "required_verification_claims": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/identifier"}
+        },
+        "authorization": {"$ref": "#/$defs/authorization"}
+      }
+    },
+    "evaluationRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "case_id",
+        "contract_id",
+        "selected_route",
+        "artifacts",
+        "verification_claims",
+        "authorization",
+        "observed_forbidden_behavior"
+      ],
+      "properties": {
+        "schema_version": {"const": 1},
+        "kind": {"const": "evaluation-record"},
+        "id": {"$ref": "#/$defs/identifier"},
+        "case_id": {"$ref": "#/$defs/identifier"},
+        "contract_id": {"$ref": "#/$defs/identifier"},
+        "selected_route": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {"$ref": "#/$defs/identifier"}
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/identifier"}
+        },
+        "verification_claims": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/identifier"}
+        },
+        "authorization": {"$ref": "#/$defs/authorization"},
+        "observed_forbidden_behavior": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        }
+      }
+    }
+  }
+}

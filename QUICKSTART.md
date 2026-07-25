@@ -49,6 +49,12 @@ Use the ready-to-paste Chinese prompt in `README.md`, or express the same goal i
 
 The following steps create a neutral skeleton only. Use them after the agent understands the target, or when manual file creation is the only thing you want to automate.
 
+Install the framework validation dependency once:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
 ## 1. Preview The Installation
 
 From this repository:
@@ -66,6 +72,30 @@ python scripts/bootstrap.py --target ../my-project --project-name "My Project" -
 ```
 
 The installer refuses to replace existing files. If your project already has `AGENTS.md` or an engineering playbook, merge the templates manually rather than immediately using `--force`.
+
+### OpenCode Native Layout
+
+When the target uses OpenCode and you want the optional native Agent and Skill layout, use the OpenCode platform flag instead of the neutral default:
+
+```powershell
+python scripts/bootstrap.py --target ../my-project --project-name "My Project" --platform opencode --dry-run
+python scripts/bootstrap.py --target ../my-project --project-name "My Project" --platform opencode --apply
+python scripts/validate_project.py --target ../my-project --platform opencode
+```
+
+This generates `.opencode/agents/` and `.opencode/skills/` without creating or replacing `opencode.json`. Read [OpenCode Adapter](docs/OPENCODE_ADAPTER.md) before relying on automatic routing or permission behavior.
+
+### Claude Code Native Layout
+
+When the target uses Claude Code and you want the optional native instruction, Skill, and subagent layout, use the Claude Code platform flag:
+
+```powershell
+python scripts/bootstrap.py --target ../my-project --project-name "My Project" --platform claude-code --dry-run
+python scripts/bootstrap.py --target ../my-project --project-name "My Project" --platform claude-code --apply
+python scripts/validate_project.py --target ../my-project --platform claude-code
+```
+
+This generates `.claude/CLAUDE.md`, `.claude/agents/`, and `.claude/skills/` without creating or replacing `settings.json`. Read [Claude Code Adapter](docs/CLAUDE_CODE_ADAPTER.md) before relying on discovery or permission behavior.
 
 ## 3. Fill The Architecture Map First
 
@@ -98,7 +128,7 @@ Delete checks your project does not use. A fake command is worse than an explici
 
 Open `SQUADS.md`. Keep the generic formations that match your project and replace the custom placeholder with one real recurring outcome.
 
-Use `.agent/templates/SQUAD.md` and check:
+Use `.agent/templates/SQUAD.md` for the neutral layout, `.opencode/templates/SQUAD.md` for the OpenCode layout, or `.claude/templates/SQUAD.md` for the Claude Code layout, then check:
 
 - the formation has two members by default and at most three;
 - each member owns a distinct judgment;
@@ -108,11 +138,11 @@ Use `.agent/templates/SQUAD.md` and check:
 
 For a deeper workshop, follow `docs/SQUAD_WORKSHOP.md` in this source repository.
 
-Then adapt `.agent/evals/squad-routing.json` and `.agent/evals/skill-design.json` to your real user language and project boundaries.
+Then adapt `.agent/evals/squad-routing.json` and `.agent/evals/skill-design.json` for the neutral layout, `.opencode/evals/squad-routing.json` and `.opencode/evals/skill-design.json` for the OpenCode layout, or `.claude/evals/squad-routing.json` and `.claude/evals/skill-design.json` for the Claude Code layout, to your real user language and project boundaries.
 
 ## 6. Connect Your Agent
 
-`.agent/AGENT_ENTRY.md` is tool-neutral. Point your coding agent at it using the mechanism supported by that product.
+`.agent/AGENT_ENTRY.md` is tool-neutral. Point your coding agent at it using the mechanism supported by that product. For the OpenCode layout, start from the generated `team` primary Agent instead. For the Claude Code layout, start from `.claude/CLAUDE.md`.
 
 Common approaches:
 
@@ -128,9 +158,23 @@ Run from this framework repository:
 
 ```powershell
 python scripts/validate_repository.py
+python scripts/validate_contracts.py
+python scripts/evaluate_contracts.py
 python scripts/audit_skills.py
 python scripts/validate_project.py --target ../my-project
 python -m unittest discover -s tests -v
+```
+
+For the OpenCode layout, replace the project validation command with:
+
+```powershell
+python scripts/validate_project.py --target ../my-project --platform opencode
+```
+
+For the Claude Code layout, replace the project validation command with:
+
+```powershell
+python scripts/validate_project.py --target ../my-project --platform claude-code
 ```
 
 Then search the generated target files for unresolved placeholders:

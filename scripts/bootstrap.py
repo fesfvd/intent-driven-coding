@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -16,6 +17,23 @@ TEMPLATE_FILES = {
     ROOT / "templates" / "SQUADS.md": Path("SQUADS.md"),
     ROOT / "templates" / "AGENT_ENTRY.md": Path(".agent") / "AGENT_ENTRY.md",
     ROOT / "templates" / "SQUAD.md": Path(".agent") / "templates" / "SQUAD.md",
+}
+OPENCODE_AGENT_FILES = {
+    ROOT / "templates" / "opencode" / "agents" / "team.md": Path(".opencode") / "agents" / "team.md",
+    ROOT / "templates" / "opencode" / "agents" / "architecture.md": Path(".opencode") / "agents" / "architecture.md",
+    ROOT / "templates" / "opencode" / "agents" / "debug.md": Path(".opencode") / "agents" / "debug.md",
+    ROOT / "templates" / "opencode" / "agents" / "code-review.md": Path(".opencode") / "agents" / "code-review.md",
+    ROOT / "templates" / "opencode" / "agents" / "verify.md": Path(".opencode") / "agents" / "verify.md",
+    ROOT / "templates" / "opencode" / "agents" / "meta-skill-designer.md": Path(".opencode") / "agents" / "meta-skill-designer.md",
+    ROOT / "templates" / "opencode" / "agents" / "skill-creator.md": Path(".opencode") / "agents" / "skill-creator.md",
+}
+CLAUDE_AGENT_FILES = {
+    ROOT / "templates" / "claude" / "agents" / "architecture.md": Path(".claude") / "agents" / "architecture.md",
+    ROOT / "templates" / "claude" / "agents" / "debug.md": Path(".claude") / "agents" / "debug.md",
+    ROOT / "templates" / "claude" / "agents" / "code-review.md": Path(".claude") / "agents" / "code-review.md",
+    ROOT / "templates" / "claude" / "agents" / "verify.md": Path(".claude") / "agents" / "verify.md",
+    ROOT / "templates" / "claude" / "agents" / "meta-skill-designer.md": Path(".claude") / "agents" / "meta-skill-designer.md",
+    ROOT / "templates" / "claude" / "agents" / "skill-creator.md": Path(".claude") / "agents" / "skill-creator.md",
 }
 RESOURCE_FILES = {
     ROOT / "evals" / "squad-routing.json": Path(".agent") / "evals" / "squad-routing.json",
@@ -30,6 +48,11 @@ SKILL_NAMES = (
     "meta-skill-designer",
     "skill-creator",
 )
+OPENCODE_COMPATIBLE_SKILL_ROOTS = (
+    Path(".claude") / "skills",
+    Path(".agents") / "skills",
+)
+OPENCODE_ANCESTOR_SKILL_ROOT = Path(".opencode") / "skills"
 
 
 def parse_args() -> argparse.Namespace:
@@ -38,6 +61,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--target", required=True, type=Path, help="Existing project directory")
     parser.add_argument("--project-name", required=True, help="Name used in generated headings")
+    parser.add_argument(
+        "--platform",
+        choices=("neutral", "opencode", "claude-code"),
+        default="neutral",
+        help="Generated layout: neutral (default) or OpenCode",
+    )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--apply", action="store_true", help="Write the planned files")
     mode.add_argument("--dry-run", action="store_true", help="Preview only (default)")
@@ -53,14 +82,85 @@ def render_template(source: Path, project_name: str) -> str:
     return source.read_text(encoding="utf-8").replace("{{PROJECT_NAME}}", project_name)
 
 
-def planned_files() -> list[tuple[Path, Path, bool]]:
+def render_platform_skill(source: Path) -> str:
+    return re.sub(r"(?m)^allowed-tools:.*\n", "", source.read_text(encoding="utf-8"))
+
+
+def planned_files(platform: str) -> list[tuple[Path, Path, bool]]:
     files = [(source, destination, True) for source, destination in TEMPLATE_FILES.items()]
-    files.extend((source, destination, False) for source, destination in RESOURCE_FILES.items())
+    if platform == "neutral":
+        files.extend((source, destination, False) for source, destination in RESOURCE_FILES.items())
+        skill_root = Path(".agent") / "skills"
+    elif platform == "opencode":
+        files.extend(
+            (source, Path(".opencode") / "evals" / destination.name, False)
+            for source, destination in RESOURCE_FILES.items()
+        )
+        files.extend((source, destination, False) for source, destination in OPENCODE_AGENT_FILES.items())
+        files = [
+            (source, Path(".opencode") / "templates" / destination.name, is_template)
+            if destination == Path(".agent") / "templates" / "SQUAD.md"
+            else (source, destination, is_template)
+            for source, destination, is_template in files
+            if destination != Path(".agent") / "AGENT_ENTRY.md"
+        ]
+        skill_root = Path(".opencode") / "skills"
+    else:
+        files.extend(
+            (source, Path(".claude") / "evals" / destination.name, False)
+            for source, destination in RESOURCE_FILES.items()
+        )
+        files.extend((source, destination, False) for source, destination in CLAUDE_AGENT_FILES.items())
+        files.append(
+            (ROOT / "templates" / "claude" / "CLAUDE.md", Path(".claude") / "CLAUDE.md", True)
+        )
+        files = [
+            (source, Path(".claude") / "templates" / destination.name, is_template)
+            if destination == Path(".agent") / "templates" / "SQUAD.md"
+            else (source, destination, is_template)
+            for source, destination, is_template in files
+            if destination != Path(".agent") / "AGENT_ENTRY.md"
+        ]
+        skill_root = Path(".claude") / "skills"
     for name in SKILL_NAMES:
         source = ROOT / "skills" / name / "SKILL.md"
-        destination = Path(".agent") / "skills" / name / "SKILL.md"
+        destination = skill_root / name / "SKILL.md"
         files.append((source, destination, False))
     return files
+
+
+def is_inside_target(target: Path, destination: Path) -> bool:
+    try:
+        destination.resolve().relative_to(target)
+    except ValueError:
+        return False
+    return True
+
+
+def opencode_search_roots(target: Path) -> list[Path]:
+    current = target
+    while not (current / ".git").exists():
+        if current.parent == current:
+            return [target]
+        current = current.parent
+    roots = [target]
+    while roots[-1] != current:
+        roots.append(roots[-1].parent)
+    return roots
+
+
+def opencode_skill_collisions(target: Path) -> list[Path]:
+    collisions: list[Path] = []
+    for root in opencode_search_roots(target):
+        skill_roots = OPENCODE_COMPATIBLE_SKILL_ROOTS
+        if root != target:
+            skill_roots = (*skill_roots, OPENCODE_ANCESTOR_SKILL_ROOT)
+        for skill_root in skill_roots:
+            for name in SKILL_NAMES:
+                path = root / skill_root / name / "SKILL.md"
+                if path.is_file():
+                    collisions.append(path)
+    return collisions
 
 
 def main() -> int:
@@ -74,12 +174,22 @@ def main() -> int:
     if not target.exists() or not target.is_dir():
         print(f"ERROR: target directory does not exist: {target}", file=sys.stderr)
         return 2
+    if args.platform == "opencode":
+        collisions = opencode_skill_collisions(target)
+        if collisions:
+            print("ERROR: conflicting OpenCode skill discovery paths:", file=sys.stderr)
+            for path in collisions:
+                print(f"- {path}", file=sys.stderr)
+            return 1
 
     actions: list[tuple[Path, Path, bool, str]] = []
     blocked = False
-    for source, relative_destination, is_template in planned_files():
+    for source, relative_destination, is_template in planned_files(args.platform):
         destination = target / relative_destination
-        if destination.exists() and not args.force:
+        if not is_inside_target(target, destination):
+            status = "ERROR destination escapes target"
+            blocked = True
+        elif destination.exists() and not args.force:
             status = "SKIP existing"
         elif destination.exists():
             status = "OVERWRITE"
@@ -109,6 +219,8 @@ def main() -> int:
         destination.parent.mkdir(parents=True, exist_ok=True)
         if is_template:
             destination.write_text(render_template(source, args.project_name), encoding="utf-8")
+        elif args.platform in {"opencode", "claude-code"} and source.parent.parent == ROOT / "skills":
+            destination.write_text(render_platform_skill(source), encoding="utf-8")
         else:
             shutil.copyfile(source, destination)
         written += 1

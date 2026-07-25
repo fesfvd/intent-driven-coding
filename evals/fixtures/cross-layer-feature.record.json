@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "kind": "evaluation-record",
+  "id": "cross-layer-feature-record",
+  "case_id": "cross-layer-feature-contract-route",
+  "contract_id": "cross-layer-feature",
+  "selected_route": ["architecture", "code-review", "verify"],
+  "artifacts": ["impact-contract", "review-findings", "verification-report"],
+  "verification_claims": ["acceptance-supported"],
+  "authorization": {
+    "required": true,
+    "effects": ["Migration, release, and external write remain separately authorized."],
+    "state": "not-requested"
+  },
+  "observed_forbidden_behavior": []
+}
