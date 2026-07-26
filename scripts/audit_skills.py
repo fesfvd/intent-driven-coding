@@ -96,6 +96,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
     print(f"Skill audit passed with {len(warnings)} warning(s).")
+    print("Note: Skill structure does not prove host routing or Agent execution.")
     return 0
 
 

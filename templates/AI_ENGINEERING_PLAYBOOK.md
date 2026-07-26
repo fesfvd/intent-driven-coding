@@ -4,6 +4,7 @@
 
 - Think before coding and read current code before proposing implementation.
 - Translate ordinary language into an executable task without inventing product behavior.
+- Present user-facing conclusions, reports, and status in the user's resolved language preference; preserve code, commands, identifiers, APIs, and maintainer-only document conventions unless translation is requested.
 - Make the smallest correct change; avoid speculative abstractions and adjacent cleanup.
 - Preserve unrelated workspace changes.
 - Use the narrowest check that proves the behavior, then expand verification according to risk.
@@ -18,6 +19,7 @@ Classify task information internally:
 - **Repository fact**: proven by source, configuration, tests, or runtime evidence.
 - **Proposed default**: the simplest recommended approach, labeled as a proposal.
 - **Open decision**: an ambiguity that changes behavior, data, permissions, privacy, cost, or irreversible effects.
+- **Presentation preference**: explicit user language first, then current user language, then an explicitly established target-audience language for final user-facing output.
 
 Ask only about open decisions. Discover files, tests, architecture, and implementation details independently.
 
@@ -32,6 +34,7 @@ For non-trivial work, establish:
 - Acceptance:
 - Risks:
 - Verification:
+- Presentation language:
 - Repository facts:
 - Proposed defaults:
 - Open decisions:

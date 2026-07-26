@@ -90,3 +90,7 @@ When no reusable Skill mechanism exists, use `SQUADS.md` as the routing contract
 The repository does not claim automatic compatibility with every coding agent. It provides portable content and a neutral generated layout. A platform is verified only after its entry loading, Skill triggering, tool mapping, and permission behavior have been tested there.
 
 If a platform does not support automatic Skills, the main agent can still read the relevant `SKILL.md` on demand and follow the registered squad in `SQUADS.md`.
+
+## Host Acceptance Evidence
+
+Read [Host Acceptance](HOST_ACCEPTANCE.md) before treating a structural adapter check as a host-support claim. The recorded OpenCode and Claude Code pilots are partial observations: neither proves complete named routing, handoffs, verification, or release-policy behavior.

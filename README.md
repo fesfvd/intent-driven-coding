@@ -2,11 +2,13 @@
 
 > 中文优先说明 | [English details](#english-details)
 
+> **实证状态：自动宿主路由尚未通过验收。** OpenCode 与 Claude Code 的公开宿主运行均为 `partial`、`mismatched` 或 `unobservable`；当前可证明的是方法、模板和结构校验，而不是自动选择项目小队。请先阅读[最小路径](docs/MINIMAL.md)和[宿主验收](docs/HOST_ACCEPTANCE.md)。
+
 ## 这是什么
 
-Intent-Driven Coding 是一套面向真实软件项目的 AI 编程工作框架，用来帮助开发者搭建属于自己项目的专业 Skill 小队。
+Intent-Driven Coding 是一套面向真实软件项目的 AI 编程方法论、模板与结构校验工具，用来帮助开发者设计属于自己项目的专业 Skill 小队；它不是已被宿主实证验证的自动编排产品。
 
-它不是一批要求你原样照搬的提示词，也不是一支固定不变的“万能团队”。这个仓库分享的是一套搭建方法：用户可以先用自然语言表达目标，AI 负责调查仓库、翻译需求、选择最小专业小队、完成工程实现并提供验证证据；人则提供目标、经验、痛点、质疑和取舍，判断什么值得沉淀为长期体系。
+它不是一批要求你原样照搬的提示词，也不是一支固定不变的“万能团队”。这个仓库分享的是一套搭建方法：用户可以先用自然语言表达目标，AI 调查仓库、翻译需求、提出最小专业链并完成工程实现与验证；人则提供目标、经验、痛点、质疑和取舍。没有通过宿主验收前，Skill 和 Squad 应按需显式读取，不应假定宿主会自动选择它们。
 
 采用方式不是“人先读完 29 份文档再配置 AI”，也不是“模型足够强就能替人自动搭好一切”，而是 **AI 先学并反哺核心概念，人机在真实任务中协作学习、共同判断、渐进搭建**。AI 应识别宿主、调查项目、执行与验证，并在关键时刻解释概念、证据、不确定性和取舍；人需要独立思考，用自身经验校准 AI，识别真正的痛点，并决定哪些方法值得长期保留。
 
@@ -22,7 +24,7 @@ Skill = 一项稳定、边界清楚的专业能力
 路由器（Router） = 负责理解意图、选择小队和控制权限，不算小队成员
 ```
 
-一个 Skill 往往只能完成一次专业判断。真正能够稳定完成工作的是小队：有人负责定位或设计，有人负责独立审查风险，有人负责用新鲜证据证明结果。
+一个 Skill 往往只覆盖一次专业判断。小队是一个可按需采用的协作假设：有人负责定位或设计，有人负责独立审查风险，有人负责用新鲜证据证明结果；其自动交接尚需宿主验收支持。
 
 典型组合：
 
@@ -100,8 +102,15 @@ AI 把用户的自然语言需求翻译为工程任务时，还需要区分四�
 - 基础、条件和特殊能力的分级参考，以及按项目风险和结果组织的小队候选目录；这些用于评估，不是默认安装包。
 - 项目架构、工程流程、Skill 和小队合同模板。
 - 安装引导器、Skill 新鲜度巡检、路由与交接评测样例。
+- 一个实验性的本地 OpenCode 编排控制器：执行显式选定的合同、保存交接与命令证据，但不替代宿主 runtime。
+- 一个实验性的[本地 CLI](docs/CLI.md)：当前汇总、分类或比较显式项目路径下的 `.idc` metadata，不读取项目源码或宿主配置。
+- 无提示泄漏的宿主验收夹具与部分实测记录；它们用于暴露边界，不代表宿主兼容性保证。
 
 ## 快速开始
+
+### 最小路径
+
+先阅读 [Minimal Path](docs/MINIMAL.md)，用当前真实任务验证 `Skill -> Squad -> Contract -> Evidence` 四个概念即可。完成一次安全任务后可以停止，不需要安装全部模板、配置自动路由或设计元小队。
 
 ### 推荐方式：AI 先学，人机共学共建
 
@@ -153,6 +162,10 @@ For the optional Claude Code-native layout, use `--platform claude-code`. This c
 
 `bootstrap.py` 只是可选脚手架，不会理解目标项目、设计小队或完成平台适配。它默认只预览并保护已有文件。生成后仍需由 AI 基于目标项目填写和裁剪，再用 `validate_project.py` 检查占位符、Skill 引用和小队规模。详细步骤见 [QUICKSTART.md](QUICKSTART.md)。
 
+### 宿主验收
+
+文件结构通过不代表宿主已正确发现入口、选择路由、执行交接或应用权限。使用 [Host Acceptance](docs/HOST_ACCEPTANCE.md) 中的无提示泄漏夹具和记录格式验证实际行为。当前 OpenCode 与 Claude Code 的公开记录均未通过完整验收，不报告路由准确率或兼容性保证。
+
 这个仓库的目的不是替你决定项目应该有哪些 Skill，而是让你能够从自己的真实工作、风险和重复问题中，搭建出属于自己项目的专业小队。
 
 ---
@@ -161,11 +174,13 @@ For the optional Claude Code-native layout, use `--platform claude-code`. This c
 
 ## English Details
 
-Intent-Driven Coding is a portable framework for building professional AI engineering squads around a real software repository.
+> **Evidence status: automatic host routing has not passed acceptance.** Recorded OpenCode and Claude Code runs are partial, mismatched, or unobservable. The proven deliverables are methods, templates, and structural checks, not automatic project-Squad selection. Start with [Minimal Path](docs/MINIMAL.md) and [Host Acceptance](docs/HOST_ACCEPTANCE.md).
+
+Intent-Driven Coding is a portable method, template set, and structural-checking toolkit for designing project-specific AI engineering squads. It is not a host-validated automatic orchestration product.
 
 The recommended adoption path is AI-first learning followed by human-AI collaborative adaptation, not blind installation or autonomous system generation. Ask your coding agent to read [`AI_START_HERE.md`](AI_START_HERE.md), inspect the target repository, teach back relevant concepts and tradeoffs, and work with the user to derive the project's own capabilities and squads. `scripts/bootstrap.py` is optional scaffolding only.
 
-The user can begin with a goal in ordinary language. The agent investigates the repository, translates intent into an executable contract, loads only the expertise that changes the result, makes the smallest correct change, and verifies it before claiming success. The human contributes domain knowledge, engineering experience, pain signals, skepticism, and judgment about product meaning, tradeoffs, durable abstractions, and risky external actions.
+The user can begin with a goal in ordinary language. The agent investigates the repository, translates intent into a proposed route or contract, explicitly reads the expertise that changes the result, makes the smallest correct change, and verifies it before claiming success. The human contributes domain knowledge, engineering experience, pain signals, skepticism, and judgment about product meaning, tradeoffs, durable abstractions, and risky external actions.
 
 This repository is not a collection of project-specific prompts or a team that must be copied unchanged. It shares the method for designing distinct Skills and combining two or three of them into outcome-oriented squads for your own project.
 
@@ -354,7 +369,7 @@ Do not paste your entire repository manual into the permanent entry. Keep stable
 - Existing project files are not overwritten without `--force`.
 - The repository validator checks required files, Skill frontmatter, evaluation JSON, local Markdown links, unresolved template tokens, and common secret/private-path patterns.
 - `scripts/audit_skills.py` checks Skill structure, volatile fact snapshots, and evaluation references.
-- No script commits, pushes, deploys, accesses a network service, or changes production data.
+- Scripts do not commit, push, deploy, or change production data. The experimental controller only invokes a configured local OpenCode command after explicit `--execute`; that invocation may use the host's model provider and remains subject to the target's host policy.
 - The project is released under the [MIT License](LICENSE).
 
 ## Origin
@@ -363,4 +378,6 @@ This framework was extracted from operating a multi-specialist AI engineering wo
 
 ## Status
 
-Phase 1 established the portable protocol, context architecture, base specialists, templates, bootstrapper, and validator. Phase 2 adds the professional squad method, project squad registry, two meta Skills, routing/handoff evaluations, Skill freshness auditing, author narrative, and a workshop for deriving project-specific squads. Future work can add executable agent benchmarks, project-map generation, domain squad packs, and adapters for individual coding-agent products.
+The portable foundation, structural validators, offline contract checks, and an experimental explicit-contract OpenCode controller are implemented. The controller's local records do not prove that a real coding host discovered the intended entry, used a named project Agent, semantically consumed a handoff, or applied a permission policy correctly. Read [Orchestration Controller](docs/ORCHESTRATION.md), then use the current empirical gate in [Current state](plans/CURRENT_STATE.md) and the evidence gates in the [Roadmap](plans/ROADMAP.md).
+
+Host acceptance records use the [manual evidence template](references/host-acceptance/README.md). The [experimental design constitution](DESIGN.md) describes a future read-only Observatory only after local indexing and report experiments demonstrate a need; no web Observatory is implemented or implied by this repository.

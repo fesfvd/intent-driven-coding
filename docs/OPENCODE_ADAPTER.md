@@ -6,6 +6,14 @@ This adapter maps the portable Intent-Driven Coding framework into OpenCode's pr
 
 The adapter keeps project architecture, workflow, and squad contracts in root Markdown files. It keeps specialist methods in OpenCode-discoverable Skills. It adds thin native Agent definitions so OpenCode can delegate distinct professional judgments without copying the full framework into every prompt.
 
+## Observed Pilot
+
+The OpenCode `1.18.5` pilot with `opencode/deepseek-v4-flash-free` is recorded as `partial`, not verified support. Project-local discovery was observed, but no case proved a complete named route, persisted handoff, focused verification, and policy-controlled release boundary. See [Host Acceptance](HOST_ACCEPTANCE.md) and the [pilot record](../references/host-acceptance/opencode-1.18.5-2026-07-26.md).
+
+## Experimental Controller
+
+[Orchestration Controller](ORCHESTRATION.md) can explicitly invoke a registered OpenCode Agent with `opencode run --agent <name>` for a selected local contract. It records controller-observed subprocess output and declared handoffs, but does not prove OpenCode's native project-capability precedence or enforce the Worker tool policy. Treat it as experimental until a real host-acceptance record closes those gaps.
+
 ## Generated Layout
 
 Run from the framework repository after the target project has been inspected:
@@ -66,3 +74,5 @@ Use a real target project and the installed OpenCode version. Start OpenCode at 
 4. With the target's commit and push policy configured as `ask` or `deny`, ask to commit or push the completed change. Confirm the policy governs the named effect and local implementation is not treated as authorization.
 
 The Adapter is verified for a target only when OpenCode discovers the generated Skills and Agents, the routing cases behave as expected, and permission behavior matches the target's policy.
+
+Use the non-leaking fixture in [Host Acceptance](HOST_ACCEPTANCE.md) when a real project cannot safely carry intentional acceptance failures. Inspect project-local versus user-level capability precedence before interpreting a generic capability as evidence that a named project Agent ran.

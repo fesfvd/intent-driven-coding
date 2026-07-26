@@ -6,6 +6,10 @@ This adapter maps the portable Intent-Driven Coding framework into Claude Code's
 
 The main Claude Code session uses a thin `CLAUDE.md` entry and the `team` Skill as the control plane. Native subagents own only distinct professional judgments. Project architecture, workflow, squad contracts, and optional `.idc/` contracts remain outside the subagent prompts.
 
+## Observed Pilot
+
+The Claude Code `2.1.154` pilot with its default `deepseek-v4-pro` model is recorded as `partial`, not verified support. The host could read the local fixture and make local edits, but it did not prove project-local `team` routing, named project subagent dispatch, persisted handoffs, focused verification, or release-policy behavior. See [Host Acceptance](HOST_ACCEPTANCE.md) and the [pilot record](../references/host-acceptance/claude-code-2.1.154-2026-07-26.md).
+
 ## Generated Layout
 
 Run from the framework repository after the target project has been inspected:
@@ -62,3 +66,5 @@ Use a real target project and the installed Claude Code version. Record the vers
 5. Request a commit or deployment and confirm the target's policy, not local implementation success, controls the external action.
 
 The Adapter is verified for a target only when the intended entry, Skills, and subagents are discovered and its observed permission behavior matches the target policy.
+
+Run the non-leaking fixture described in [Host Acceptance](HOST_ACCEPTANCE.md) before inferring support from layout validation. In particular, inspect whether user-level or generic capabilities take precedence over the project-local Skill or subagent named by the route.

@@ -30,6 +30,10 @@ Continue?
 
 Authorization should not be widened. Approval to create a PR does not authorize deployment. Approval to deploy one revision does not authorize a database migration unless that effect was included.
 
+## Controller Approval Tokens
+
+The experimental orchestration controller currently blocks a contract that requires authorization. A future approval token must bind one contract version, workspace revision, command summary, and named effects; `--execute` must never be treated as a blanket authorization for commit, push, deployment, production, or paid effects. Its direct-command deny list and execution timeouts are local guardrails, not a replacement for host permissions or effect-specific approval.
+
 ## Workspace Safety
 
 - Preserve unrelated changes, including untracked files.

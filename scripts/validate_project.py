@@ -375,6 +375,7 @@ def main() -> int:
         return 1
     skill_root = target / PLATFORM_SKILL_ROOTS[args.platform]
     print(f"项目验证通过：发现 {len(list(skill_root.glob('*/SKILL.md')))} 个 Skill，{len(warnings)} 个警告。")
+    print("注意：文件结构不证明宿主路由、Agent 执行或权限行为。")
     return 0
 
 

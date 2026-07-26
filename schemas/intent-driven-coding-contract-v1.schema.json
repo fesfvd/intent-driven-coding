@@ -56,6 +56,20 @@
         "omitted_checks_allowed": {"type": "boolean"}
       }
     },
+    "verificationCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "argv", "cwd"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "argv": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "cwd": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
     "authorization": {
       "type": "object",
       "additionalProperties": false,
@@ -142,6 +156,10 @@
               "type": "array",
               "minItems": 1,
               "items": {"$ref": "#/$defs/verificationClaim"}
+            },
+            "commands": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/verificationCommand"}
             }
           }
         },

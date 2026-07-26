@@ -86,6 +86,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
     print(f"Offline evaluation passed ({len(json_files(records_path))} evaluation records).")
+    print("Note: supplied records do not prove host routing or Agent execution.")
     return 0
 
 

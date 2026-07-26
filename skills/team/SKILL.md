@@ -23,6 +23,12 @@ Classify information as:
 
 Proceed without asking when no open decision remains. Never ask the user to choose files, Skills, tests, architecture patterns, or risk labels that the repository can establish.
 
+### Presentation Language
+
+Resolve Presentation language before producing a user-facing final response, report, status update, or handoff intended for the user. Use an explicit user language preference first, then the current user language, then an explicitly established target-audience language. Preserve code, commands, identifiers, APIs, and maintainer-only document conventions unless the user asks to translate them.
+
+Pass the resolved Presentation language to every specialist whose artifact will be shown to the user. Ask only when mixed-language input leaves a material user-visible choice unresolved.
+
 ## Adoption Mode: Collaborative Learning Mode
 
 When this framework is new to the target repository, deliver the current safe task before proposing a full operating system. Use available base methods directly, investigate only the relevant path, and keep framework setup out of the critical path.
@@ -74,6 +80,7 @@ Keep routing internal unless the user asks. When visible detail is useful:
 - Current stage:
 - Specialist chain:
 - Permission gate:
+- Presentation language:
 ```
 
 ## Constraints
@@ -83,6 +90,7 @@ Keep routing internal unless the user asks. When visible detail is useful:
 - A router selects expertise; it does not make the expert's conclusion.
 - A router does not count itself as a squad member.
 - Every sequential handoff must name an artifact the next member consumes.
+- Every user-facing handoff must preserve the resolved Presentation language.
 
 ## Example Triggers
 

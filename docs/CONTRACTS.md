@@ -31,6 +31,12 @@ The validator is offline. It checks JSON structure against draft 2020-12, squad 
 
 `scripts/evaluate_contracts.py` is also offline. It compares an Agent-produced `evaluation-record` with the corresponding contract and evaluation case. It checks route selection, declared artifacts, verification claims, authorization state, and forbidden behavior without executing the Agent that produced the record.
 
+## Executable Verification
+
+The optional `verification.commands` property declares local commands for the experimental [Orchestration Controller](ORCHESTRATION.md). Each command needs a unique `id`, a non-empty `argv` list, and a `cwd` string. The schema accepts these declarations; the controller validates workspace containment and only executes its bounded test-runner allowlist before it runs them. Execution is also bounded by the controller's `--verification-timeout-seconds` limit.
+
+`verification.commands` is optional for offline contracts and evaluations. It is required only when `scripts/orchestrate_squad.py --execute` runs a contract, because an Agent-declared verification artifact alone is not command evidence.
+
 ## Project Layout
 
 When a project has enough evidence to formalize a reusable formation, keep its platform-neutral artifacts under `.idc/`:
@@ -51,3 +57,4 @@ Do not create these files merely because the framework is installed. A contract 
 - An authorization contract records the scope required for an action; it does not grant permission.
 - A verification contract names the evidence required for a claim; it does not substitute for fresh command output.
 - The offline evaluator compares Agent-produced records with these contracts without calling a model.
+- An execution declaration does not grant host permissions or prove that a host used a named project Agent.

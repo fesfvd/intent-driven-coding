@@ -20,6 +20,19 @@ Every non-trivial request is interpreted through four classes:
 | Proposed default | The agent's simplest valid recommendation | Label it as a proposal; do not present it as user intent |
 | Open decision | Alternatives materially change behavior, data, permissions, privacy, cost, or irreversible effects | Present concise alternatives and ask one focused question |
 
+## Presentation Preference
+
+Presentation preference controls the language and form of user-facing conclusions, reports, explanations, status updates, and generated review cards. It is not a request to translate source code, commands, identifiers, APIs, or established internal maintenance documents.
+
+Resolve it in this order:
+
+1. An explicit language preference or accessibility preference from the user.
+2. The current user language for final user-facing presentation.
+3. A target audience language explicitly established by the repository or product request.
+4. The existing language of an internal file when its audience is maintainers rather than the current user.
+
+When a request mixes languages, preserve technical identifiers verbatim and ask only when the choice would materially change user-visible content. Carry the selected Presentation preference through every user-facing handoff; a downstream specialist must not silently switch languages.
+
 ## Translation Sequence
 
 1. State the requested outcome in concrete behavioral language.
@@ -29,6 +42,7 @@ Every non-trivial request is interpreted through four classes:
 5. Identify whether any unresolved choice changes product meaning or risk.
 6. Ask only for blocking open decisions.
 7. If none remain, execute without requesting approval for routine engineering details.
+8. Present the final user-facing result in the resolved Presentation preference.
 
 ## Decision Test
 
@@ -78,6 +92,7 @@ Internally, the agent can use:
 - Acceptance:
 - Risks:
 - Verification:
+- Presentation language:
 - Repository facts:
 - Proposed defaults:
 - Open decisions:

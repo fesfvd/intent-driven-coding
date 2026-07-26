@@ -1,6 +1,10 @@
 # AI Adoption Entry
 
-You are reading a framework for designing a project-specific AI engineering system. Do not copy this repository unchanged into another project.
+You are reading a method and template set for designing a project-specific AI engineering system. Do not copy this repository unchanged into another project.
+
+## Host Evidence Boundary
+
+Automatic project-Skill discovery, named subagent dispatch, and handoff consumption have not passed host acceptance in the recorded OpenCode and Claude Code runs. Read relevant `SKILL.md` files on demand and treat a declared Squad as guidance until the installed host version has its own acceptance evidence. Start with `docs/MINIMAL.md`; do not require automatic routing for the first useful task.
 
 ## Intended Outcome
 
@@ -78,7 +82,7 @@ Separate explicit user intent, repository-proven facts, proposed defaults, and o
 
 ### 3. Design Before Copying
 
-Use `meta-skill-designer` after progressive evidence reveals recurring work, repeated correction, a material failure boundary, or missing handoffs. Treat system design as a proposal for human review, not an autonomous conclusion. Do not hold the current task hostage while attempting to design a complete future roster.
+Use `meta-skill-designer` only after at least three observations show the same recurring work, repeated correction, material failure boundary, or missing handoff. Treat system design as a proposal for human review, not an autonomous conclusion. Do not hold the current task hostage while attempting to design a complete future roster.
 
 Two members are the default closed loop. Add a third only for a distinct material judgment. Do not treat the bundled roster or example squads as mandatory architecture.
 

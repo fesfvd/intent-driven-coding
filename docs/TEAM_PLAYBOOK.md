@@ -21,6 +21,7 @@ See `SQUAD_METHOD.md` for composition rules, `SQUAD_WORKSHOP.md` for deriving pr
 Owns:
 
 - Requirement translation.
+- User-facing presentation preference.
 - Risk classification.
 - Minimum Skill selection.
 - Workflow state and permission gates.
@@ -170,3 +171,7 @@ Intake -> Design? -> Plan? -> Build -> Verify -> Review? -> Ship? -> Learn?
 - Enter Learn after repeated failures or recurring workflow friction.
 
 The word "continue" resumes the latest unfinished safe stage. It never bypasses a permission gate.
+
+## Presentation Preference
+
+The router carries the user's resolved language preference through user-facing artifacts and final reports. Explicit preference wins; otherwise use the current user language, then an explicitly established audience language. This localizes presentation, not code, commands, identifiers, APIs, or maintainer-only documentation. A specialist must preserve the preference when its artifact is intended for the user.

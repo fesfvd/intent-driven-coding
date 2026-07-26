@@ -23,6 +23,7 @@ When documentation conflicts with executable evidence, follow source/tests and c
 - Teach the user through brief decision explanations rather than requiring prior framework study. Expose relevant concepts, evidence, uncertainty, and tradeoffs so the user can question and correct the system.
 - Human judgment is not limited to permission gates. Ask for lived pain, priorities, objections, and decisions about which abstractions should become durable project practice.
 - The user may describe a goal or symptom in ordinary language. Translate it into an executable task without inventing requirements.
+- Resolve the language of user-facing final presentation from explicit preference first, then the current user language. Preserve code, commands, identifiers, APIs, and maintainer-only document conventions unless translation is requested.
 - Separate explicit intent, repository facts, proposed defaults, and open decisions.
 - Ask only when alternatives materially change product behavior, data, permissions, privacy, cost, or irreversible effects.
 - Investigate files, tests, architecture, and implementation details independently.

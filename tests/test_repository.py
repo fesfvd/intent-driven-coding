@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import os
 import json
+import signal
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import re
+from unittest.mock import patch
 from pathlib import Path
 
 
@@ -17,6 +20,11 @@ AUDITOR = ROOT / "scripts" / "audit_skills.py"
 PROJECT_VALIDATOR = ROOT / "scripts" / "validate_project.py"
 CONTRACT_VALIDATOR = ROOT / "scripts" / "validate_contracts.py"
 CONTRACT_EVALUATOR = ROOT / "scripts" / "evaluate_contracts.py"
+HOST_FIXTURE_PREPARER = ROOT / "scripts" / "prepare_host_acceptance_fixture.py"
+ORCHESTRATOR = ROOT / "scripts" / "orchestrate_squad.py"
+IDC = ROOT / "scripts" / "idc.py"
+sys.path.insert(0, str(ROOT / "scripts"))
+import orchestrate_squad
 
 
 class RepositoryTests(unittest.TestCase):
@@ -32,6 +40,192 @@ class RepositoryTests(unittest.TestCase):
     def test_repository_validator_passes(self) -> None:
         result = self.run_script(VALIDATOR)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_repository_validator_allows_literal_template_tokens_in_references(self) -> None:
+        reference = ROOT / "references" / "external-review-2026-07-25.md"
+        self.assertIn("{{PROJECT_NAME}}", reference.read_text(encoding="utf-8"))
+        result = self.run_script(VALIDATOR)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_phase_one_routing_fixture_supports_manual_host_acceptance(self) -> None:
+        routing_fixture = json.loads(
+            (ROOT / "evals" / "squad-routing.json").read_text(encoding="utf-8")
+        )
+        cases = {case["id"]: case for case in routing_fixture["cases"]}
+        required_cases = {
+            "direct-low-risk-copy-fix",
+            "unknown-root-cause",
+            "cross-layer-feature",
+            "publication-ambiguity",
+            "skill-system-design",
+            "release-permission",
+            "diff-review",
+            "security-regression",
+            "retention-ambiguity",
+            "scope-near-miss",
+        }
+        self.assertGreaterEqual(len(cases), 10)
+        self.assertTrue(required_cases.issubset(cases))
+
+        template = ROOT / "references" / "host-acceptance" / "README.md"
+        self.assertTrue(template.is_file())
+        template_text = template.read_text(encoding="utf-8")
+        for required_field in (
+            "Host version",
+            "Model",
+            "Target revision",
+            "Expected route",
+            "Actual route",
+            "Host-observed evidence",
+            "Permission behavior",
+        ):
+            self.assertIn(required_field, template_text)
+
+    def test_evidence_roadmap_artifacts_are_registered_and_linked(self) -> None:
+        validator = (ROOT / "scripts" / "validate_repository.py").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        for path in (
+            "plans/CURRENT_STATE.md",
+            "plans/ROADMAP.md",
+            "docs/HOST_ACCEPTANCE.md",
+            "references/README.md",
+            "references/host-acceptance/README.md",
+            "references/host-acceptance/opencode-1.18.5-2026-07-26.md",
+            "references/host-acceptance/claude-code-2.1.154-2026-07-26.md",
+            "references/host-acceptance/las-5.2.3-opencode-1.18.5-2026-07-26.md",
+            "DESIGN.md",
+        ):
+            self.assertIn(f'"{path}"', validator)
+        self.assertIn("[Current state](plans/CURRENT_STATE.md)", readme)
+        self.assertIn("[Roadmap](plans/ROADMAP.md)", readme)
+        self.assertIn("[experimental design constitution](DESIGN.md)", readme)
+
+    def test_host_acceptance_record_discloses_partial_observations(self) -> None:
+        record = (
+            ROOT / "references" / "host-acceptance" / "opencode-1.18.5-2026-07-26.md"
+        ).read_text(encoding="utf-8")
+        current_state = (ROOT / "plans" / "CURRENT_STATE.md").read_text(encoding="utf-8")
+        for required_text in (
+            "OpenCode `1.18.5`",
+            "`opencode/deepseek-v4-flash-free`",
+            "Status: partial",
+            "direct-low-risk-copy-fix",
+            "security-regression",
+            "unobservable",
+            "not a general compatibility claim",
+        ):
+            self.assertIn(required_text, record)
+        self.assertIn("OpenCode `1.18.5`", current_state)
+        self.assertIn("Claude Code `2.1.154` pilot", current_state)
+        self.assertIn("non-leaking host-acceptance fixture", current_state)
+        self.assertIn("prepare_host_acceptance_fixture.py", current_state)
+
+    def test_claude_host_acceptance_record_discloses_partial_observations(self) -> None:
+        record = (
+            ROOT / "references" / "host-acceptance" / "claude-code-2.1.154-2026-07-26.md"
+        ).read_text(encoding="utf-8")
+        for required_text in (
+            "Claude Code `2.1.154`",
+            "`deepseek-v4-pro`",
+            "Status: partial",
+            "direct-low-risk-copy-fix",
+            "security-regression",
+            "No persisted handoff artifact",
+            "$0.25",
+            "not a general compatibility claim",
+        ):
+            self.assertIn(required_text, record)
+
+    def test_host_fixture_preparer_creates_a_nonleaking_opencode_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir)
+            result = self.run_script(
+                HOST_FIXTURE_PREPARER,
+                "--target",
+                str(target),
+                "--platform",
+                "opencode",
+                "--apply",
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue((target / "fixture_app.py").is_file())
+            self.assertTrue((target / "tests" / "test_report.py").is_file())
+            self.assertFalse((target / ".opencode" / "evals" / "squad-routing.json").exists())
+
+            config = json.loads((target / "opencode.json").read_text(encoding="utf-8"))
+            self.assertEqual(config["permission"]["task"]["*"], "deny")
+            self.assertEqual(config["permission"]["task"]["debug"], "allow")
+            self.assertEqual(config["permission"]["task"]["verify"], "allow")
+
+            validation = self.run_script(
+                PROJECT_VALIDATOR,
+                "--target",
+                str(target),
+                "--platform",
+                "opencode",
+            )
+            self.assertEqual(validation.returncode, 0, validation.stdout + validation.stderr)
+
+            baseline = subprocess.run(
+                [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_report.py", "-v"],
+                cwd=target,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(baseline.returncode, 1, baseline.stdout + baseline.stderr)
+            self.assertIn("test_saved_report_renders_its_body", baseline.stderr)
+
+            target_text = "\n".join(
+                path.read_text(encoding="utf-8")
+                for path in target.rglob("*")
+                if path.is_file()
+                and path.suffix in {".json", ".md", ".py", ".txt"}
+                and ".git" not in path.parts
+            )
+            routing_cases = json.loads(
+                (ROOT / "evals" / "squad-routing.json").read_text(encoding="utf-8")
+            )["cases"]
+            for case in routing_cases:
+                self.assertNotIn(case["prompt"], target_text)
+
+    def test_host_fixture_assets_are_registered_for_acceptance_runs(self) -> None:
+        validator = (ROOT / "scripts" / "validate_repository.py").read_text(encoding="utf-8")
+        template = (ROOT / "references" / "host-acceptance" / "README.md").read_text(encoding="utf-8")
+        for path in (
+            "scripts/prepare_host_acceptance_fixture.py",
+            "fixtures/host-acceptance/README.md",
+            "fixtures/host-acceptance/AGENTS.md",
+            "fixtures/host-acceptance/AI_ENGINEERING_PLAYBOOK.md",
+            "fixtures/host-acceptance/SQUADS.md",
+            "fixtures/host-acceptance/SQUAD.md",
+            "fixtures/host-acceptance/fixture_app.py",
+            "fixtures/host-acceptance/tests/test_report.py",
+            "fixtures/host-acceptance/tests/test_invoice.py",
+            "fixtures/host-acceptance/tests/test_approval.py",
+            "fixtures/host-acceptance/opencode.json",
+        ):
+            self.assertIn(f'"{path}"', validator)
+        self.assertIn("prepare_host_acceptance_fixture.py", template)
+
+    def test_public_docs_link_host_acceptance_evidence(self) -> None:
+        guide = (ROOT / "docs" / "HOST_ACCEPTANCE.md").read_text(encoding="utf-8")
+        platform_guide = (ROOT / "docs" / "PLATFORM_ADAPTERS.md").read_text(encoding="utf-8")
+        opencode = (ROOT / "docs" / "OPENCODE_ADAPTER.md").read_text(encoding="utf-8")
+        claude = (ROOT / "docs" / "CLAUDE_CODE_ADAPTER.md").read_text(encoding="utf-8")
+        evaluation = (ROOT / "docs" / "EVALUATION.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+        for required_text in (
+            "OpenCode `1.18.5`",
+            "Claude Code `2.1.154`",
+            "partial",
+            "prepare_host_acceptance_fixture.py",
+            "No routing accuracy",
+        ):
+            self.assertIn(required_text, guide)
+        for document in (platform_guide, opencode, claude, evaluation, readme):
+            self.assertIn("HOST_ACCEPTANCE.md", document)
 
     def test_contract_validator_accepts_framework_examples(self) -> None:
         result = self.run_script(
@@ -289,6 +483,1057 @@ class RepositoryTests(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("duplicate verification claim", result.stdout)
 
+    def test_contract_validator_accepts_declared_verification_commands(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            contract_root = Path(temp_dir)
+            payload = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            payload["verification"]["commands"] = [
+                {
+                    "id": "focused-check",
+                    "argv": [sys.executable, "-c", "raise SystemExit(0)"],
+                    "cwd": ".",
+                }
+            ]
+            (contract_root / "contract.json").write_text(json.dumps(payload), encoding="utf-8")
+
+            result = self.run_script(CONTRACT_VALIDATOR, "--contracts", str(contract_root))
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_contract_validator_rejects_duplicate_verification_command_ids(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            contract_root = Path(temp_dir)
+            payload = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            command = {
+                "id": "focused-check",
+                "argv": [sys.executable, "-c", "raise SystemExit(0)"],
+                "cwd": ".",
+            }
+            payload["verification"]["commands"] = [command, command.copy()]
+            (contract_root / "contract.json").write_text(json.dumps(payload), encoding="utf-8")
+
+            result = self.run_script(CONTRACT_VALIDATOR, "--contracts", str(contract_root))
+
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("duplicate verification command", result.stdout)
+
+    def test_orchestrator_dry_run_records_a_policy_checked_route(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir) / "workspace"
+            workspace.mkdir()
+            contract = workspace / "debug-verify.squad.json"
+            contract.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "kind": "squad-contract",
+                        "id": "debug-verify",
+                        "outcome": "Diagnose a defect and independently verify its fix.",
+                        "routing": {
+                            "triggers": ["Find the root cause of a failing report."],
+                            "exclusions": [],
+                            "precedence": "Use only when the root cause is unknown.",
+                        },
+                        "members": [
+                            {
+                                "skill": "debug",
+                                "role": "primary",
+                                "required_output": "root-cause-analysis",
+                            },
+                            {
+                                "skill": "verify",
+                                "role": "proof",
+                                "required_output": "verification-report",
+                            },
+                        ],
+                        "handoffs": [
+                            {
+                                "from": "debug",
+                                "to": "verify",
+                                "artifact_id": "root-cause-analysis",
+                                "consumer_requirements": ["Read the diagnosis before verification."],
+                            }
+                        ],
+                        "verification": {
+                            "claims": [
+                                {
+                                    "id": "fix-supported",
+                                    "statement": "The reported defect has fresh supporting evidence.",
+                                    "required_evidence": ["Focused command result."],
+                                }
+                            ]
+                        },
+                        "authorization": {
+                            "required": False,
+                            "effects": [],
+                            "state": "not-required",
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            result = self.run_script(
+                ORCHESTRATOR,
+                "--contract",
+                str(contract),
+                "--workspace",
+                str(workspace),
+                "--request",
+                "Investigate the failing report.",
+                "--run-id",
+                "dry-run",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            run = json.loads((workspace / ".idc" / "runs" / "dry-run" / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(run["state"], "policy-checked")
+            self.assertEqual(run["route"], ["debug", "verify"])
+            events = [
+                json.loads(line)["type"]
+                for line in (workspace / ".idc" / "runs" / "dry-run" / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertEqual(events, ["run-planned", "policy-checked"])
+
+    def test_idc_status_reads_only_explicit_idc_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            contract_dir = project / ".idc" / "contracts"
+            evaluation_dir = project / ".idc" / "evals"
+            run_dir = project / ".idc" / "runs" / "observed-run"
+            contract_dir.mkdir(parents=True)
+            evaluation_dir.mkdir()
+            run_dir.mkdir(parents=True)
+            (project / "app.py").write_bytes(b"\xffnot-readable-source")
+
+            contract = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            evaluation_case = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.evaluation.json").read_text(encoding="utf-8")
+            )
+            evaluation_record = json.loads(
+                (ROOT / "evals" / "fixtures" / "cross-layer-feature.record.json").read_text(encoding="utf-8")
+            )
+            (contract_dir / "cross-layer-feature.squad.json").write_text(
+                json.dumps(contract), encoding="utf-8"
+            )
+            (contract_dir / "cross-layer-feature.evaluation.json").write_text(
+                json.dumps(evaluation_case), encoding="utf-8"
+            )
+            (evaluation_dir / "cross-layer-feature.record.json").write_text(
+                json.dumps(evaluation_record), encoding="utf-8"
+            )
+            (run_dir / "run.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "kind": "orchestration-run",
+                        "id": "observed-run",
+                        "state": "completed",
+                        "host": "opencode",
+                        "route": ["architecture", "code-review", "verify"],
+                        "contract": {"id": "cross-layer-feature"},
+                        "artifacts": [],
+                        "verification": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (run_dir / "events.jsonl").write_text(
+                "\n".join(
+                    (
+                        json.dumps({"timestamp": "2026-07-26T00:00:00+00:00", "type": "run-planned"}),
+                        json.dumps({"timestamp": "2026-07-26T00:01:00+00:00", "type": "run-completed"}),
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_script(IDC, "status", "--project", str(project), "--json")
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            status = json.loads(result.stdout)
+            self.assertEqual(status["project"], str(project.resolve()))
+            self.assertEqual(status["scope"], ".idc metadata only")
+            self.assertEqual(status["contracts"], ["cross-layer-feature"])
+            self.assertEqual(status["evaluation_cases"], ["cross-layer-feature-contract-route"])
+            self.assertEqual(status["evaluation_records"], ["cross-layer-feature-record"])
+            self.assertEqual(status["runs"][0]["id"], "observed-run")
+            self.assertEqual(status["runs"][0]["latest_event"], "run-completed")
+            self.assertEqual(
+                status["availability"],
+                {"contracts": "available", "evaluations": "available", "runs": "available"},
+            )
+
+    def test_idc_status_rejects_a_missing_project_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            missing_project = Path(temp_dir) / "missing-project"
+
+            result = self.run_script(IDC, "status", "--project", str(missing_project), "--json")
+
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("project directory does not exist", result.stderr)
+
+    def test_idc_status_renders_terminal_output_in_the_explicit_language(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            (project / ".idc").mkdir(parents=True)
+
+            result = self.run_script(IDC, "status", "--project", str(project), "--language", "zh")
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("项目:", result.stdout)
+            self.assertIn("范围: 仅 .idc 元数据", result.stdout)
+
+    def test_idc_evidence_distinguishes_claims_commands_and_persisted_runs(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            evaluation_dir = project / ".idc" / "evals"
+            run_dir = project / ".idc" / "runs" / "evidence-run"
+            evaluation_dir.mkdir(parents=True)
+            run_dir.mkdir(parents=True)
+            (project / "app.py").write_bytes(b"\xffnot-readable-source")
+            evaluation_record = json.loads(
+                (ROOT / "evals" / "fixtures" / "cross-layer-feature.record.json").read_text(encoding="utf-8")
+            )
+            (evaluation_dir / "cross-layer-feature.record.json").write_text(
+                json.dumps(evaluation_record), encoding="utf-8"
+            )
+            (run_dir / "run.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "kind": "orchestration-run",
+                        "id": "evidence-run",
+                        "state": "completed",
+                        "host": "opencode",
+                        "route": ["architecture", "code-review", "verify"],
+                        "artifacts": [
+                            {
+                                "id": "verification-report",
+                                "path": ".idc/runs/evidence-run/artifacts/verification-report.json",
+                                "sha256": "test-only",
+                            }
+                        ],
+                        "verification": [
+                            {
+                                "schema_version": 1,
+                                "kind": "command-evidence",
+                                "id": "focused-check",
+                                "provenance": "command-evidence",
+                                "argv": ["python", "-m", "pytest", "tests/test_report.py"],
+                                "cwd": str(project),
+                                "returncode": 0,
+                                "stdout": "verification/focused-check.stdout.txt",
+                                "stderr": "verification/focused-check.stderr.txt",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            result = self.run_script(IDC, "evidence", "--project", str(project), "--json")
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            evidence = json.loads(result.stdout)
+            self.assertEqual(evidence["project"], str(project.resolve()))
+            self.assertEqual(evidence["scope"], ".idc metadata only")
+            self.assertEqual(evidence["claimed"][0]["id"], "cross-layer-feature-record")
+            self.assertEqual(evidence["claimed"][0]["class"], "claimed")
+            self.assertEqual(evidence["command_evidence"][0]["id"], "focused-check")
+            self.assertEqual(evidence["command_evidence"][0]["returncode"], 0)
+            self.assertEqual(evidence["artifact_evidence"][0]["id"], "evidence-run")
+            self.assertEqual(evidence["artifact_evidence"][0]["class"], "artifact-evidence")
+            self.assertEqual(
+                evidence["availability"],
+                {
+                    "claimed": "available",
+                    "host-observed": "unavailable",
+                    "command-evidence": "available",
+                    "artifact-evidence": "available",
+                    "human-confirmed": "unavailable",
+                },
+            )
+
+    def test_idc_evidence_renders_terminal_output_in_the_explicit_language(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            (project / ".idc").mkdir(parents=True)
+
+            result = self.run_script(IDC, "evidence", "--project", str(project), "--language", "zh")
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("项目:", result.stdout)
+            self.assertIn("Agent 声称:", result.stdout)
+
+    def test_idc_evidence_tolerates_incomplete_run_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            run_dir = project / ".idc" / "runs" / "incomplete-run"
+            run_dir.mkdir(parents=True)
+            (run_dir / "run.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "kind": "orchestration-run",
+                        "id": "incomplete-run",
+                        "artifacts": None,
+                        "verification": None,
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            result = self.run_script(IDC, "evidence", "--project", str(project), "--json")
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            evidence = json.loads(result.stdout)
+            self.assertEqual(evidence["artifact_evidence"][0]["id"], "incomplete-run")
+            self.assertEqual(evidence["artifact_evidence"][0]["artifacts"], [])
+            self.assertEqual(evidence["command_evidence"], [])
+
+    def test_idc_portfolio_compares_explicit_project_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            first_project = Path(temp_dir) / "first-project"
+            second_project = Path(temp_dir) / "second-project"
+            first_contract_dir = first_project / ".idc" / "contracts"
+            second_evaluation_dir = second_project / ".idc" / "evals"
+            first_contract_dir.mkdir(parents=True)
+            second_evaluation_dir.mkdir(parents=True)
+            (first_project / "app.py").write_bytes(b"\xfffirst-project-source")
+            (second_project / "app.py").write_bytes(b"\xffsecond-project-source")
+            contract = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            evaluation_record = json.loads(
+                (ROOT / "evals" / "fixtures" / "cross-layer-feature.record.json").read_text(encoding="utf-8")
+            )
+            (first_contract_dir / "cross-layer-feature.squad.json").write_text(
+                json.dumps(contract), encoding="utf-8"
+            )
+            (second_evaluation_dir / "cross-layer-feature.record.json").write_text(
+                json.dumps(evaluation_record), encoding="utf-8"
+            )
+
+            result = self.run_script(
+                IDC,
+                "portfolio",
+                "--paths",
+                str(first_project),
+                str(second_project),
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            portfolio = json.loads(result.stdout)
+            self.assertEqual(portfolio["scope"], ".idc metadata only")
+            self.assertEqual(
+                [project["project"] for project in portfolio["projects"]],
+                [str(first_project.resolve()), str(second_project.resolve())],
+            )
+            self.assertEqual(portfolio["projects"][0]["contracts"], ["cross-layer-feature"])
+            self.assertEqual(portfolio["projects"][1]["evaluation_records"], ["cross-layer-feature-record"])
+            self.assertEqual(
+                portfolio["coverage"],
+                {
+                    "contracts": {"cross-layer-feature": [str(first_project.resolve())]},
+                    "evaluation_records": {"cross-layer-feature-record": [str(second_project.resolve())]},
+                },
+            )
+
+    def test_idc_portfolio_requires_two_explicit_project_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            project.mkdir()
+
+            result = self.run_script(IDC, "portfolio", "--paths", str(project), "--json")
+
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("at least two project directories", result.stderr)
+
+    def test_idc_portfolio_rejects_duplicate_project_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            project.mkdir()
+
+            result = self.run_script(IDC, "portfolio", "--paths", str(project), str(project), "--json")
+
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("distinct project directories", result.stderr)
+
+    def test_idc_portfolio_renders_terminal_output_in_the_explicit_language(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            first_project = Path(temp_dir) / "first-project"
+            second_project = Path(temp_dir) / "second-project"
+            first_project.mkdir()
+            second_project.mkdir()
+
+            result = self.run_script(
+                IDC,
+                "portfolio",
+                "--paths",
+                str(first_project),
+                str(second_project),
+                "--language",
+                "zh",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("项目数: 2", result.stdout)
+            self.assertIn("合同:", result.stdout)
+
+    def test_idc_cli_documents_its_explicit_scope_and_language_option(self) -> None:
+        guide = ROOT / "docs" / "CLI.md"
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        validator = (ROOT / "scripts" / "validate_repository.py").read_text(encoding="utf-8")
+
+        self.assertTrue(guide.is_file())
+        guide_text = guide.read_text(encoding="utf-8")
+        self.assertIn("idc.py status --project", guide_text)
+        self.assertIn("idc.py evidence --project", guide_text)
+        self.assertIn("idc.py portfolio --paths", guide_text)
+        self.assertIn("--language zh", guide_text)
+        self.assertIn(".idc/contracts", guide_text)
+        self.assertIn("不读取项目源码", guide_text)
+        self.assertIn("command-evidence", guide_text)
+        self.assertIn("host-observed", guide_text)
+        self.assertIn("portfolio", guide_text)
+        self.assertIn("至少两个不同", guide_text)
+        self.assertIn("[本地 CLI](docs/CLI.md)", readme)
+        self.assertIn('"docs/CLI.md"', validator)
+
+    def test_orchestrator_executes_registered_agents_with_artifact_handoffs(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir) / "workspace"
+            workspace.mkdir()
+            contract = workspace / "cross-layer-feature.squad.json"
+            payload = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            payload["authorization"] = {
+                "required": False,
+                "effects": [],
+                "state": "not-required",
+            }
+            payload["verification"]["commands"] = [
+                {
+                    "id": "focused-check",
+                    "argv": ["python", "-m", "unittest"],
+                    "cwd": ".",
+                }
+            ]
+            contract.write_text(json.dumps(payload), encoding="utf-8")
+            (workspace / "test_focused_check.py").write_text(
+                "\n".join(
+                    (
+                        "import unittest",
+                        "",
+                        "class FocusedCheck(unittest.TestCase):",
+                        "    def test_check(self):",
+                        "        print('focused check passed')",
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            fake_opencode = workspace / "fake_opencode.py"
+            fake_opencode.write_text(
+                "\n".join(
+                    (
+                        "import json",
+                        "import re",
+                        "import sys",
+                        "invocation_agent = sys.argv[sys.argv.index('--agent') + 1]",
+                        "if invocation_agent != 'team':",
+                        "    raise SystemExit(f'expected team, got {invocation_agent}')",
+                        "agent = re.search(r\"registered '([^']+)' judgment\", sys.argv[-1]).group(1)",
+                        "outputs = {",
+                        "    'architecture': ('impact-contract', []),",
+                        "    'code-review': ('review-findings', ['impact-contract']),",
+                        "    'verify': ('verification-report', ['review-findings']),",
+                        "}",
+                        "artifact_id, consumed = outputs[agent]",
+                        "output = {",
+                        "    'artifact_id': artifact_id,",
+                        "    'summary': f'{agent} result',",
+                        "    'findings': [f'{agent} evidence'],",
+                        "    'consumed_artifact_ids': consumed,",
+                        "}",
+                        "print(json.dumps({'type': 'tool_use', 'part': {'type': 'tool', 'tool': 'task', 'state': {'status': 'completed', 'input': {'subagent_type': agent}, 'metadata': {'sessionId': f'session-{agent}'}}}}))",
+                        "print(json.dumps({'type': 'text', 'part': {'type': 'text', 'text': json.dumps(output)}}))",
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_script(
+                ORCHESTRATOR,
+                "--contract",
+                str(contract),
+                "--workspace",
+                str(workspace),
+                "--request",
+                "Add a field through every layer.",
+                "--run-id",
+                "executed-run",
+                "--execute",
+                "--opencode-command",
+                sys.executable,
+                "--opencode-command",
+                str(fake_opencode),
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            run_dir = workspace / ".idc" / "runs" / "executed-run"
+            run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(run["state"], "completed")
+            review = json.loads((run_dir / "artifacts" / "review-findings.json").read_text(encoding="utf-8"))
+            self.assertEqual(review["producer"], "code-review")
+            self.assertEqual(review["output"]["consumed_artifact_ids"], ["impact-contract"])
+            self.assertEqual(
+                review["host_observation"],
+                {
+                    "invocation_agent": "team",
+                    "subagent": "code-review",
+                    "child_session_id": "session-code-review",
+                },
+            )
+            command = json.loads((run_dir / "verification" / "focused-check.json").read_text(encoding="utf-8"))
+            self.assertEqual(command["returncode"], 0)
+            self.assertIn("focused check passed", (run_dir / "verification" / "focused-check.stdout.log").read_text(encoding="utf-8"))
+
+    def test_orchestrator_rejects_worker_that_omits_required_handoff(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir) / "workspace"
+            workspace.mkdir()
+            contract = workspace / "cross-layer-feature.squad.json"
+            payload = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            payload["authorization"] = {
+                "required": False,
+                "effects": [],
+                "state": "not-required",
+            }
+            payload["verification"]["commands"] = [
+                {
+                    "id": "focused-check",
+                    "argv": ["python", "-m", "unittest"],
+                    "cwd": ".",
+                }
+            ]
+            contract.write_text(json.dumps(payload), encoding="utf-8")
+            fake_opencode = workspace / "fake_opencode.py"
+            fake_opencode.write_text(
+                "\n".join(
+                    (
+                        "import json",
+                        "import re",
+                        "import sys",
+                        "invocation_agent = sys.argv[sys.argv.index('--agent') + 1]",
+                        "if invocation_agent != 'team':",
+                        "    raise SystemExit(f'expected team, got {invocation_agent}')",
+                        "agent = re.search(r\"registered '([^']+)' judgment\", sys.argv[-1]).group(1)",
+                        "outputs = {",
+                        "    'architecture': 'impact-contract',",
+                        "    'code-review': 'review-findings',",
+                        "    'verify': 'verification-report',",
+                        "}",
+                        "output = {",
+                        "    'artifact_id': outputs[agent],",
+                        "    'summary': f'{agent} result',",
+                        "    'findings': [f'{agent} evidence'],",
+                        "    'consumed_artifact_ids': [],",
+                        "}",
+                        "print(json.dumps({'type': 'tool_use', 'part': {'type': 'tool', 'tool': 'task', 'state': {'status': 'completed', 'input': {'subagent_type': agent}, 'metadata': {'sessionId': f'session-{agent}'}}}}))",
+                        "print(json.dumps({'type': 'text', 'part': {'type': 'text', 'text': json.dumps(output)}}))",
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_script(
+                ORCHESTRATOR,
+                "--contract",
+                str(contract),
+                "--workspace",
+                str(workspace),
+                "--request",
+                "Add a field through every layer.",
+                "--run-id",
+                "missing-handoff",
+                "--execute",
+                "--opencode-command",
+                sys.executable,
+                "--opencode-command",
+                str(fake_opencode),
+            )
+
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("required upstream artifacts", result.stderr)
+            run_dir = workspace / ".idc" / "runs" / "missing-handoff"
+            run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(run["state"], "failed")
+            self.assertFalse((run_dir / "artifacts" / "review-findings.json").exists())
+
+    def test_orchestrator_timeout_terminates_the_worker_process_tree(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir) / "workspace"
+            workspace.mkdir()
+            contract = workspace / "cross-layer-feature.squad.json"
+            payload = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            payload["authorization"] = {
+                "required": False,
+                "effects": [],
+                "state": "not-required",
+            }
+            payload["verification"]["commands"] = [
+                {
+                    "id": "focused-check",
+                    "argv": ["python", "-m", "unittest"],
+                    "cwd": ".",
+                }
+            ]
+            contract.write_text(json.dumps(payload), encoding="utf-8")
+            worker = workspace / "worker_that_spawns_child.py"
+            worker.write_text(
+                "\n".join(
+                    (
+                        "import subprocess",
+                        "import sys",
+                        "import time",
+                        "from pathlib import Path",
+                        "workspace = Path(sys.argv[sys.argv.index('--dir') + 1])",
+                        "child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)",
+                        "(workspace / 'child.pid').write_text(str(child.pid), encoding='utf-8')",
+                        "time.sleep(30)",
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            child_pid: int | None = None
+            try:
+                result = self.run_script(
+                    ORCHESTRATOR,
+                    "--contract",
+                    str(contract),
+                    "--workspace",
+                    str(workspace),
+                    "--request",
+                    "Diagnose the fixture without edits.",
+                    "--run-id",
+                    "worker-timeout",
+                    "--execute",
+                    "--worker-timeout-seconds",
+                    "1",
+                    "--opencode-command",
+                    sys.executable,
+                    "--opencode-command",
+                    str(worker),
+                )
+
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                run_dir = workspace / ".idc" / "runs" / "worker-timeout"
+                run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+                self.assertEqual(run["state"], "failed")
+                self.assertIn("agent-failed", (run_dir / "events.jsonl").read_text(encoding="utf-8"))
+
+                child_pid = int((workspace / "child.pid").read_text(encoding="utf-8"))
+                deadline = time.monotonic() + 3
+                while time.monotonic() < deadline:
+                    if os.name == "nt":
+                        probe = subprocess.run(
+                            ["tasklist", "/FI", f"PID eq {child_pid}", "/FO", "CSV", "/NH"],
+                            text=True,
+                            capture_output=True,
+                            check=False,
+                        )
+                        is_running = str(child_pid) in probe.stdout
+                    else:
+                        try:
+                            os.kill(child_pid, 0)
+                            is_running = True
+                        except ProcessLookupError:
+                            is_running = False
+                    if not is_running:
+                        break
+                    time.sleep(0.1)
+                else:
+                    self.fail("timed-out worker left a child process running")
+            finally:
+                if child_pid is not None:
+                    try:
+                        if os.name == "nt":
+                            subprocess.run(
+                                ["taskkill", "/PID", str(child_pid), "/T", "/F"],
+                                capture_output=True,
+                                check=False,
+                            )
+                        else:
+                            os.kill(child_pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+
+    def test_orchestrator_blocks_unsafe_verification_command_before_dispatch(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir) / "workspace"
+            workspace.mkdir()
+            contract = workspace / "cross-layer-feature.squad.json"
+            payload = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            payload["authorization"] = {
+                "required": False,
+                "effects": [],
+                "state": "not-required",
+            }
+            payload["verification"]["commands"] = [
+                {"id": "publish", "argv": ["git", "-C", "..", "push"], "cwd": "."}
+            ]
+            contract.write_text(json.dumps(payload), encoding="utf-8")
+
+            result = self.run_script(
+                ORCHESTRATOR,
+                "--contract",
+                str(contract),
+                "--workspace",
+                str(workspace),
+                "--request",
+                "Release the change.",
+                "--run-id",
+                "unsafe-command",
+                "--execute",
+                "--opencode-command",
+                sys.executable,
+                "--opencode-command",
+                str(workspace / "not-run.py"),
+            )
+
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("blocked effect", result.stderr)
+            run_dir = workspace / ".idc" / "runs" / "unsafe-command"
+            run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(run["state"], "blocked")
+            events = (run_dir / "events.jsonl").read_text(encoding="utf-8")
+            self.assertNotIn("agent-dispatched", events)
+
+    def test_orchestrator_blocks_git_alias_verification_commands(self) -> None:
+        self.assertTrue(
+            orchestrate_squad.command_is_unsafe(
+                ["git", "-c", "alias.release=!git push", "release"]
+            )
+        )
+
+    def test_orchestrator_allows_only_bounded_test_runner_commands(self) -> None:
+        self.assertFalse(
+            orchestrate_squad.command_is_unsafe(["python", "-m", "unittest"])
+        )
+        self.assertFalse(
+            orchestrate_squad.command_is_unsafe(["python", "-m", "pytest"])
+        )
+        self.assertFalse(orchestrate_squad.command_is_unsafe(["pytest"]))
+        self.assertTrue(
+            orchestrate_squad.command_is_unsafe(
+                ["python", "-c", "import subprocess; subprocess.run(['git', 'push'])"]
+            )
+        )
+        self.assertTrue(
+            orchestrate_squad.command_is_unsafe(["python", "-m", "pytest", "tests/test_one.py"])
+        )
+        self.assertTrue(
+            orchestrate_squad.command_is_unsafe(["C:/untrusted/python.exe", "-m", "pytest"])
+        )
+        self.assertTrue(
+            orchestrate_squad.command_is_unsafe(["python3", "-m", "unittest"])
+        )
+
+    def test_orchestrator_records_a_timed_out_verification_command(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir) / "workspace"
+            workspace.mkdir()
+            contract = workspace / "cross-layer-feature.squad.json"
+            payload = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            payload["authorization"] = {
+                "required": False,
+                "effects": [],
+                "state": "not-required",
+            }
+            payload["verification"]["commands"] = [
+                {
+                    "id": "slow-check",
+                    "argv": ["python", "-m", "unittest"],
+                    "cwd": ".",
+                }
+            ]
+            contract.write_text(json.dumps(payload), encoding="utf-8")
+            (workspace / "test_slow_check.py").write_text(
+                "\n".join(
+                    (
+                        "import time",
+                        "import unittest",
+                        "",
+                        "class SlowCheck(unittest.TestCase):",
+                        "    def test_wait(self):",
+                        "        time.sleep(30)",
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            fake_opencode = workspace / "fake_opencode.py"
+            fake_opencode.write_text(
+                "\n".join(
+                    (
+                        "import json",
+                        "import re",
+                        "import sys",
+                        "agent = re.search(r\"registered '([^']+)' judgment\", sys.argv[-1]).group(1)",
+                        "outputs = {",
+                        "    'architecture': ('impact-contract', []),",
+                        "    'code-review': ('review-findings', ['impact-contract']),",
+                        "    'verify': ('verification-report', ['review-findings']),",
+                        "}",
+                        "artifact_id, consumed = outputs[agent]",
+                        "output = {",
+                        "    'artifact_id': artifact_id,",
+                        "    'summary': f'{agent} result',",
+                        "    'findings': [f'{agent} evidence'],",
+                        "    'consumed_artifact_ids': consumed,",
+                        "}",
+                        "print(json.dumps({'type': 'tool_use', 'part': {'type': 'tool', 'tool': 'task', 'state': {'status': 'completed', 'input': {'subagent_type': agent}, 'metadata': {'sessionId': f'session-{agent}'}}}}))",
+                        "print(json.dumps({'type': 'text', 'part': {'type': 'text', 'text': json.dumps(output)}}))",
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_script(
+                ORCHESTRATOR,
+                "--contract",
+                str(contract),
+                "--workspace",
+                str(workspace),
+                "--request",
+                "Verify the implementation without external effects.",
+                "--run-id",
+                "verification-timeout",
+                "--execute",
+                "--verification-timeout-seconds",
+                "1",
+                "--opencode-command",
+                sys.executable,
+                "--opencode-command",
+                str(fake_opencode),
+            )
+
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn("verification command 'slow-check' timed out", result.stderr)
+            run_dir = workspace / ".idc" / "runs" / "verification-timeout"
+            run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(run["state"], "failed")
+            self.assertEqual(run["verification"][0]["kind"], "command-timeout")
+            self.assertEqual(run["verification"][0]["timeout_seconds"], 1)
+            self.assertIn("verification-timed-out", (run_dir / "events.jsonl").read_text(encoding="utf-8"))
+
+    def test_orchestrator_blocks_contract_that_requires_authorization(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir) / "workspace"
+            workspace.mkdir()
+            contract = workspace / "cross-layer-feature.squad.json"
+            payload = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            payload["verification"]["commands"] = [
+                {
+                    "id": "focused-check",
+                    "argv": ["python", "-m", "unittest"],
+                    "cwd": ".",
+                }
+            ]
+            contract.write_text(json.dumps(payload), encoding="utf-8")
+
+            result = self.run_script(
+                ORCHESTRATOR,
+                "--contract",
+                str(contract),
+                "--workspace",
+                str(workspace),
+                "--request",
+                "Release the change.",
+                "--run-id",
+                "authorization-required",
+                "--execute",
+                "--opencode-command",
+                sys.executable,
+                "--opencode-command",
+                str(workspace / "not-run.py"),
+            )
+
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("approval token", result.stderr)
+            run_dir = workspace / ".idc" / "runs" / "authorization-required"
+            run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(run["state"], "blocked")
+            self.assertIn("authorization-required", (run_dir / "events.jsonl").read_text(encoding="utf-8"))
+
+    def test_orchestrator_blocks_execution_without_a_verification_command(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir) / "workspace"
+            workspace.mkdir()
+            contract = workspace / "cross-layer-feature.squad.json"
+            payload = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            payload["authorization"] = {
+                "required": False,
+                "effects": [],
+                "state": "not-required",
+            }
+            contract.write_text(json.dumps(payload), encoding="utf-8")
+
+            result = self.run_script(
+                ORCHESTRATOR,
+                "--contract",
+                str(contract),
+                "--workspace",
+                str(workspace),
+                "--request",
+                "Implement the change.",
+                "--run-id",
+                "missing-verification-command",
+                "--execute",
+                "--opencode-command",
+                sys.executable,
+                "--opencode-command",
+                str(workspace / "not-run.py"),
+            )
+
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("requires at least one declared verification command", result.stderr)
+            run_dir = workspace / ".idc" / "runs" / "missing-verification-command"
+            run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(run["state"], "blocked")
+            self.assertNotIn("agent-dispatched", (run_dir / "events.jsonl").read_text(encoding="utf-8"))
+
+    def test_orchestrator_blocks_verification_command_outside_workspace(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir) / "workspace"
+            workspace.mkdir()
+            contract = workspace / "cross-layer-feature.squad.json"
+            payload = json.loads(
+                (ROOT / "contracts" / "examples" / "cross-layer-feature.squad.json").read_text(encoding="utf-8")
+            )
+            payload["authorization"] = {
+                "required": False,
+                "effects": [],
+                "state": "not-required",
+            }
+            payload["verification"]["commands"] = [
+                {
+                    "id": "outside-workspace",
+                    "argv": ["python", "-m", "unittest"],
+                    "cwd": "..",
+                }
+            ]
+            contract.write_text(json.dumps(payload), encoding="utf-8")
+
+            result = self.run_script(
+                ORCHESTRATOR,
+                "--contract",
+                str(contract),
+                "--workspace",
+                str(workspace),
+                "--request",
+                "Verify the change.",
+                "--run-id",
+                "outside-workspace",
+                "--execute",
+                "--opencode-command",
+                sys.executable,
+                "--opencode-command",
+                str(workspace / "not-run.py"),
+            )
+
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("escapes the workspace", result.stderr)
+            run_dir = workspace / ".idc" / "runs" / "outside-workspace"
+            run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(run["state"], "blocked")
+            self.assertNotIn("agent-dispatched", (run_dir / "events.jsonl").read_text(encoding="utf-8"))
+
+    def test_orchestration_controller_assets_are_registered_and_documented(self) -> None:
+        guide = (ROOT / "docs" / "ORCHESTRATION.md").read_text(encoding="utf-8")
+        contracts = (ROOT / "docs" / "CONTRACTS.md").read_text(encoding="utf-8")
+        opencode = (ROOT / "docs" / "OPENCODE_ADAPTER.md").read_text(encoding="utf-8")
+        permissions = (ROOT / "docs" / "PERMISSIONS.md").read_text(encoding="utf-8")
+        validator = (ROOT / "scripts" / "validate_repository.py").read_text(encoding="utf-8")
+        for required_text in (
+            "--execute",
+            "--opencode-command",
+            "--format json",
+            "controller-observed",
+            "agent-declared",
+            "host_observation",
+            "does not enforce worker tool permissions",
+            "--verification-timeout-seconds",
+            "command-timeout",
+            "verification-timed-out",
+            "Git aliases",
+            "python -c",
+            "Absolute interpreter paths",
+        ):
+            self.assertIn(required_text, guide)
+        self.assertIn("verification.commands", contracts)
+        self.assertIn("ORCHESTRATION.md", opencode)
+        self.assertIn("approval token", permissions)
+        self.assertIn('"docs/ORCHESTRATION.md"', validator)
+        self.assertIn('"scripts/orchestrate_squad.py"', validator)
+
+    def test_orchestrator_resolves_the_default_opencode_command(self) -> None:
+        with patch.object(
+            orchestrate_squad.shutil,
+            "which",
+            return_value=r"C:\Users\example\AppData\Roaming\npm\opencode.CMD",
+        ):
+            command = orchestrate_squad.resolve_opencode_command(None)
+
+        self.assertEqual(command, [r"C:\Users\example\AppData\Roaming\npm\opencode.CMD"])
+
+    def test_public_entry_discloses_unproven_host_routing_before_method_claims(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        minimal = (ROOT / "docs" / "MINIMAL.md").read_text(encoding="utf-8")
+        design = (ROOT / "DESIGN.md").read_text(encoding="utf-8")
+        roadmap = (ROOT / "plans" / "ROADMAP.md").read_text(encoding="utf-8")
+
+        self.assertIn("实证状态：自动宿主路由尚未通过验收", readme[:1200])
+        self.assertIn("[最小路径](docs/MINIMAL.md)", readme)
+        for concept in ("Skill", "Squad", "Contract", "Evidence"):
+            self.assertIn(concept, minimal)
+        self.assertIn("This product does not exist today", design[:1200])
+        self.assertIn("real-host acceptance is mismatched", roadmap)
+
+    def test_offline_success_output_discloses_host_routing_boundary(self) -> None:
+        for script in (VALIDATOR, CONTRACT_VALIDATOR, CONTRACT_EVALUATOR, AUDITOR):
+            result = self.run_script(script)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("prove host routing", result.stdout)
+
     def test_contract_validator_rejects_self_handoff(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             contract_root = Path(temp_dir)
@@ -419,6 +1664,23 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("Requirement Translation Gate", router)
         self.assertIn("next smallest safe route", router)
         self.assertIn("not a separate specialist", playbook)
+
+    def test_user_language_preference_controls_final_presentation(self) -> None:
+        protocol = (ROOT / "docs" / "PROTOCOL.md").read_text(encoding="utf-8")
+        router = (ROOT / "skills" / "team" / "SKILL.md").read_text(encoding="utf-8")
+        playbook = (ROOT / "templates" / "AI_ENGINEERING_PLAYBOOK.md").read_text(encoding="utf-8")
+        evaluation = (ROOT / "docs" / "EVALUATION.md").read_text(encoding="utf-8")
+        las_case = (
+            ROOT / "references" / "host-acceptance" / "las-5.2.3-opencode-1.18.5-2026-07-26.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Presentation preference", protocol)
+        self.assertIn("explicit language preference", protocol)
+        self.assertIn("current user language", protocol)
+        self.assertIn("Presentation language", router)
+        self.assertIn("Presentation language:", playbook)
+        self.assertIn("reviewer or target user's preferred language", evaluation)
+        self.assertIn("## 证据卡片", las_case)
 
     def test_platform_guide_covers_mainstream_tools(self) -> None:
         guide = (ROOT / "docs" / "PLATFORM_ADAPTERS.md").read_text(encoding="utf-8")

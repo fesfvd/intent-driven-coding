@@ -71,6 +71,15 @@ def semantic_errors(payload: dict[object, object]) -> list[str]:
     claim_ids = [claim["id"] for claim in payload["verification"]["claims"]]
     for claim_id in sorted({claim_id for claim_id in claim_ids if claim_ids.count(claim_id) > 1}):
         errors.append(f"duplicate verification claim '{claim_id}'")
+    command_ids = [
+        command["id"]
+        for command in payload["verification"].get("commands", [])
+        if isinstance(command, dict) and isinstance(command.get("id"), str)
+    ]
+    for command_id in sorted(
+        {command_id for command_id in command_ids if command_ids.count(command_id) > 1}
+    ):
+        errors.append(f"duplicate verification command '{command_id}'")
     for handoff in payload["handoffs"]:
         if not isinstance(handoff, dict):
             continue
@@ -195,6 +204,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
     print(f"Contract validation passed ({len(json_files(contracts_path))} JSON contract files).")
+    print("Note: JSON consistency does not prove host routing or Agent execution.")
     return 0
 
 

@@ -4,6 +4,12 @@
 
 {{SQUAD_OUTCOME}}
 
+## Presentation
+
+- User-facing language: {{PRESENTATION_LANGUAGE}}
+- Target audience: {{PRESENTATION_AUDIENCE}}
+- Keep code, commands, identifiers, APIs, and maintainer-only documents in their established convention unless translation is explicitly requested.
+
 ## Selection
 
 - Trigger language: {{SQUAD_TRIGGERS}}
@@ -34,6 +40,7 @@ Delete the third row unless it guards a distinct material boundary.
 ```
 
 State which work may run independently. Do not parallelize a consumer before its required handoff exists.
+Carry the user-facing language into any artifact intended for the user or final presentation.
 
 ## Exit Conditions
 
@@ -46,6 +53,15 @@ State which work may run independently. Do not parallelize a consumer before its
 {{SQUAD_PERMISSION_GATE}}
 
 Use `none` only when the complete squad is local, reversible, and free of external side effects.
+
+## Optional Controller Execution
+
+- Machine-readable contract: {{SQUAD_CONTRACT_PATH}}
+- Required verification commands: {{SQUAD_VERIFICATION_COMMANDS}}
+- Required upstream artifact IDs: {{SQUAD_ARTIFACT_IDS}}
+- Effects that remain separately authorized: {{SQUAD_EXTERNAL_EFFECTS}}
+
+Only add an executable declaration after the squad and its local verification commands have repeated enough to justify a durable contract. The controller's `--execute` path does not grant external permissions.
 
 ## Evaluation Cases
 

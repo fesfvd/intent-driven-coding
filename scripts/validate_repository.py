@@ -18,6 +18,7 @@ REQUIRED_FILES = (
     "AUTHOR.md",
     "AI_START_HERE.md",
     "QUICKSTART.md",
+    "DESIGN.md",
     "LICENSE",
     "docs/PROTOCOL.md",
     "docs/CONTEXT_ARCHITECTURE.md",
@@ -28,12 +29,34 @@ REQUIRED_FILES = (
     "docs/PROJECT_ARCHETYPES.md",
     "docs/SQUAD_CATALOG.md",
     "docs/EVALUATION.md",
+    "docs/HOST_ACCEPTANCE.md",
+    "docs/MINIMAL.md",
+    "docs/ORCHESTRATION.md",
     "docs/PLATFORM_ADAPTERS.md",
     "docs/OPENCODE_ADAPTER.md",
     "docs/CLAUDE_CODE_ADAPTER.md",
     "docs/CONTRACTS.md",
+    "docs/CLI.md",
     "docs/PERMISSIONS.md",
     "docs/ADAPTATION_GUIDE.md",
+    "plans/CURRENT_STATE.md",
+    "plans/ROADMAP.md",
+    "references/README.md",
+    "references/host-acceptance/README.md",
+    "references/host-acceptance/opencode-1.18.5-2026-07-26.md",
+    "references/host-acceptance/opencode-1.18.5-controller-2026-07-26.md",
+    "references/host-acceptance/claude-code-2.1.154-2026-07-26.md",
+    "references/host-acceptance/las-5.2.3-opencode-1.18.5-2026-07-26.md",
+    "fixtures/host-acceptance/README.md",
+    "fixtures/host-acceptance/AGENTS.md",
+    "fixtures/host-acceptance/AI_ENGINEERING_PLAYBOOK.md",
+    "fixtures/host-acceptance/SQUADS.md",
+    "fixtures/host-acceptance/SQUAD.md",
+    "fixtures/host-acceptance/fixture_app.py",
+    "fixtures/host-acceptance/tests/test_report.py",
+    "fixtures/host-acceptance/tests/test_invoice.py",
+    "fixtures/host-acceptance/tests/test_approval.py",
+    "fixtures/host-acceptance/opencode.json",
     "templates/AGENT_ENTRY.md",
     "templates/AGENTS.md",
     "templates/AI_ENGINEERING_PLAYBOOK.md",
@@ -73,6 +96,9 @@ REQUIRED_FILES = (
     "scripts/validate_project.py",
     "scripts/validate_contracts.py",
     "scripts/evaluate_contracts.py",
+    "scripts/orchestrate_squad.py",
+    "scripts/idc.py",
+    "scripts/prepare_host_acceptance_fixture.py",
 )
 ALLOWED_TEMPLATE_FILES = {
     Path("templates/AGENT_ENTRY.md"),
@@ -82,6 +108,7 @@ ALLOWED_TEMPLATE_FILES = {
     Path("templates/SQUAD.md"),
     Path("templates/claude/CLAUDE.md"),
 }
+REFERENCE_DIRECTORY = Path("references")
 PRIVATE_PATTERNS = (
     ("private IPv4", re.compile(r"\b(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)\d{1,3}\.\d{1,3}\b")),
     ("Windows user path", re.compile(r"[A-Za-z]:\\Users\\[^\\\s]+", re.IGNORECASE)),
@@ -206,7 +233,11 @@ def validate() -> list[str]:
     for path in markdown_files():
         relative = path.relative_to(ROOT)
         text = path.read_text(encoding="utf-8")
-        if "{{" in text and relative not in ALLOWED_TEMPLATE_FILES:
+        if (
+            "{{" in text
+            and relative not in ALLOWED_TEMPLATE_FILES
+            and not relative.is_relative_to(REFERENCE_DIRECTORY)
+        ):
             errors.append(f"{relative}: unresolved template token outside templates/")
         for label, pattern in PRIVATE_PATTERNS:
             if pattern.search(text):
@@ -232,6 +263,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
     print(f"Repository validation passed ({len(REQUIRED_FILES)} required files, {len(markdown_files())} Markdown files).")
+    print("Note: structural checks do not prove host routing or permission behavior.")
     return 0
 
 
