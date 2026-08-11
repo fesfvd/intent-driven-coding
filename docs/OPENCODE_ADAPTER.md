@@ -6,6 +6,20 @@ This adapter maps the portable Intent-Driven Coding framework into OpenCode's pr
 
 The adapter keeps project architecture, workflow, and squad contracts in root Markdown files. It keeps specialist methods in OpenCode-discoverable Skills. It adds thin native Agent definitions so OpenCode can delegate distinct professional judgments without copying the full framework into every prompt.
 
+## Plugin Installation (Recommended)
+
+Add to the target project's `opencode.json`:
+
+```json
+{
+  "plugin": [
+    "intent-driven-coding@git+https://github.com/fesfvd/intent-driven-coding.git"
+  ]
+}
+```
+
+The in-process plugin registers the `skills/` directory and injects bootstrap context (pipeline phases + HARD-GATEs) at session start. See [.opencode/INSTALL.md](../.opencode/INSTALL.md) for manual setup.
+
 ## Observed Pilot
 
 The OpenCode `1.18.5` pilot with `opencode/deepseek-v4-flash-free` is recorded as `partial`, not verified support. Project-local discovery was observed, but no case proved a complete named route, persisted handoff, focused verification, and policy-controlled release boundary. See [Host Acceptance](HOST_ACCEPTANCE.md) and the [pilot record](../references/host-acceptance/opencode-1.18.5-2026-07-26.md).
@@ -42,17 +56,17 @@ OpenCode discovers project Skills from `.opencode/skills/<name>/SKILL.md` and na
 
 ## Agent Mapping
 
-| OpenCode Agent | Mode | Responsibility |
-|---|---|---|
-| `team` | primary | Translate intent, select the smallest safe route, delegate distinct judgments, and implement local changes. |
-| `architecture` | subagent | Produce an impact and contract analysis before cross-layer work. |
-| `debug` | subagent | Diagnose an unknown root cause without speculative patches. |
-| `code-review` | subagent | Inspect a diff for real correctness and regression risks. |
-| `verify` | subagent | Collect fresh evidence for completion claims. |
-| `meta-skill-designer` | subagent | Design a project-specific roster and squad contracts from evidence. |
-| `skill-creator` | subagent | Draft or improve an approved individual Skill and its evaluations. |
+| OpenCode Agent | Mode | Pipeline phase | Responsibility |
+|---|---|---|---|
+| `team` | primary | INTAKE (all tasks) | Translate intent, determine phases, select the smallest safe route, delegate distinct judgments, and implement local changes. |
+| `architecture` | subagent | DESIGN (cross-layer) | Produce an impact and contract analysis before cross-layer work. |
+| `debug` | subagent | DESIGN (unknown cause) | Diagnose an unknown root cause without speculative patches. |
+| `code-review` | subagent | REVIEW | Inspect a diff for real correctness and regression risks. |
+| `verify` | subagent | VERIFY | Collect fresh evidence for completion claims. |
+| `meta-skill-designer` | subagent | DESIGN (meta) / LEARN | Design a project-specific roster and squad contracts from evidence. |
+| `skill-creator` | subagent | BUILD (meta) | Draft or improve an approved individual Skill and its evaluations. |
 
-Available Agents are a capability pool, not a permanent team. The `team` Agent should select the smallest route registered in `SQUADS.md`.
+Available Agents are a capability pool, not a permanent team. The `team` Agent should select the smallest route registered in `SQUADS.md`. See `skills/team/SKILL.md` for the full pipeline phase model.
 
 ## Permissions
 
@@ -68,11 +82,12 @@ Before installation, resolve duplicate Skill names in `.claude/skills/` and `.ag
 
 Use a real target project and the installed OpenCode version. Start OpenCode at the target root, select the `team` primary Agent, and record the installed version plus results for each case:
 
-1. Ask for a local typo correction. Confirm it stays on the direct, low-risk route and uses a narrow check.
-2. Ask to find and fix an unknown blank report. Confirm `debug` is selected or explicitly loaded before patching.
-3. Ask for an API field that is displayed in the client. Confirm `architecture` produces an impact contract and `verify` reports fresh evidence.
-4. With the target's commit and push policy configured as `ask` or `deny`, ask to commit or push the completed change. Confirm the policy governs the named effect and local implementation is not treated as authorization.
+1. Ask for a local typo correction. Confirm it stays on the direct, low-risk route and uses a narrow check (INTAKE → BUILD → VERIFY).
+2. Ask to find and fix an unknown blank report. Confirm `debug` is selected or explicitly loaded before patching (INTAKE → DESIGN → BUILD → VERIFY).
+3. Ask for an API field that is displayed in the client. Confirm `architecture` produces an impact contract and `verify` reports fresh evidence (INTAKE → DESIGN → BUILD → VERIFY → REVIEW).
+4. With the target's commit and push policy configured as `ask` or `deny`, ask to commit or push the completed change. Confirm the policy governs the named effect and local implementation is not treated as authorization (SHIP phase gated).
+5. Confirm the `team` primary Agent identifies pipeline phases before selecting squads, and gates DESIGN→BUILD and BUILD→SHIP transitions.
 
-The Adapter is verified for a target only when OpenCode discovers the generated Skills and Agents, the routing cases behave as expected, and permission behavior matches the target's policy.
+The Adapter is verified for a target only when OpenCode discovers the generated Skills and Agents, pipeline phases are observed, the routing cases behave as expected, and permission behavior matches the target's policy.
 
 Use the non-leaking fixture in [Host Acceptance](HOST_ACCEPTANCE.md) when a real project cannot safely carry intentional acceptance failures. Inspect project-local versus user-level capability precedence before interpreting a generic capability as evidence that a named project Agent ran.

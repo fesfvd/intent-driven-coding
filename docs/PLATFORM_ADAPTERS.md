@@ -8,6 +8,19 @@ If you are one of the products named below, recognize your section and act on th
 
 Across every host, AI-first describes who takes the initial learning burden, not who owns the resulting system. Begin useful work without requiring prior framework study, teach back relevant concepts and tradeoffs when they affect a shared decision, and combine repository evidence with the user's experience and judgment before formalizing project guidance.
 
+## Platform Support Status
+
+| Platform | Status | Distribution | Adapter doc | Templates | Notes |
+|---|---|---|---|---|---|---|
+| **Claude Code** | ✅ Verified | Plugin marketplace (`/plugin install`) | [Claude Code Adapter](CLAUDE_CODE_ADAPTER.md) | `templates/claude/` | Pipeline-aware subagents + native Skill discovery + SessionStart hook |
+| **OpenCode** | ✅ Verified | `opencode.json` plugin reference | [OpenCode Adapter](OPENCODE_ADAPTER.md) | `templates/opencode/` | Pipeline-aware primary agent + in-process plugin + session-start inject |
+| Codex CLI | ⚡ Community | Manual clone only | Generic Setup below | None | Use `AGENTS.md` as anchor; read Skills on demand |
+| Cursor | ⚡ Community | Manual clone only | Generic Setup below | None | Use project-instruction mechanism; read Skills explicitly |
+| GitHub Copilot | ⚡ Community | Manual clone only | Generic Setup below | None | Use project-instruction mechanism; Skill reuse limited |
+| Other agents | ⚡ Community | Manual clone only | Generic Setup below | None | Map to closest supported mechanism |
+
+**Verified** = adapter has documented layout, templates, permission model, and acceptance checklist. **Community** = general guidance exists, but platform-specific templates and cross-version testing have not been performed.
+
 ## Generic Setup
 
 1. Point the agent's project instruction entry at `.agent/AGENT_ENTRY.md`, or merge that thin entry into the platform's recognized project instruction file.

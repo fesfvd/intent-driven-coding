@@ -9,7 +9,7 @@ The router receives ordinary language and selects the smallest registered squad 
 Requirement translation is part of this control plane, not a separate specialist by default. It classifies intent, repository facts, proposed defaults, and open decisions so the router can select the next smallest safe route. Create a project-specific product or requirements Skill only when repeated work requires an independent professional judgment, a concrete downstream artifact, and a boundary that the router must not decide.
 
 ```text
-Intent -> translate -> classify risk -> select squad -> specialist handoffs -> build -> proof -> external action if authorized
+Intent -> translate -> classify risk -> determine phases -> select squad -> gate transitions -> specialist handoffs -> build -> proof -> external action if authorized
 ```
 
 See `SQUAD_METHOD.md` for composition rules, `SQUAD_WORKSHOP.md` for deriving project-specific formations, `CAPABILITY_TIERS.md` for capability selection, and `SQUAD_CATALOG.md` for reference formations.
@@ -94,15 +94,17 @@ Output:
 
 ## Standard Squads
 
-| Outcome | Squad |
-|---|---|
-| Exact low-risk edit | Main agent -> verify |
-| Cross-layer feature | architecture -> code-review -> verify when material risk warrants all three |
-| Unknown-root-cause bug | debug -> verify; add code-review only for a distinct material regression boundary |
-| Explicit code review | code-review -> verification gap report |
-| Release preparation | verify -> code-review -> project-specific deployment process |
-| Production incident | project-specific read-only operations -> debug -> local fix -> release process |
-| Skill/team design | meta-skill-designer -> skill-creator |
+| Outcome | Squad | Phase path |
+|---|---|---|
+| Exact low-risk edit | Main agent -> verify | INTAKE → BUILD → VERIFY |
+| Cross-layer feature | architecture -> code-review -> verify when material risk warrants all three | INTAKE → DESIGN → BUILD → VERIFY → REVIEW |
+| Unknown-root-cause bug | debug -> verify; add code-review only for a distinct material regression boundary | INTAKE → DESIGN(debug) → BUILD → VERIFY (+ REVIEW) |
+| Explicit code review | code-review -> verification gap report | INTAKE → REVIEW → VERIFY |
+| Release preparation | verify -> code-review -> project-specific deployment process | INTAKE → VERIFY → REVIEW → SHIP |
+| Production incident | project-specific read-only operations -> debug -> local fix -> release process | INTAKE → DESIGN(debug) → BUILD → VERIFY → SHIP |
+| Skill/team design | meta-skill-designer -> skill-creator | INTAKE → DESIGN(meta) → BUILD(meta) |
+
+The full pipeline phase model, including phase→squad mapping and phase gates, is defined in `skills/team/SKILL.md`. The router determines which phases apply per task type, then gates each transition.
 
 Do not summon a design, planning, security, testing, review, and deployment specialist for every request. A large team is not evidence of rigor. If one specialist plus proof closes the result, use two. A third member must guard a distinct boundary.
 
@@ -158,17 +160,24 @@ Potential Phase 2 specialists:
 - Permission gates name the external effect.
 - Positive, near-miss, handoff, and safety cases exist.
 
-## State Machine
+## State Machine (Pipeline Phases)
+
+The full pipeline phase model lives in `skills/team/SKILL.md`. This section summarizes the canonical state machine:
 
 ```text
 Intake -> Design? -> Plan? -> Build -> Verify -> Review? -> Ship? -> Learn?
 ```
 
-- Enter Design when cross-boundary judgment is required.
-- Enter Plan only when the user requests a plan or safe execution requires one.
-- Enter Review for material regression risk or an explicit review request.
-- Enter Ship only on explicit authorization.
-- Enter Learn after repeated failures or recurring workflow friction.
+Each phase maps to a specific squad activation. Not all tasks go through all phases — the router selects the subset appropriate to the task type and risk.
+
+**Phase entry conditions:**
+- Enter **Design** when cross-boundary judgment or root-cause investigation is required.
+- Enter **Plan** only when the user requests a plan or safe execution requires one.
+- Enter **Build** only after DESIGN gate is satisfied and open decisions are resolved.
+- Enter **Verify** after every Build (not skippable).
+- Enter **Review** for material regression risk or an explicit review request.
+- Enter **Ship** only on explicit authorization naming the exact side effect.
+- Enter **Learn** after repeated failures or recurring workflow friction.
 
 The word "continue" resumes the latest unfinished safe stage. It never bypasses a permission gate.
 

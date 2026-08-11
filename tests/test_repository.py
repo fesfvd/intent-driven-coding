@@ -2693,6 +2693,93 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("3, optional", template)
         self.assertIn("Delete the third row unless", template)
 
+    def test_all_skills_have_execution_checklist(self) -> None:
+        for path in sorted((ROOT / "skills").glob("*/SKILL.md")):
+            with self.subTest(skill=path.parent.name):
+                text = path.read_text(encoding="utf-8")
+                self.assertIn("## Execution Checklist", text,
+                              f"{path.parent.name} missing Execution Checklist section")
+                self.assertIn("<HARD-GATE>", text,
+                              f"{path.parent.name} missing <HARD-GATE> block")
+
+    def test_team_skill_has_pipeline_phases(self) -> None:
+        text = (ROOT / "skills" / "team" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("## Pipeline Phases", text)
+        self.assertIn("<PHASE-GATE", text)
+        self.assertIn("INTAKE", text)
+        self.assertIn("Phase path", text)
+
+    def test_squads_template_has_phase_routes(self) -> None:
+        template = (ROOT / "templates" / "SQUADS.md").read_text(encoding="utf-8")
+        self.assertIn("Phase route", template)
+        self.assertIn("pipeline phase path per task type", template.lower())
+
+    def test_claude_entry_references_pipeline_phases(self) -> None:
+        text = (ROOT / "templates" / "claude" / "CLAUDE.md").read_text(encoding="utf-8")
+        self.assertIn("pipeline phase", text.lower())
+
+    def test_opencode_team_references_pipeline_phases(self) -> None:
+        text = (ROOT / "templates" / "opencode" / "agents" / "team.md").read_text(encoding="utf-8")
+        self.assertIn("pipeline phase", text.lower())
+
+    def test_adapter_docs_have_pipeline_phase_references(self) -> None:
+        for doc in ("CLAUDE_CODE_ADAPTER.md", "OPENCODE_ADAPTER.md"):
+            with self.subTest(doc=doc):
+                text = (ROOT / "docs" / doc).read_text(encoding="utf-8")
+                self.assertIn("pipeline phase", text.lower(),
+                              f"{doc} missing pipeline phase reference")
+
+    def test_claude_plugin_manifest_is_valid_json(self) -> None:
+        import json
+        manifest = (ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
+        payload = json.loads(manifest)
+        self.assertEqual(payload["name"], "intent-driven-coding")
+        self.assertIn("version", payload)
+
+    def test_marketplace_manifest_is_valid_json(self) -> None:
+        import json
+        manifest = (ROOT / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8")
+        payload = json.loads(manifest)
+        self.assertIn("plugins", payload)
+        self.assertGreater(len(payload["plugins"]), 0)
+        self.assertEqual(payload["plugins"][0]["name"], "intent-driven-coding")
+
+    def test_hooks_json_has_session_start_event(self) -> None:
+        import json
+        hooks = (ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8")
+        payload = json.loads(hooks)
+        self.assertIn("hooks", payload)
+        self.assertIn("SessionStart", payload["hooks"])
+        session_start = payload["hooks"]["SessionStart"][0]
+        self.assertIn("startup|clear|compact", session_start["matcher"])
+        self.assertEqual(session_start["hooks"][0]["type"], "command")
+
+    def test_session_start_hook_references_team_skill(self) -> None:
+        script = (ROOT / "hooks" / "session-start").read_text(encoding="utf-8")
+        self.assertIn("skills/team/SKILL.md", script)
+        self.assertIn("INTENT-DRIVEN-CODING-ACTIVE", script)
+        self.assertIn("CLAUDE_PLUGIN_ROOT", script)
+
+    def test_run_hook_cmd_is_polyglot(self) -> None:
+        script = (ROOT / "hooks" / "run-hook.cmd").read_text(encoding="utf-8")
+        # Must work as both .cmd batch and bash
+        self.assertIn("BATCH_EOF", script)
+        self.assertIn("#!/usr/bin/env bash", script)
+
+    def test_opencode_plugin_registers_skills_dir(self) -> None:
+        script = (ROOT / ".opencode" / "plugins" / "intent-driven-coding.js").read_text(encoding="utf-8")
+        self.assertIn("config.skills.paths", script)
+        self.assertIn("INTENT-DRIVEN-CODING-ACTIVE", script)
+        self.assertIn("experimental", script)
+
+    def test_plugin_manifest_and_marketplace_versions_match(self) -> None:
+        import json
+        manifest = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        marketplace = json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["version"], marketplace["plugins"][0]["version"])
+        hook = (ROOT / "hooks" / "session-start").read_text(encoding="utf-8")
+        self.assertIn(manifest["version"], hook)
+
 
 if __name__ == "__main__":
     unittest.main()

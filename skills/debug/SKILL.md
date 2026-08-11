@@ -55,6 +55,21 @@ Locate the first layer where actual behavior diverges from expected behavior.
 - Unverified risk:
 ```
 
+## Execution Checklist
+
+You **MUST** complete these in order:
+
+- [ ] 1. Read the full error/output and reproduce the symptom.
+- [ ] 2. Trace through the layer checklist to identify the first broken layer.
+- [ ] 3. Form exactly one falsifiable hypothesis before making any change.
+- [ ] 4. Test the hypothesis with exactly one variable change.
+- [ ] 5. If confirmed: document root cause, evidence, and minimal fix.
+- [ ] 6. If rejected after 3 attempts: stop patching and revisit the architecture assumption.
+
+<HARD-GATE>
+Do NOT write any fix code until the root cause is confirmed by evidence. Do NOT treat a guess as a root cause. Do NOT modify production data to diagnose a local bug.
+</HARD-GATE>
+
 ## Constraints
 
 - Do not treat a guess as a root cause.

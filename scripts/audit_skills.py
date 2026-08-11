@@ -63,6 +63,10 @@ def audit(skills_root: Path, evals_root: Path) -> tuple[list[str], list[str]]:
         for section in ("## Example Triggers", "## Safety Statement"):
             if section not in text:
                 errors.append(f"{path}: missing {section}")
+        if "## Execution Checklist" not in text:
+            errors.append(f"{path}: missing Execution Checklist")
+        if "<HARD-GATE>" not in text:
+            errors.append(f"{path}: missing <HARD-GATE> block")
         if text.count("\n") > 500:
             warnings.append(f"{path}: over 500 lines; consider progressive disclosure")
         for label, pattern in VOLATILE_PATTERNS.items():

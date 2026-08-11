@@ -99,6 +99,13 @@ REQUIRED_FILES = (
     "scripts/orchestrate_squad.py",
     "scripts/idc.py",
     "scripts/prepare_host_acceptance_fixture.py",
+    ".claude-plugin/plugin.json",
+    ".claude-plugin/marketplace.json",
+    "hooks/hooks.json",
+    "hooks/run-hook.cmd",
+    "hooks/session-start",
+    ".opencode/plugins/intent-driven-coding.js",
+    ".opencode/INSTALL.md",
 )
 ALLOWED_TEMPLATE_FILES = {
     Path("templates/AGENT_ENTRY.md"),
@@ -173,6 +180,10 @@ def validate() -> list[str]:
             errors.append(f"{path.relative_to(ROOT)}: missing Example Triggers section")
         if "## Safety Statement" not in text:
             errors.append(f"{path.relative_to(ROOT)}: missing Safety Statement section")
+        if "## Execution Checklist" not in text:
+            errors.append(f"{path.relative_to(ROOT)}: missing Execution Checklist section")
+        if "<HARD-GATE>" not in text:
+            errors.append(f"{path.relative_to(ROOT)}: missing <HARD-GATE> block")
 
     for name, expected_mode in OPENCODE_AGENT_MODES.items():
         path = ROOT / "templates" / "opencode" / "agents" / f"{name}.md"

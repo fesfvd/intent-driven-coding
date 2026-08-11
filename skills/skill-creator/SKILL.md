@@ -158,6 +158,21 @@ Use blocking severity: any routing false positive with material cost, unusable h
 - Downstream artifact produced:
 ```
 
+## Execution Checklist
+
+You **MUST** complete these in order:
+
+- [ ] 1. Verify the Readiness Gate: all 8 contract items are present and specific.
+- [ ] 2. Refuse to draft if any of the 6 refusal conditions apply; return to `meta-skill-designer`.
+- [ ] 3. Draft the SKILL.md following the portable structure (frontmatter, method, constraints, output format).
+- [ ] 4. Create a complete evaluation set (7 required case types).
+- [ ] 5. Evaluate across all 4 Quality Layers independently (structural, routing, handoff, safety).
+- [ ] 6. Iterate until all blocking failures are resolved. Preserve the baseline version for comparison.
+
+<HARD-GATE>
+Do NOT accept a Skill while any blocking quality-layer failure remains. Do NOT report quantitative improvement without actual runs. Do NOT broaden allowed tools beyond the Skill's real method. Do NOT weaken exclusions merely to increase trigger frequency.
+</HARD-GATE>
+
 ## Constraints
 
 - Do not install globally or publish without explicit authorization.

@@ -39,14 +39,14 @@ Teach through brief decisions: explain why a specialist, question, verification 
 
 ## Squad Selection
 
-| Outcome | Squad |
-|---|---|
-| Exact low-risk edit | Main agent -> `verify` |
-| Cross-layer feature or contract | `architecture` -> `verify`; add `code-review` only for a distinct material risk boundary |
-| Unknown-root-cause bug | `debug` -> `verify`; add `code-review` only when the fix creates a distinct regression boundary |
-| Explicit review | `code-review` -> report verification gaps |
-| Release preparation | `verify` -> `code-review` -> project-specific release process |
-| Skill roster or squad design | `meta-skill-designer` -> `skill-creator` |
+| Outcome | Squad | Phase path |
+|---|---|---|
+| Exact low-risk edit | Main agent -> `verify` | INTAKE → BUILD → VERIFY |
+| Cross-layer feature or contract | `architecture` -> `verify`; add `code-review` only for a distinct material risk boundary | INTAKE → DESIGN → BUILD → VERIFY (+ REVIEW) |
+| Unknown-root-cause bug | `debug` -> `verify`; add `code-review` only when the fix creates a distinct regression boundary | INTAKE → DESIGN(debug) → BUILD → VERIFY (+ REVIEW) |
+| Explicit review | `code-review` -> report verification gaps | INTAKE → REVIEW → VERIFY |
+| Release preparation | `verify` -> `code-review` -> project-specific release process | INTAKE → VERIFY → REVIEW → SHIP |
+| Skill roster or squad design | `meta-skill-designer` -> `skill-creator` | INTAKE → DESIGN(meta) → BUILD(meta) |
 
 Read the project's `SQUADS.md` when present. Prefer two Skills: primary judgment plus independent proof. A third Skill must guard a distinct domain or risk and must produce a distinct artifact. Use project-specific specialists when their expertise changes the result. Do not load a long chain because many files are involved.
 
@@ -58,7 +58,49 @@ Read the project's `SQUADS.md` when present. Prefer two Skills: primary judgment
 | Medium | Cross-module, UI flow, API adaptation, generated artifact | Contract -> specialist if needed -> implement -> test -> review -> verify |
 | High | Auth, persisted schema, billing, privacy, destructive or production effect | Contract -> test/contract -> implement -> security/review -> verify -> explicit permission |
 
+## Pipeline Phases
+
+Every non-trivial task flows through a subset of these phases. The router determines which phases apply, then gates each transition.
+
+| Phase | Trigger | Squad activated |
+|---|---|---|
+| **INTAKE** | Every non-trivial request | Router classifies task type and risk |
+| **DESIGN** | Cross-boundary change or unknown root cause | `architecture` (contract/impact) or `debug` (root cause) |
+| **PLAN** | User explicitly requests a plan, or safe execution requires multi-step coordination | `architecture` (optional) |
+| **BUILD** | All implementation tasks | Main agent implements from the DESIGN handoff |
+| **VERIFY** | Every implementation task (not skippable) | `verify` |
+| **REVIEW** | Medium/high risk or explicit review request | `code-review` |
+| **SHIP** | Explicit deploy/release authorization | Permission gate only (not a squad member) |
+| **LEARN** | Repeated failures or workflow friction | `meta-skill-designer` |
+
+**Phase paths by task type:**
+
+| Task type | Phase path | Force level |
+|---|---|---|
+| Typo / low-risk edit | INTAKE → BUILD → VERIFY | Minimal (2 phases) |
+| Unknown-root-cause bug | INTAKE → DESIGN(debug) → BUILD → VERIFY | Standard (4 phases) |
+| Security-sensitive bug | INTAKE → DESIGN(debug) → BUILD → VERIFY → REVIEW | Reinforced (5 phases) |
+| Cross-layer feature | INTAKE → DESIGN(architecture) → BUILD → VERIFY → REVIEW | Reinforced (5 phases) |
+| Explicit review request | INTAKE → REVIEW → VERIFY | Special (3 phases) |
+| Release preparation | INTAKE → VERIFY → REVIEW → SHIP | Full (4 phases) |
+| Skill system design | INTAKE → DESIGN(meta) → BUILD(meta) | Meta (3 phases) |
+
+**Phase gates:**
+
+<PHASE-GATE phase="BUILD">
+Do NOT enter BUILD until:
+- [ ] DESIGN phase is complete (if required for this task type)
+- [ ] All DESIGN handoff artifacts are produced and reviewed
+- [ ] Open decisions (if any) are resolved by the user
+</PHASE-GATE>
+
+<PHASE-GATE phase="SHIP">
+Do NOT enter SHIP without explicit user authorization naming the exact side effect (commit, push, deploy, migration, production write). Local implementation success does not imply SHIP authorization.
+</PHASE-GATE>
+
 ## State
+
+The pipeline phases above map to this state machine:
 
 ```text
 Intake -> Design? -> Plan? -> Build -> Verify -> Review? -> Ship? -> Learn?
@@ -82,6 +124,21 @@ Keep routing internal unless the user asks. When visible detail is useful:
 - Permission gate:
 - Presentation language:
 ```
+
+## Execution Checklist
+
+You **MUST** complete these in order:
+
+- [ ] 1. Classify user intent into the 4 information classes (explicit intent, repository fact, proposed default, open decision).
+- [ ] 2. Determine the task type (typo / bug / feature / review / release / meta).
+- [ ] 3. Map task type to required pipeline phases using the Phase paths table.
+- [ ] 4. Select the smallest squad for the active phase from the Squad Selection table.
+- [ ] 5. Verify no open decision blocks execution; ask the user only for blocking decisions.
+- [ ] 6. Hand off to the first squad member with a named artifact contract.
+
+<HARD-GATE>
+Do NOT enter BUILD phase until DESIGN phase gate is satisfied (if DESIGN is required). Do NOT enter SHIP phase without explicit user authorization. Do NOT infer commit, push, deploy, or production write authorization from local implementation success. A router selects expertise; it does not make the expert's conclusion.
+</HARD-GATE>
 
 ## Constraints
 

@@ -142,6 +142,23 @@ Merge, narrow, archive, or remove capabilities that cannot answer these question
 - Evidence, expected behavior, and acceptance rubric:
 ```
 
+## Execution Checklist
+
+You **MUST** complete these in order:
+
+- [ ] 1. Build evidence ledger from observed work, repository risks, and user priorities.
+- [ ] 2. Cluster work by distinct professional judgment (not file type, technology, or job title).
+- [ ] 3. Classify each candidate capability via Capability Tiers (universal / conditional / exceptional).
+- [ ] 4. Apply the Creation Gate: all 7 conditions must be satisfied.
+- [ ] 5. Apply the Removal test to every existing capability.
+- [ ] 6. Form squads: 2 members default, max 3; define concrete handoff artifacts.
+- [ ] 7. Define evaluation plan: positive, near-miss, conflict, handoff, permission, and over-routing cases.
+- [ ] 8. Hand the complete design package to `skill-creator` with contract readiness per Skill.
+
+<HARD-GATE>
+Do NOT create a Skill from a job title, topic, technology choice, or project archetype alone. Do NOT draft before role boundaries and handoffs are clear. Do NOT design a permanent mega-squad. Do NOT reduce the human role to goal input and permission approval.
+</HARD-GATE>
+
 ## Constraints
 
 - Do not write a Skill merely because a topic exists.

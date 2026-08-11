@@ -53,6 +53,22 @@ For each link, include a current path, symbol, and line reference when available
 |---|---|---|
 ```
 
+## Execution Checklist
+
+You **MUST** complete these in order:
+
+- [ ] 1. Translate the request into explicit intent, repository facts, proposed defaults, and open decisions.
+- [ ] 2. Read the project's architecture guide and locate the actual production entry.
+- [ ] 3. Trace the complete path: input → interfaces → domain → persistence → response → consumers.
+- [ ] 4. Find all affected tests, schemas, generated artifacts, compatibility boundaries, and deployment entries.
+- [ ] 5. Define the smallest contract change that satisfies the goal.
+- [ ] 6. Identify risks and the narrow verification that proves each boundary.
+- [ ] 7. Return the design to the main agent with a named handoff artifact. Ask the user only if an unresolved product decision remains.
+
+<HARD-GATE>
+Do NOT implement before the design is reviewed. Do NOT invent paths or contracts without repository evidence. Source and tests outrank memory and stale documentation.
+</HARD-GATE>
+
 ## Constraints
 
 - Source and tests outrank memory and stale documentation.

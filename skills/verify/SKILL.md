@@ -51,6 +51,21 @@ Before making a positive status claim:
 - Exact conclusion justified by the evidence.
 ```
 
+## Execution Checklist
+
+You **MUST** complete these in order:
+
+- [ ] 1. Identify every observable claim being made (fixed, passing, ready, complete).
+- [ ] 2. Identify the command or check that proves each claim.
+- [ ] 3. Run complete checks freshly in the correct working directory.
+- [ ] 4. Read full output and exit status; count failures and skips.
+- [ ] 5. Compare evidence with acceptance criteria, not only test status.
+- [ ] 6. State the supported result and **every** omitted check explicitly.
+
+<HARD-GATE>
+Do NOT use "should", "probably", or "looks correct" as evidence. Partial checks prove only their scope. A subagent report is not proof — inspect changes and verify independently. Local success does not imply permission to commit, push, deploy, or run paid production checks.
+</HARD-GATE>
+
 ## Constraints
 
 - Do not use "should", "probably", or "looks correct" as evidence.

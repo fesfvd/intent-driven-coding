@@ -1,0 +1,13 @@
+{
+  "name": "intent-driven-coding-marketplace",
+  "owner": { "name": "fesfvd" },
+  "plugins": [
+    {
+      "name": "intent-driven-coding",
+      "description": "意图驱动编码 — 从真实重复工作中演化专属专业小队",
+      "version": "1.0.0",
+      "source": "./",
+      "author": { "name": "凸( →_→ )凸" }
+    }
+  ]
+}

@@ -2,7 +2,24 @@
 
 The human does not need to study the whole framework first. The recommended path is for the coding agent to learn what the current task requires, deliver useful work, and explain the relevant concepts back to the user. Human and AI then use real evidence, experience, and correction to grow project-specific guidance over time.
 
-## First Useful Task
+## Install (Plugin — Recommended)
+
+**Claude Code**:
+```bash
+/plugin marketplace add fesfvd/intent-driven-coding-marketplace
+/plugin install intent-driven-coding@intent-driven-coding-marketplace
+```
+
+**OpenCode**: add to target project `opencode.json`:
+```json
+{ "plugin": ["intent-driven-coding@git+https://github.com/fesfvd/intent-driven-coding.git"] }
+```
+
+After plugin install, the agent auto-receives pipeline phase guidance at session start. The manual paths below remain available.
+
+## Manual Setup
+
+### First Useful Task
 
 Place this repository beside the target project:
 

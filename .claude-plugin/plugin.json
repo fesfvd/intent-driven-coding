@@ -1,0 +1,10 @@
+{
+  "name": "intent-driven-coding",
+  "description": "AI 编程工作框架：从真实重复工作中演化专属专业小队。Pipeline 阶段模型 + Skill 执行清单 + 合同验证。",
+  "version": "1.0.0",
+  "author": { "name": "凸( →_→ )凸" },
+  "homepage": "https://github.com/fesfvd/intent-driven-coding",
+  "repository": "https://github.com/fesfvd/intent-driven-coding",
+  "license": "MIT",
+  "keywords": ["ai-coding", "skills", "squad", "workflow", "methodology", "chinese"]
+}

@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Intent-Driven Coding — SessionStart hook
+# Injects the team Skill's core pipeline guidance at session start.
+# Adapted from Superpowers hooks/session-start (MIT License)
+set -euo pipefail
+
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+SKILL_FILE="${PLUGIN_ROOT}/skills/team/SKILL.md"
+VERSION="1.0.0"
+MARKER="INTENT-DRIVEN-CODING-ACTIVE"
+
+# Fast JSON escape: backslash, double-quote, newline
+json_escape() {
+  sed 's/\\/\\\\/g; s/"/\\"/g; :a; N; $!ba; s/\n/\\n/g' <<< "$1"
+}
+
+read_bootstrap() {
+  # Extract the essential pipeline guidance — keep it short to avoid context bloat
+  cat << 'EOF'
+<EXTREMELY_IMPORTANT>
+Intent-Driven Coding vVERSION active — Pipeline phase model + Skill execution checklists.
+MARKER
+
+The `team` Skill is your control plane. Core pipeline:
+  INTAKE (classify intent) → DESIGN? (architecture/debug) → BUILD → VERIFY → REVIEW? → SHIP?
+
+Before any non-trivial task:
+- Load the `team` Skill to classify intent and determine required pipeline phases.
+- Select the smallest squad for the active phase — 2 members default, 3 max.
+- Do NOT enter BUILD until DESIGN gate is satisfied (if DESIGN is required).
+- Do NOT enter SHIP without explicit user authorization.
+
+Hard rules:
+- No completion claim without fresh verification evidence.
+- No commit/push/deploy/production write/paid call without explicit authorization for the named effect.
+- Query volatile repository facts (paths, versions, routes); do not freeze them into Skills.
+
+Read `skills/team/SKILL.md` for the full pipeline phase model and phase paths per task type.
+</EXTREMELY_IMPORTANT>
+EOF
+}
+
+# Substitute version and marker
+BOOTSTRAP=$(read_bootstrap)
+BOOTSTRAP="${BOOTSTRAP//VERSION/$VERSION}"
+BOOTSTRAP="${BOOTSTRAP//MARKER/$MARKER}"
+ESCAPED=$(json_escape "$BOOTSTRAP")
+
+# Platform-negotiated JSON output
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+  # Cursor format
+  printf '{"additional_context":"%s"}\n' "$ESCAPED"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
+  # Claude Code format
+  printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$ESCAPED"
+else
+  # Generic SDK / Copilot CLI format
+  printf '{"additionalContext":"%s"}\n' "$ESCAPED"
+fi
