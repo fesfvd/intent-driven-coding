@@ -142,7 +142,7 @@ Do NOT enter BUILD phase until DESIGN phase gate is satisfied (if DESIGN is requ
 
 ## Constraints
 
-- Query volatile repository facts; do not freeze routes, versions, service names, or thresholds here.
+- Query volatile repository facts; do not freeze routes, versions, service names, or thresholds here. Prefer CodeGraph (`codegraph_explore`) over Read/Grep/Glob when a `.codegraph/` index exists — one symbol-level query replaces multiple file searches and reveals call paths grep cannot follow.
 - Every implementation step must trace to explicit intent, repository evidence, an accepted default, or required verification.
 - A router selects expertise; it does not make the expert's conclusion.
 - A router does not count itself as a squad member.

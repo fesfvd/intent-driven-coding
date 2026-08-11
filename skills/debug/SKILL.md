@@ -40,6 +40,8 @@ Use only layers relevant to the repository:
 
 Locate the first layer where actual behavior diverges from expected behavior.
 
+**Tool priority:** If a CodeGraph index (`.codegraph/` directory) exists, prefer `codegraph_explore` to trace the call path from symptom entry point through each layer — one call pinpoints the break faster than manually reading files layer by layer. Use Read/Grep/Glob for raw error output, log inspection, and unindexed code.
+
 ## Output
 
 ```markdown

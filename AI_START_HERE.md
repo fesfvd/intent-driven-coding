@@ -76,6 +76,8 @@ Inspect the target repository around the current task before writing framework f
 
 Repository evidence outranks examples in this framework.
 
+**Tool priority for repository investigation:** If a CodeGraph index (`.codegraph/` directory) exists at the target project root, prefer `codegraph_explore` for production-path tracing, symbol lookup, call-path analysis, and blast-radius estimation — one structured query replaces multiple Read/Grep/Glob round-trips and follows dynamic dispatch edges that grep cannot. Fall back to Read/Grep/Glob when CodeGraph is unavailable or when you need raw file content not yet indexed.
+
 ### 2. Translate The Need
 
 Separate explicit user intent, repository-proven facts, proposed defaults, and open decisions. Discover engineering details independently, but invite human correction when experience may reveal hidden constraints, recurring pain, or a bad abstraction. Ask for decisions when alternatives materially change the product or the long-term working system.

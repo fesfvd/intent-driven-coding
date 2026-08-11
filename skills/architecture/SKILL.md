@@ -18,6 +18,8 @@ Design from current repository evidence. Do not invent paths or contracts and do
 6. Identify risks and the narrow verification that proves each boundary.
 7. Return the design to the main agent. Ask the user only if an unresolved product decision remains.
 
+**Tool priority for steps 2-4:** If a CodeGraph index (`.codegraph/` directory) exists, prefer `codegraph_explore` for call-path tracing and blast-radius analysis — one call replaces multiple Read/Grep/Glob round-trips. Fall back to Read/Grep/Glob when no index is present or when the query needs raw file content not yet indexed.
+
 ## Evidence Chain
 
 ```text
