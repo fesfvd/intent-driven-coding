@@ -12,6 +12,8 @@ allowed-tools: [Read, Grep, Glob, Bash]
 No completion claim without fresh verification evidence.
 ```
 
+The verification artifact — not the model's confidence — carries the proof. Even when a single model implements and verifies, the `verification-report` (a checklist with command output and exit status) is what makes "done" checkable. See `skills/team/SKILL.md` (Artifact discipline).
+
 ## Gate
 
 Before making a positive status claim:

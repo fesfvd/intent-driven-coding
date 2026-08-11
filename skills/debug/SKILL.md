@@ -42,6 +42,13 @@ Locate the first layer where actual behavior diverges from expected behavior.
 
 **Tool priority:** If a CodeGraph index (`.codegraph/` directory) exists, prefer `codegraph_explore` to trace the call path from symptom entry point through each layer — one call pinpoints the break faster than manually reading files layer by layer. Use Read/Grep/Glob for raw error output, log inspection, and unindexed code.
 
+<!-- DESIGN TENSION (T3): Manual layer-by-layer diagnosis may become over-engineered when a
+model can pinpoint root causes directly. The Four Phases remain useful as a "do not skip"
+checklist — ensuring the model does not jump to a patch without evidence — even when the
+model no longer needs the step-by-step method. As model capability grows, the value shifts
+from "diagnose correctly" to "prove you diagnosed correctly before touching code."
+See docs/KNOWN_TENSIONS.md. -->
+
 ## Output
 
 ```markdown

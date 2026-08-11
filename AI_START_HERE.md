@@ -40,6 +40,20 @@ Read only as far as needed for the next adaptation decision:
 
 Do not load every document and Skill by default. Follow the framework's progressive context model.
 
+## Concept Cheat-Sheet
+
+If you need to work before reading all documents, here is the minimum:
+
+| You need to… | Read this | ~time |
+|---|---|---|
+| Fix a bug right now | `skills/team/SKILL.md` (Pipeline Phases + Squad Selection tables only) | 3 min |
+| Understand why the Router picked this Squad | `docs/PROTOCOL.md` (Four Information Classes) | 2 min |
+| Write a new Skill for your project | `skills/meta-skill-designer/SKILL.md` → `skills/skill-creator/SKILL.md` | 8 min |
+| Understand where context lives | `docs/CONTEXT_ARCHITECTURE.md` | 3 min |
+| See all known tensions and trade-offs | `docs/KNOWN_TENSIONS.md` | 5 min |
+
+The framework asks the AI to teach concepts at decision points. You don't need to pre-study. If a concept is unclear when it surfaces, ask the AI: "Why did you choose this Squad?" or "What would happen if we skipped this phase?"
+
 ## Progressive Adoption Loop
 
 Use this loop from the first real request:

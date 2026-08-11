@@ -20,6 +20,13 @@ Design from current repository evidence. Do not invent paths or contracts and do
 
 **Tool priority for steps 2-4:** If a CodeGraph index (`.codegraph/` directory) exists, prefer `codegraph_explore` for call-path tracing and blast-radius analysis — one call replaces multiple Read/Grep/Glob round-trips. Fall back to Read/Grep/Glob when no index is present or when the query needs raw file content not yet indexed.
 
+<!-- DESIGN TENSION (T3): Step-by-step architecture tracing may become less necessary as model
+capability grows. A sufficiently strong model may produce a correct impact analysis without
+explicitly walking input→interface→domain→persistence→consumer. The value of this Skill
+shifts over time: from "teach the model how to trace" to "ensure the model does not skip
+traceability." The Execution Checklist remains the HARD-GATE — even when the model no longer
+needs the step-by-step method, it must not skip the evidence. See docs/KNOWN_TENSIONS.md. -->
+
 ## Evidence Chain
 
 ```text

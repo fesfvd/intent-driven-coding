@@ -10,6 +10,14 @@ Translate natural language, classify risk, and select the minimum outcome-orient
 
 The router owns one control-plane decision: select the next smallest safe route from user intent, repository evidence, workflow state, risk traits, and permission boundaries. Requirement translation, risk classification, state tracking, and permission checks are inputs and constraints to that decision, not separate specialist conclusions.
 
+<!-- DESIGN TENSION (T5): Router classification is itself a guess. The Router must
+classify user intent (e.g., "unknown-root-cause bug" vs "cross-layer feature") from
+minimal input — often a single sentence. This classification determines the Squad, but
+the user may know the root cause and simply not have stated it. Mitigation: state the
+classification explicitly and invite correction ("I'm treating this as an unknown-root-cause
+bug. If you already know the cause, tell me and I'll route differently.").
+See docs/KNOWN_TENSIONS.md. -->
+
 ## Requirement Translation Gate
 
 Classify information as:
@@ -97,6 +105,8 @@ Do NOT enter BUILD until:
 <PHASE-GATE phase="SHIP">
 Do NOT enter SHIP without explicit user authorization naming the exact side effect (commit, push, deploy, migration, production write). Local implementation success does not imply SHIP authorization.
 </PHASE-GATE>
+
+**Artifact discipline:** Even when a single model handles multiple phases, require explicit handoff artifacts at phase boundaries. An `impact-contract` (even a 5-line structured comment) before BUILD. A `verification-report` (even a checklist with checkmarks) before claiming completion. The artifact, not the model's confidence, carries the proof. This discipline is what survives when automatic Squad orchestration is abandoned — the artifacts remain as checkable evidence of professional judgment.
 
 ## State
 

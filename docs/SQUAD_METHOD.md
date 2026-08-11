@@ -123,6 +123,12 @@ Before registering a squad, answer:
 5. Is a high-risk effect hidden inside ordinary execution? If yes, add an explicit permission gate.
 6. Can a near-miss request avoid this squad? If no, narrow the trigger.
 
+<!-- DESIGN TENSION (T4): The 2-3 member constraint enforced by validate_project.py is derived
+from personal practice in a single production project (LAS), not from controlled experiments
+comparing handoff failure rates across squad sizes. The rationale is documented (diminishing
+returns, risk of ceremonial review, handoff complexity growth), but the empirical basis is
+the author's experience, not externally validated data. See docs/KNOWN_TENSIONS.md. -->
+
 ## Anti-Patterns
 
 - **Skill pile**: listing many available Skills without an outcome-specific formation.
