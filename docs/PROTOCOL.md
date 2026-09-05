@@ -20,6 +20,11 @@ Every non-trivial request is interpreted through four classes:
 | Proposed default | The agent's simplest valid recommendation | Label it as a proposal; do not present it as user intent |
 | Open decision | Alternatives materially change behavior, data, permissions, privacy, cost, or irreversible effects | Present concise alternatives and ask one focused question |
 
+After this translation, classify the work with one primary scenario from
+[`TASK_SCENARIOS.md`](TASK_SCENARIOS.md). Scenario describes the work intent;
+impact dimensions and uncertainty modifiers determine the required gates. A
+clear request is not automatically low risk.
+
 ## Presentation Preference
 
 Presentation preference controls the language and form of user-facing conclusions, reports, explanations, status updates, and generated review cards. It is not a request to translate source code, commands, identifiers, APIs, or established internal maintenance documents.

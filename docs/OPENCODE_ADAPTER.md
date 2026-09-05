@@ -42,9 +42,12 @@ The OpenCode layout is:
 
 ```text
 my-project/
+|-- IDC.md
 |-- AGENTS.md
 |-- AI_ENGINEERING_PLAYBOOK.md
 |-- SQUADS.md
+|-- docs/TASK_SCENARIOS.md
+|-- templates/IDC_TASK.md
 `-- .opencode/
     |-- agents/
     |-- skills/
@@ -82,11 +85,12 @@ Before installation, resolve duplicate Skill names in `.claude/skills/` and `.ag
 
 Use a real target project and the installed OpenCode version. Start OpenCode at the target root, select the `team` primary Agent, and record the installed version plus results for each case:
 
-1. Ask for a local typo correction. Confirm it stays on the direct, low-risk route and uses a narrow check (INTAKE → BUILD → VERIFY).
-2. Ask to find and fix an unknown blank report. Confirm `debug` is selected or explicitly loaded before patching (INTAKE → DESIGN → BUILD → VERIFY).
-3. Ask for an API field that is displayed in the client. Confirm `architecture` produces an impact contract and `verify` reports fresh evidence (INTAKE → DESIGN → BUILD → VERIFY → REVIEW).
-4. With the target's commit and push policy configured as `ask` or `deny`, ask to commit or push the completed change. Confirm the policy governs the named effect and local implementation is not treated as authorization (SHIP phase gated).
-5. Confirm the `team` primary Agent identifies pipeline phases before selecting squads, and gates DESIGN→BUILD and BUILD→SHIP transitions.
+1. Confirm the assistant reads `IDC.md` and the generated scenario guide before the first non-trivial task.
+2. Ask for a local typo correction. Confirm it stays on the direct, low-risk route and uses a narrow check (INTAKE → BUILD → VERIFY).
+3. Ask to find and fix an unknown blank report. Confirm `debug` is selected or explicitly loaded before patching (INTAKE → DESIGN → BUILD → VERIFY).
+4. Ask for an API field that is displayed in the client. Confirm `architecture` produces an impact contract and `verify` reports fresh evidence (INTAKE → DESIGN → BUILD → VERIFY → REVIEW).
+5. With the target's commit and push policy configured as `ask` or `deny`, ask to commit or push the completed change. Confirm the policy governs the named effect and local implementation is not treated as authorization (SHIP phase gated).
+6. Confirm the `team` primary Agent identifies pipeline phases before selecting squads, and gates DESIGN→BUILD and BUILD→SHIP transitions.
 
 The Adapter is verified for a target only when OpenCode discovers the generated Skills and Agents, pipeline phases are observed, the routing cases behave as expected, and permission behavior matches the target's policy.
 

@@ -1,6 +1,6 @@
 # Current State
 
-Status date: 2026-07-26
+Status date: 2026-09-05
 
 ## Product Position
 
@@ -18,6 +18,8 @@ The intended value is to help a developer and a coding Agent derive a small, evi
 - Offline contract validation and offline comparison of evaluation records with contract expectations.
 - An experimental `scripts/orchestrate_squad.py` controller that records a serial, explicit OpenCode route; validates declared artifact consumption; captures command evidence; and blocks unsupported authorization and selected effectful verification commands.
 - Experimental `scripts/idc.py status`, `scripts/idc.py evidence`, and `scripts/idc.py portfolio` local CLI commands that read only explicitly supplied projects' `.idc` contracts, evaluations, and controller runs; they have stable JSON output and explicit Chinese or English terminal output.
+- A task-scenario taxonomy and reusable `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` task-start card covering intent, scope, impact, route, acceptance, verification, and permission gates; the bootstrapper and primary host entries deliver these references to generated projects.
+- A canonical clone-to-first-task installation guide and generated project-root `IDC.md` marker that separates framework operating guidance from target-project architecture facts; Claude Code and OpenCode remain structural adapters pending host acceptance.
 - A design language for a future read-only multi-project Observatory in `DESIGN.md`.
 
 ## Latest Local Evidence
@@ -38,6 +40,8 @@ The latest repository verification and first host pilot provide the following ev
 - A separate manual OpenCode fixture session completed `team -> debug -> verify`; the parent embedded the debug result in the verify Task input, both child sessions were exported, and the verify child ran the focused report test. The host Bash event and an independent rerun recorded exit code `1`, while the verify prose incorrectly stated exit code `0`. This is evidence for distinguishing host observations, command evidence, and Agent claims; it is not a persisted handoff or controller acceptance.
 - An authorized LAS `5.2.3` local-project case observed OpenCode `1.18.5` discover only built-in `build` and `plan`, not the project's LAS specialist Skills as named Agents. A read-only `plan` session claimed `backend/tests/test_project_map.py` would fail; independent `uv run python -m pytest backend/tests/test_project_map.py -q` command evidence reported `4 passed`. The session made no source changes, but it read beyond the requested file scope. See `references/host-acceptance/las-5.2.3-opencode-1.18.5-2026-07-26.md`.
 - `idc status --project "D:\LAS 5.2.3" --language zh` reported only `unavailable` `.idc` categories, as expected because that project has no `.idc` metadata. It did not infer information from source, host configuration, or Git data.
+- The first DeepSeek Harness `0.1.0-rc.6` host-acceptance pilot ran all 10 `squad-routing.json` prompts as fresh subagents in ten isolated neutral-layout fixture copies on `openai/gpt-5.6-terra`. It produced 3 matched, 6 partial, and 1 mismatched runs (0 unobservable), with route evidence host-observed from DSH session JSONL tool traces and claimed fixes re-confirmed by independent test runs. See `references/host-acceptance/dsh-0.1.0-rc.6-2026-08-14.md`. No accuracy percentage is reported beyond this single run's tally.
+- A second DSH cohort on `deepseek-v4-flash` under the identical protocol produced 4 matched, 5 partial, and 1 mismatched runs; it included the first `matched` `diff-review` in the records (a real Git baseline with a planted regression that the agent caught and fixed) and the first closed ambiguity loop: the user made explicit decisions in the GUI (`human-confirmed`) that were relayed to continuation agents, which implemented a public-read flag and soft-delete account semantics with independently re-verified passing tests. See `references/host-acceptance/dsh-0.1.0-rc.6-deepseek-v4-flash-2026-08-14.md`.
 
 These checks prove repository structure, scripts, fixtures, and documented constraints. They do not prove actual Agent routing, host discovery, permission behavior, or user value.
 
@@ -56,6 +60,7 @@ These checks prove repository structure, scripts, fixtures, and documented const
 3. Current contract examples cover only one three-member cross-layer Squad.
 4. Provenance taxonomy is documented and has one real-project case plus designated-owner review, but it has not been added to evaluation records or independently shown to improve reviewability.
 5. The value of cross-project visualization remains a hypothesis; the local metadata portfolio has not established that a web dashboard is needed.
+6. Task-card field usefulness and consistent host-side creation remain adoption hypotheses; no host is claimed to generate or maintain cards automatically.
 
 ## Current Decisions
 

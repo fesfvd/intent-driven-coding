@@ -37,9 +37,12 @@ The Claude Code layout is:
 
 ```text
 my-project/
+|-- IDC.md
 |-- AGENTS.md
 |-- AI_ENGINEERING_PLAYBOOK.md
 |-- SQUADS.md
+|-- docs/TASK_SCENARIOS.md
+|-- templates/IDC_TASK.md
 `-- .claude/
     |-- CLAUDE.md
     |-- agents/
@@ -72,7 +75,7 @@ Target projects must define their own permission policy for commits, pushes, pul
 
 Use a real target project and the installed Claude Code version. Record the version and results for each case:
 
-1. Confirm `CLAUDE.md` and `.claude/skills/` are discovered from the target root.
+1. Confirm `IDC.md`, `CLAUDE.md`, and `.claude/skills/` are discovered from the target root.
 2. Request a local typo correction and confirm the main session follows the direct low-risk route (INTAKE → BUILD → VERIFY).
 3. Request an unknown blank-report fix and confirm `debug` is invoked or loaded before patching (INTAKE → DESIGN → BUILD → VERIFY).
 4. Request a cross-layer API and client change, then confirm `architecture` and `verify` produce usable handoffs and fresh evidence (INTAKE → DESIGN → BUILD → VERIFY → REVIEW).

@@ -11,7 +11,7 @@
 
 我刚从 GitHub 克隆了 Intent-Driven Coding。请把它当作一个你此前不了解的开源项目，进行一次冷启动、证据优先、带竞争视角的审查。
 
-仓库地址：https://github.com/fesfvd/intent-driven-coding
+仓库地址："D:\intent-driven-coding"
 （如果仓库在你本地，替换为本地路径）
 
 目标不是夸奖、总结 README，或提出泛泛的"可以增加更多功能"。目标是找出项目自身视角可能遗漏的真实缺陷、定位不清、实现风险、采用摩擦、竞争弱点、证据缺口与未来产品陷阱。

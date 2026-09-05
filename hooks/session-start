@@ -26,6 +26,7 @@ The `team` Skill is your control plane. Core pipeline:
 
 Before any non-trivial task:
 - Load the `team` Skill to classify intent and determine required pipeline phases.
+- Classify the work with `docs/TASK_SCENARIOS.md` and show an `IDC-...` task card using `templates/IDC_TASK.md`.
 - Select the smallest squad for the active phase — 2 members default, 3 max.
 - Do NOT enter BUILD until DESIGN gate is satisfied (if DESIGN is required).
 - Do NOT enter SHIP without explicit user authorization.

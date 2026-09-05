@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE_FILES = {
     ROOT / "templates" / "AGENTS.md": Path("AGENTS.md"),
     ROOT / "templates" / "AI_ENGINEERING_PLAYBOOK.md": Path("AI_ENGINEERING_PLAYBOOK.md"),
+    ROOT / "templates" / "IDC.md": Path("IDC.md"),
+    ROOT / "templates" / "IDC_TASK.md": Path("templates") / "IDC_TASK.md",
     ROOT / "templates" / "SQUADS.md": Path("SQUADS.md"),
     ROOT / "templates" / "AGENT_ENTRY.md": Path(".agent") / "AGENT_ENTRY.md",
     ROOT / "templates" / "SQUAD.md": Path(".agent") / "templates" / "SQUAD.md",
@@ -38,6 +40,9 @@ CLAUDE_AGENT_FILES = {
 RESOURCE_FILES = {
     ROOT / "evals" / "squad-routing.json": Path(".agent") / "evals" / "squad-routing.json",
     ROOT / "evals" / "skill-design.json": Path(".agent") / "evals" / "skill-design.json",
+}
+GUIDANCE_FILES = {
+    ROOT / "docs" / "TASK_SCENARIOS.md": Path("docs") / "TASK_SCENARIOS.md",
 }
 SKILL_NAMES = (
     "team",
@@ -79,15 +84,23 @@ def parse_args() -> argparse.Namespace:
 
 
 def render_template(source: Path, project_name: str) -> str:
-    return source.read_text(encoding="utf-8").replace("{{PROJECT_NAME}}", project_name)
+    text = source.read_text(encoding="utf-8").replace("{{PROJECT_NAME}}", project_name)
+    if source.name == "AI_ENGINEERING_PLAYBOOK.md":
+        text = text.replace("../docs/TASK_SCENARIOS.md", "docs/TASK_SCENARIOS.md")
+        text = text.replace("(IDC_TASK.md)", "(templates/IDC_TASK.md)")
+    return text
 
 
 def render_platform_skill(source: Path) -> str:
-    return re.sub(r"(?m)^allowed-tools:.*\n", "", source.read_text(encoding="utf-8"))
+    text = re.sub(r"(?m)^allowed-tools:.*\n", "", source.read_text(encoding="utf-8"))
+    text = text.replace("../../docs/TASK_SCENARIOS.md", "../../../docs/TASK_SCENARIOS.md")
+    text = text.replace("../../templates/IDC_TASK.md", "../../../templates/IDC_TASK.md")
+    return text
 
 
 def planned_files(platform: str) -> list[tuple[Path, Path, bool]]:
     files = [(source, destination, True) for source, destination in TEMPLATE_FILES.items()]
+    files.extend((source, destination, False) for source, destination in GUIDANCE_FILES.items())
     if platform == "neutral":
         files.extend((source, destination, False) for source, destination in RESOURCE_FILES.items())
         skill_root = Path(".agent") / "skills"

@@ -12,7 +12,10 @@ from pathlib import Path
 COMMON_REQUIRED_FILES = (
     Path("AGENTS.md"),
     Path("AI_ENGINEERING_PLAYBOOK.md"),
+    Path("IDC.md"),
     Path("SQUADS.md"),
+    Path("docs/TASK_SCENARIOS.md"),
+    Path("templates/IDC_TASK.md"),
 )
 PLATFORM_REQUIRED_FILES = {
     "neutral": (Path(".agent/AGENT_ENTRY.md"),),

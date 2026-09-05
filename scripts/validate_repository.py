@@ -31,6 +31,7 @@ REQUIRED_FILES = (
     "docs/EVALUATION.md",
     "docs/HOST_ACCEPTANCE.md",
     "docs/MINIMAL.md",
+    "docs/TASK_SCENARIOS.md",
     "docs/ORCHESTRATION.md",
     "docs/PLATFORM_ADAPTERS.md",
     "docs/OPENCODE_ADAPTER.md",
@@ -39,8 +40,10 @@ REQUIRED_FILES = (
     "docs/CLI.md",
     "docs/PERMISSIONS.md",
     "docs/ADAPTATION_GUIDE.md",
+    "docs/INSTALLATION.md",
     "plans/CURRENT_STATE.md",
     "plans/ROADMAP.md",
+    "plans/PROJECT_PROGRESS.md",
     "references/README.md",
     "references/host-acceptance/README.md",
     "references/host-acceptance/opencode-1.18.5-2026-07-26.md",
@@ -60,6 +63,8 @@ REQUIRED_FILES = (
     "templates/AGENT_ENTRY.md",
     "templates/AGENTS.md",
     "templates/AI_ENGINEERING_PLAYBOOK.md",
+    "templates/IDC.md",
+    "templates/IDC_TASK.md",
     "templates/SQUADS.md",
     "templates/SQUAD.md",
     "templates/opencode/agents/team.md",
@@ -113,6 +118,7 @@ ALLOWED_TEMPLATE_FILES = {
     Path("templates/AI_ENGINEERING_PLAYBOOK.md"),
     Path("templates/SQUADS.md"),
     Path("templates/SQUAD.md"),
+    Path("templates/IDC_TASK.md"),
     Path("templates/claude/CLAUDE.md"),
 }
 REFERENCE_DIRECTORY = Path("references")
@@ -141,8 +147,18 @@ CLAUDE_AGENT_NAMES = (
 LINK_PATTERN = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
 
+# Dependency caches can contain arbitrary third-party Markdown and links. They
+# are neither framework source nor generated artifacts we publish, so public
+# documentation validation must not recurse through them.
+MARKDOWN_EXCLUDED_PARTS = {".git", "node_modules", ".venv", "venv"}
+
+
 def markdown_files() -> list[Path]:
-    return sorted(path for path in ROOT.rglob("*.md") if ".git" not in path.parts)
+    return sorted(
+        path
+        for path in ROOT.rglob("*.md")
+        if not any(part in MARKDOWN_EXCLUDED_PARTS for part in path.parts)
+    )
 
 
 def parse_frontmatter(text: str) -> dict[str, str]:

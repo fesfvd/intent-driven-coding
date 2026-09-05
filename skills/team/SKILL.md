@@ -47,6 +47,13 @@ Teach through brief decisions: explain why a specialist, question, verification 
 
 ## Squad Selection
 
+Before selecting a Squad, classify the request using
+[`docs/TASK_SCENARIOS.md`](../../docs/TASK_SCENARIOS.md). Assign one primary
+scenario code (`FIX`, `SEC`, `FEAT`, `CHG`, `REF`, `REVIEW`, `OPS`, `EXP`, or
+`META`), then record impact dimensions and uncertainty modifiers separately.
+Do not treat "clear goal" as a low-risk category. A clear request can still
+change authorization, persisted data, privacy, cost, or deployed state.
+
 | Outcome | Squad | Phase path |
 |---|---|---|
 | Exact low-risk edit | Main agent -> `verify` | INTAKE → BUILD → VERIFY |
@@ -55,6 +62,13 @@ Teach through brief decisions: explain why a specialist, question, verification 
 | Explicit review | `code-review` -> report verification gaps | INTAKE → REVIEW → VERIFY |
 | Release preparation | `verify` -> `code-review` -> project-specific release process | INTAKE → VERIFY → REVIEW → SHIP |
 | Skill roster or squad design | `meta-skill-designer` -> `skill-creator` | INTAKE → DESIGN(meta) → BUILD(meta) |
+
+For every non-trivial request, start with an `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>`
+task identity and a short task card. The card must state intent, scope and
+exclusions, baseline facts, impact, route, acceptance, verification, permission
+gates, and blocking open decisions. Use
+[`templates/IDC_TASK.md`](../../templates/IDC_TASK.md) when a durable project
+record is useful. The ID is a reference, not evidence of success.
 
 Read the project's `SQUADS.md` when present. Prefer two Skills: primary judgment plus independent proof. A third Skill must guard a distinct domain or risk and must produce a distinct artifact. Use project-specific specialists when their expertise changes the result. Do not load a long chain because many files are involved.
 
@@ -127,7 +141,9 @@ Do not infer authorization for commit, push, PR, deployment, production writes, 
 Keep routing internal unless the user asks. When visible detail is useful:
 
 ```markdown
+- Task ID:
 - Task type:
+- Scenario modifiers:
 - Risk:
 - Current stage:
 - Specialist chain:
@@ -140,7 +156,7 @@ Keep routing internal unless the user asks. When visible detail is useful:
 You **MUST** complete these in order:
 
 - [ ] 1. Classify user intent into the 4 information classes (explicit intent, repository fact, proposed default, open decision).
-- [ ] 2. Determine the task type (typo / bug / feature / review / release / meta).
+- [ ] 2. Determine the primary scenario and impact/uncertainty modifiers using `docs/TASK_SCENARIOS.md`.
 - [ ] 3. Map task type to required pipeline phases using the Phase paths table.
 - [ ] 4. Select the smallest squad for the active phase from the Squad Selection table.
 - [ ] 5. Verify no open decision blocks execution; ask the user only for blocking decisions.

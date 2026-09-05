@@ -8,6 +8,10 @@
 
 Intent-Driven Coding 是一套面向真实软件项目的 AI 编程方法论、模板与结构校验工具，用来帮助开发者设计属于自己项目的专业 Skill 小队；它不是已被宿主实证验证的自动编排产品。
 
+IDC 不是提示词包，不是固定 Agent 团队，也不是自动编排运行时。它提供
+任务启动卡、专业判断方法、最小 Squad 组合、权限门和新鲜验证证据之间的
+工作协议，并允许每个项目根据真实重复工作逐步形成自己的工程系统。
+
 它不是一批要求你原样照搬的提示词，也不是一支固定不变的“万能团队”。这个仓库分享的是一套搭建方法：用户可以先用自然语言表达目标，AI 调查仓库、翻译需求、提出最小专业链并完成工程实现与验证；人则提供目标、经验、痛点、质疑和取舍。没有通过宿主验收前，Skill 和 Squad 应按需显式读取，不应假定宿主会自动选择它们。
 
 采用方式不是“人先读完 29 份文档再配置 AI”，也不是“模型足够强就能替人自动搭好一切”，而是 **AI 先学并反哺核心概念，人机在真实任务中协作学习、共同判断、渐进搭建**。AI 应识别宿主、调查项目、执行与验证，并在关键时刻解释概念、证据、不确定性和取舍；人需要独立思考，用自身经验校准 AI，识别真正的痛点，并决定哪些方法值得长期保留。
@@ -15,6 +19,21 @@ Intent-Driven Coding 是一套面向真实软件项目的 AI 编程方法论、�
 AI-first 是启动方式，人机协作是工作方式，人的判断是质量上限。模型能力会影响执行质量，使用者的能力、经验和判断也会影响最终体系；框架的目标是让两者互相增强，而不是让一方取代另一方。
 
 作者：**凸( →_→ )凸**。关于这套方法来自哪里、为什么愿意公开分享，请阅读 [作者自述](AUTHOR.md)。
+
+## IDC 的独特点
+
+IDC 的核心产品不是“更多提示词”，而是把一次 AI 编程任务变成一个可追踪、可审查、可逐步固化的工程过程。它与常见方案的区别如下：
+
+| 常见方案 | IDC 的取舍 |
+|---|---|
+| 提示词包 | 不把项目事实和稳定方法混在一份长提示词里；入口、Skill 和仓库证据分层管理 |
+| Skill / Rules 集合 | 不把所有能力都默认加载；按任务场景和影响边界选择最小专业链 |
+| 固定 Agent 团队 | 不预设永久七人团队；通常由 2-3 个互补判断组成 Squad，并要求明确交接物 |
+| 自动 Agent 编排器 | 不把结构配置伪装成宿主执行证据；区分 Agent 声明、宿主观察、命令结果、产物和人工确认 |
+| 任务管理或聊天工具 | 不接管任务分派和产品决策；只定义当前工程任务的范围、路线、验收和权限边界 |
+| 一次性脚手架 | 不把生成文件当成适配完成；要求真实任务、真实宿主和新鲜验证证据反馈到项目规则 |
+
+IDC 的可识别工作单元是 `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` 任务卡。它在实现开始前固定目标、范围、影响、验收和权限门，在完成时对照新鲜证据，而不是只留下一个“AI 已经处理过”的模糊记录。这个差异目前是方法和结构上的承诺；宿主自动路由仍必须按 [Host Acceptance](docs/HOST_ACCEPTANCE.md) 单独验证。
 
 ## 一个真实例子：修复空白报表
 
@@ -105,6 +124,8 @@ AI 把用户的自然语言需求翻译为工程任务时，还需要区分四�
 - 安装引导器、Skill 新鲜度巡检、路由与交接评测样例。
 - 一个实验性的本地 OpenCode 编排控制器：执行显式选定的合同、保存交接与命令证据，但不替代宿主 runtime。
 - 一个实验性的[本地 CLI](docs/CLI.md)：当前汇总、分类或比较显式项目路径下的 `.idc` metadata，不读取项目源码或宿主配置。
+- 一套任务场景分类和 `IDC-项目-场景-日期-序号` 任务卡，用于在开始前固定记录意图、范围、影响、路线、验收、验证和权限边界，详见 [任务场景](docs/TASK_SCENARIOS.md) 和 [任务卡模板](templates/IDC_TASK.md)。
+- 一份记录本项目自身决策、实现里程碑和证据事件的[项目进展](plans/PROJECT_PROGRESS.md)，区别于当前状态快照和未来路线图。
 - 无提示泄漏的宿主验收夹具与部分实测记录；它们用于暴露边界，不代表宿主兼容性保证。
 
 ## 快速开始
@@ -112,6 +133,8 @@ AI 把用户的自然语言需求翻译为工程任务时，还需要区分四�
 ### 最小路径
 
 先阅读 [Minimal Path](docs/MINIMAL.md)，用当前真实任务验证 `Skill -> Squad -> Contract -> Evidence` 四个概念即可。完成一次安全任务后可以停止，不需要安装全部模板、配置自动路由或设计元小队。
+
+对于非平凡任务，再阅读 [Task Scenarios](docs/TASK_SCENARIOS.md)。Agent 应先生成一个 `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` 任务标识和简短启动卡，列出目标、范围、影响、路线、验收和权限门，再进入实现阶段。
 
 ### 安装（Plugin — 推荐）
 
@@ -129,6 +152,8 @@ AI 把用户的自然语言需求翻译为工程任务时，还需要区分四�
 ```
 
 安装后，每次会话启动时 Agent 会自动接收到 Pipeline 阶段模型和核心规则的引导上下文，无需手动阅读文档。详见 [Claude Code Adapter](docs/CLAUDE_CODE_ADAPTER.md) 和 [OpenCode Adapter](docs/OPENCODE_ADAPTER.md)。
+
+如果用户是从 Git 克隆本仓库开始，完整的“克隆、生成目标项目文件、让助手识别 IDC、验证安装”流程见 [Installation And Use](docs/INSTALLATION.md)。生成到目标项目后，助手的第一入口是根目录的 `IDC.md`，不是要求助手每次重新通读 IDC 源仓库。
 
 ### 推荐方式：AI 先学，人机共学共建
 
@@ -278,6 +303,8 @@ intent-driven-coding/
 |-- requirements.txt
 |-- docs/
 |   |-- PROTOCOL.md
+|   |-- TASK_SCENARIOS.md
+|   |-- INSTALLATION.md
 |   |-- CONTEXT_ARCHITECTURE.md
 |   |-- TEAM_PLAYBOOK.md
 |   |-- SQUAD_METHOD.md
@@ -296,6 +323,7 @@ intent-driven-coding/
 |   |-- AGENT_ENTRY.md
 |   |-- AGENTS.md
 |   |-- AI_ENGINEERING_PLAYBOOK.md
+|   |-- IDC_TASK.md
 |   |-- SQUADS.md
 |   `-- SQUAD.md
 |-- skills/
@@ -315,6 +343,10 @@ intent-driven-coding/
 |   `-- examples/
 |-- examples/
 |   `-- requirement-translations.md
+|-- plans/
+|   |-- CURRENT_STATE.md
+|   |-- PROJECT_PROGRESS.md
+|   `-- ROADMAP.md
 |-- scripts/
 |   |-- bootstrap.py
 |   |-- audit_skills.py
@@ -351,6 +383,8 @@ The optional bootstrapper creates only missing files by default:
 - `.agent/skills/*/SKILL.md`: the starter capability roster used to form small squads.
 - `.agent/templates/SQUAD.md`: a contract for designing project-specific squads.
 - `.agent/evals/*.json`: starter routing, handoff, near-miss, and permission cases to adapt.
+- `IDC.md`: the target project's first IDC marker and the assistant's operating pointer.
+- `docs/TASK_SCENARIOS.md` and `templates/IDC_TASK.md`: task classification and task-start card resources.
 
 It does not analyze the target project, select Skills, design squads, or configure a host platform. It refuses to overwrite existing files unless `--force` is explicitly supplied. Start with `--dry-run` and review the plan.
 

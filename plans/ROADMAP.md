@@ -1,6 +1,6 @@
 # Roadmap
 
-Status date: 2026-07-26
+Status date: 2026-09-05
 
 ## Operating Rule
 
@@ -28,7 +28,7 @@ Exit criteria:
 
 Goal: determine whether real coding Agents select and use the intended smallest route in actual supported hosts.
 
-Status: in progress. Partial OpenCode `1.18.5` and Claude Code `2.1.154` pilots are recorded in `references/host-acceptance/`; both found route and evidence gaps, so neither is an acceptance result. A later OpenCode fixture manually completed `team -> debug -> verify`, but only through an in-session handoff and with a false agent-reported command exit status; it supports the Phase 2 provenance need, not a compatibility claim.
+Status: in progress. Partial OpenCode `1.18.5` and Claude Code `2.1.154` pilots are recorded in `references/host-acceptance/`; both found route and evidence gaps, so neither is an acceptance result. A later OpenCode fixture manually completed `team -> debug -> verify`, but only through an in-session handoff and with a false agent-reported command exit status; it supports the Phase 2 provenance need, not a compatibility claim. Two DeepSeek Harness `0.1.0-rc.6` cohorts (gpt-5.6-terra and deepseek-v4-flash) added the first host-observed matched runs (3 and 4 of 10), a real three-member subagent dispatch, a `matched` `diff-review` that caught a planted regression against a real Git baseline, and the first closed ambiguity loop with human-confirmed decisions; see `references/host-acceptance/dsh-0.1.0-rc.6-2026-08-14.md` and `references/host-acceptance/dsh-0.1.0-rc.6-deepseek-v4-flash-2026-08-14.md`. Exit criteria are still not met: no route holds across repeated runs, hosts, and models, and the security case skipped its review member in every cohort.
 
 Minimum experiment:
 

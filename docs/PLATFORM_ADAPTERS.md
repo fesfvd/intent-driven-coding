@@ -12,22 +12,23 @@ Across every host, AI-first describes who takes the initial learning burden, not
 
 | Platform | Status | Distribution | Adapter doc | Templates | Notes |
 |---|---|---|---|---|---|---|
-| **Claude Code** | ✅ Verified | Plugin marketplace (`/plugin install`) | [Claude Code Adapter](CLAUDE_CODE_ADAPTER.md) | `templates/claude/` | Pipeline-aware subagents + native Skill discovery + SessionStart hook |
-| **OpenCode** | ✅ Verified | `opencode.json` plugin reference | [OpenCode Adapter](OPENCODE_ADAPTER.md) | `templates/opencode/` | Pipeline-aware primary agent + in-process plugin + session-start inject |
+| **Claude Code** | ⚠️ Structural adapter | Plugin marketplace (`/plugin install`) | [Claude Code Adapter](CLAUDE_CODE_ADAPTER.md) | `templates/claude/` | Pipeline-aware subagents + native Skill discovery + SessionStart hook; host routing remains acceptance-gated |
+| **OpenCode** | ⚠️ Structural adapter | `opencode.json` plugin reference | [OpenCode Adapter](OPENCODE_ADAPTER.md) | `templates/opencode/` | Pipeline-aware primary agent + in-process plugin + session-start inject; host routing remains acceptance-gated |
 | Codex CLI | ⚡ Community | Manual clone only | Generic Setup below | None | Use `AGENTS.md` as anchor; read Skills on demand |
 | Cursor | ⚡ Community | Manual clone only | Generic Setup below | None | Use project-instruction mechanism; read Skills explicitly |
 | GitHub Copilot | ⚡ Community | Manual clone only | Generic Setup below | None | Use project-instruction mechanism; Skill reuse limited |
 | Other agents | ⚡ Community | Manual clone only | Generic Setup below | None | Map to closest supported mechanism |
 
-**Verified** = adapter has documented layout, templates, permission model, and acceptance checklist. **Community** = general guidance exists, but platform-specific templates and cross-version testing have not been performed.
+**Structural adapter** = layout, templates, permission model, and acceptance checklist exist; this does not mean the host has passed routing acceptance. **Community** = general guidance exists, but platform-specific templates and cross-version testing have not been performed.
 
 ## Generic Setup
 
 1. Point the agent's project instruction entry at `.agent/AGENT_ENTRY.md`, or merge that thin entry into the platform's recognized project instruction file.
-2. Install or reference `.agent/skills/*/SKILL.md` using the platform's project-local or user-level Skill mechanism.
-3. Keep `AGENTS.md`, `AI_ENGINEERING_PLAYBOOK.md`, and `SQUADS.md` at the project root unless your platform requires another path.
-4. Map `allowed-tools` names to the platform's actual tools.
-5. Test one direct task, one squad task, one ambiguity, and one permission gate.
+2. Keep the generated root `IDC.md` as the first framework marker; it points the assistant to the platform adapter, scenario guide, playbook, and task-card template.
+3. Install or reference `.agent/skills/*/SKILL.md` using the platform's project-local or user-level Skill mechanism.
+4. Keep `AGENTS.md`, `AI_ENGINEERING_PLAYBOOK.md`, `SQUADS.md`, `docs/TASK_SCENARIOS.md`, and `templates/IDC_TASK.md` at the project root unless your platform requires another path.
+5. Map `allowed-tools` names to the platform's actual tools.
+6. Test one direct task, one squad task, one ambiguity, and one permission gate.
 
 ## Claude Code
 

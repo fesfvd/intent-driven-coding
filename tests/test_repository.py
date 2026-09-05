@@ -100,6 +100,71 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("[Roadmap](plans/ROADMAP.md)", readme)
         self.assertIn("[experimental design constitution](DESIGN.md)", readme)
 
+    def test_task_scenarios_and_progress_record_are_registered(self) -> None:
+        validator = (ROOT / "scripts" / "validate_repository.py").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        start = (ROOT / "AI_START_HERE.md").read_text(encoding="utf-8")
+        team = (ROOT / "skills" / "team" / "SKILL.md").read_text(encoding="utf-8")
+        quickstart = (ROOT / "QUICKSTART.md").read_text(encoding="utf-8")
+
+        for path in (
+            "docs/TASK_SCENARIOS.md",
+            "templates/IDC_TASK.md",
+            "plans/PROJECT_PROGRESS.md",
+        ):
+            self.assertIn(f'"{path}"', validator)
+            self.assertTrue((ROOT / path).is_file())
+
+        for document in (readme, start, team, quickstart):
+            self.assertIn("TASK_SCENARIOS.md", document)
+            self.assertIn("IDC-", document)
+
+        scenarios = (ROOT / "docs" / "TASK_SCENARIOS.md").read_text(encoding="utf-8")
+        for required_code in (
+            "FIX",
+            "SEC",
+            "FEAT",
+            "CHG",
+            "REF",
+            "REVIEW",
+            "OPS",
+            "EXP",
+            "META",
+        ):
+            self.assertIn(f"`{required_code}`", scenarios)
+        for required_field in (
+            "Task ID",
+            "Scope",
+            "Impact",
+            "Acceptance",
+            "Verification",
+            "Permission gate",
+        ):
+            self.assertIn(required_field, scenarios)
+
+    def test_installation_guide_and_project_marker_are_registered(self) -> None:
+        validator = (ROOT / "scripts" / "validate_repository.py").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        installation = (ROOT / "docs" / "INSTALLATION.md").read_text(encoding="utf-8")
+
+        for path in ("docs/INSTALLATION.md", "templates/IDC.md"):
+            self.assertIn(f'"{path}"', validator)
+            self.assertTrue((ROOT / path).is_file())
+        for document in (readme, installation):
+            self.assertIn("IDC.md", document)
+            self.assertIn("AI_START_HERE.md", document)
+            self.assertIn("Claude Code", document)
+            self.assertIn("OpenCode", document)
+            self.assertIn("Codex", document)
+        for distinction in (
+            "不是提示词包",
+            "不是固定 Agent 团队",
+            "不是自动编排运行时",
+            "任务启动卡",
+            "新鲜验证证据",
+        ):
+            self.assertIn(distinction, readme)
+
     def test_host_acceptance_record_discloses_partial_observations(self) -> None:
         record = (
             ROOT / "references" / "host-acceptance" / "opencode-1.18.5-2026-07-26.md"
@@ -1779,6 +1844,7 @@ class RepositoryTests(unittest.TestCase):
             )
             self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
             self.assertIn("# Example Project Architecture Guide", (target / "AGENTS.md").read_text(encoding="utf-8"))
+            self.assertTrue((target / "IDC.md").is_file())
             skill = target / ".agent" / "skills" / "team" / "SKILL.md"
             self.assertTrue(skill.is_file())
             self.assertTrue((target / "SQUADS.md").is_file())
@@ -1787,6 +1853,12 @@ class RepositoryTests(unittest.TestCase):
             self.assertTrue((target / ".agent" / "skills" / "skill-creator" / "SKILL.md").is_file())
             self.assertTrue((target / ".agent" / "evals" / "squad-routing.json").is_file())
             self.assertTrue((target / ".agent" / "evals" / "skill-design.json").is_file())
+            self.assertTrue((target / "docs" / "TASK_SCENARIOS.md").is_file())
+            self.assertTrue((target / "templates" / "IDC_TASK.md").is_file())
+            playbook = (target / "AI_ENGINEERING_PLAYBOOK.md").read_text(encoding="utf-8")
+            self.assertIn("docs/TASK_SCENARIOS.md", playbook)
+            self.assertIn("templates/IDC_TASK.md", playbook)
+            self.assertTrue((target / "docs" / "TASK_SCENARIOS.md").is_file())
             squads = (target / "SQUADS.md").read_text(encoding="utf-8")
             self.assertIn("# Example Project Professional Squads", squads)
 
@@ -1822,6 +1894,9 @@ class RepositoryTests(unittest.TestCase):
             self.assertTrue((target / ".opencode" / "skills" / "team" / "SKILL.md").is_file())
             self.assertTrue((target / ".opencode" / "templates" / "SQUAD.md").is_file())
             self.assertTrue((target / ".opencode" / "evals" / "squad-routing.json").is_file())
+            self.assertTrue((target / "IDC.md").is_file())
+            self.assertTrue((target / "docs" / "TASK_SCENARIOS.md").is_file())
+            self.assertTrue((target / "templates" / "IDC_TASK.md").is_file())
             self.assertFalse((target / ".agent").exists())
 
             team_agent = (target / ".opencode" / "agents" / "team.md").read_text(encoding="utf-8")
@@ -1851,6 +1926,9 @@ class RepositoryTests(unittest.TestCase):
             self.assertTrue((target / ".claude" / "skills" / "team" / "SKILL.md").is_file())
             self.assertTrue((target / ".claude" / "templates" / "SQUAD.md").is_file())
             self.assertTrue((target / ".claude" / "evals" / "squad-routing.json").is_file())
+            self.assertTrue((target / "IDC.md").is_file())
+            self.assertTrue((target / "docs" / "TASK_SCENARIOS.md").is_file())
+            self.assertTrue((target / "templates" / "IDC_TASK.md").is_file())
             self.assertFalse((target / ".agent").exists())
 
             entry = (target / ".claude" / "CLAUDE.md").read_text(encoding="utf-8")
@@ -2757,6 +2835,8 @@ class RepositoryTests(unittest.TestCase):
     def test_session_start_hook_references_team_skill(self) -> None:
         script = (ROOT / "hooks" / "session-start").read_text(encoding="utf-8")
         self.assertIn("skills/team/SKILL.md", script)
+        self.assertIn("TASK_SCENARIOS.md", script)
+        self.assertIn("IDC_TASK.md", script)
         self.assertIn("INTENT-DRIVEN-CODING-ACTIVE", script)
         self.assertIn("CLAUDE_PLUGIN_ROOT", script)
 
@@ -2769,8 +2849,20 @@ class RepositoryTests(unittest.TestCase):
     def test_opencode_plugin_registers_skills_dir(self) -> None:
         script = (ROOT / ".opencode" / "plugins" / "intent-driven-coding.js").read_text(encoding="utf-8")
         self.assertIn("config.skills.paths", script)
+        self.assertIn("TASK_SCENARIOS.md", script)
+        self.assertIn("IDC_TASK.md", script)
         self.assertIn("INTENT-DRIVEN-CODING-ACTIVE", script)
         self.assertIn("experimental", script)
+
+    def test_primary_entry_templates_reference_task_scenarios(self) -> None:
+        for path in (
+            ROOT / "templates" / "AGENT_ENTRY.md",
+            ROOT / "templates" / "opencode" / "agents" / "team.md",
+            ROOT / "templates" / "claude" / "CLAUDE.md",
+        ):
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("TASK_SCENARIOS.md", text)
+            self.assertIn("IDC_TASK.md", text)
 
     def test_plugin_manifest_and_marketplace_versions_match(self) -> None:
         import json

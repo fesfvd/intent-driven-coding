@@ -2,6 +2,7 @@
 
 ## Principles
 
+- Read the project-root `IDC.md` first when the framework is installed; it is the operating pointer, not a replacement for project facts.
 - Think before coding and read current code before proposing implementation.
 - Translate ordinary language into an executable task without inventing product behavior.
 - Present user-facing conclusions, reports, and status in the user's resolved language preference; preserve code, commands, identifiers, APIs, and maintainer-only document conventions unless translation is requested.
@@ -24,6 +25,12 @@ Classify task information internally:
 Ask only about open decisions. Discover files, tests, architecture, and implementation details independently.
 
 ## Task Contract
+
+Classify each non-trivial task with [`docs/TASK_SCENARIOS.md`](../docs/TASK_SCENARIOS.md)
+and assign an `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` identity. Use
+[`templates/IDC_TASK.md`](IDC_TASK.md) for a durable project card.
+Scenario describes the work intent; impact dimensions and uncertainty modifiers
+decide the required gates.
 
 For non-trivial work, establish:
 

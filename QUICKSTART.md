@@ -35,7 +35,11 @@ Start the coding agent in `my-project` and give it this instruction:
 Read ../intent-driven-coding/AI_START_HERE.md, identify your host-platform section, and then handle my next real task. Do not stop to install the full framework. Investigate the relevant repository path, use the smallest safe method, implement, and verify. Briefly teach me the core concept, evidence, uncertainty, or tradeoff when it affects how we should work. Learn the project with me and propose durable Skills or squads only after repeated evidence and my judgment justify them.
 ```
 
-Then give it a real bug, feature, review, or refactor request. The first useful result is a verified project outcome, not a generated framework directory.
+Then give it a real bug, feature, review, or refactor request. The agent should
+classify it with [`docs/TASK_SCENARIOS.md`](docs/TASK_SCENARIOS.md) and show a
+compact `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` task card before starting
+non-trivial work. The first useful result is a verified project outcome, not a
+generated framework directory.
 
 ## What The Agent Does Incrementally
 
@@ -47,6 +51,7 @@ During ordinary work the agent should:
 4. Explain the core concept, evidence, uncertainty, or tradeoff when it affects a shared decision.
 5. Combine observed friction and risks with the user's experience, corrections, and priorities.
 6. Add a thin entry, architecture note, Skill, squad, or evaluation only when shared evidence and judgment show it will help future work.
+7. Keep a durable task card under `.idc/tasks/` when the work has meaningful scope, impact, handoffs, or decisions.
 
 ## Human And AI Learn Together
 

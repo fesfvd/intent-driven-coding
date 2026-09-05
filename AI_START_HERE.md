@@ -26,17 +26,23 @@ The intended pattern is collaborative learning: AI learns and explains; the huma
 
 Before reading the full method, identify whether you are Claude Code, OpenCode, Codex, Cursor, GitHub Copilot, or another coding agent. Then read the matching section in `docs/PLATFORM_ADAPTERS.md` and use the host's real instruction, Skill, agent, permission, and task mechanisms. Do not ask the user to translate this framework into your platform conventions.
 
+For non-trivial work, create an `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>`
+task identity and show the start card before implementation. The card is a
+shared boundary for intent, scope, impact, acceptance, verification, and
+permission; it is not a completion claim.
+
 ## Read In This Order
 
 Read only as far as needed for the next adaptation decision:
 
 1. `docs/PLATFORM_ADAPTERS.md` for your own host-specific path.
-2. `docs/PROTOCOL.md` and the relevant base Skill for the current task.
-3. `docs/CONTEXT_ARCHITECTURE.md` when deciding where durable knowledge belongs.
-4. `docs/SQUAD_METHOD.md` when more than one professional judgment is needed.
-5. `skills/meta-skill-designer/SKILL.md` only when repeated evidence justifies system design.
-6. `skills/skill-creator/SKILL.md` only after a Skill contract is ready.
-7. Capability, archetype, squad, template, and evaluation references only when the current adoption decision needs them.
+2. `docs/TASK_SCENARIOS.md` to classify the current task and prepare its IDC task card.
+3. `docs/PROTOCOL.md` and the relevant base Skill for the current task.
+4. `docs/CONTEXT_ARCHITECTURE.md` when deciding where durable knowledge belongs.
+5. `docs/SQUAD_METHOD.md` when more than one professional judgment is needed.
+6. `skills/meta-skill-designer/SKILL.md` only when repeated evidence justifies system design.
+7. `skills/skill-creator/SKILL.md` only after a Skill contract is ready.
+8. Capability, archetype, squad, template, and evaluation references only when the current adoption decision needs them.
 
 Do not load every document and Skill by default. Follow the framework's progressive context model.
 
@@ -47,6 +53,7 @@ If you need to work before reading all documents, here is the minimum:
 | You need to… | Read this | ~time |
 |---|---|---|
 | Fix a bug right now | `skills/team/SKILL.md` (Pipeline Phases + Squad Selection tables only) | 3 min |
+| Classify a task before coding | `docs/TASK_SCENARIOS.md` + `templates/IDC_TASK.md` | 5 min |
 | Understand why the Router picked this Squad | `docs/PROTOCOL.md` (Four Information Classes) | 2 min |
 | Write a new Skill for your project | `skills/meta-skill-designer/SKILL.md` → `skills/skill-creator/SKILL.md` | 8 min |
 | Understand where context lives | `docs/CONTEXT_ARCHITECTURE.md` | 3 min |

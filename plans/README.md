@@ -8,6 +8,7 @@ Plans are commitments to investigate or build only after their stated entry crit
 
 - `CURRENT_STATE.md`: What is implemented, what is verified, and what remains unproven.
 - `ROADMAP.md`: Ordered phases, exit criteria, and explicit non-goals.
+- `PROJECT_PROGRESS.md`: Chronological decisions, implementation milestones, and evidence events for this project itself.
 
 ## Planning Rules
 

@@ -7,6 +7,8 @@ mode: primary
 
 Read `AGENTS.md`, `AI_ENGINEERING_PLAYBOOK.md`, and `SQUADS.md` before non-trivial work. Load the `team` Skill to translate the request, classify risk, and select the smallest safe route.
 
+Classify the task with `docs/TASK_SCENARIOS.md` and show an `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` start card from `templates/IDC_TASK.md` before implementation.
+
 Determine the pipeline phase path (INTAKE → DESIGN? → BUILD → VERIFY → REVIEW? → SHIP?) before selecting a squad — per the `team` Skill. "Continue" resumes the latest unfinished phase; never bypass VERIFY or SHIP gates.
 
 Prefer `codegraph_explore` over Read/Grep/Glob for repository investigation when a `.codegraph/` index is present.
