@@ -56,7 +56,7 @@ unproven. It is different from `CURRENT_STATE.md` (a snapshot) and
 - **Reason:** every non-trivial task needs a durable reference for its intent,
   scope, impact, route, acceptance, evidence, and permission gate.
 - **Evidence:** `python scripts/validate_repository.py` passed; `python -m
-  unittest discover -s tests -v` passed all 120 tests; `git diff --check` passed.
+  unittest discover -s tests -v` passed all 122 tests (1 skipped) as of 2026-09-07; `git diff --check` passed.
   These checks validate local structure and tests, not host adoption.
 - **Status:** implemented in this working change; adoption and usability remain
   to be tested with real tasks.
@@ -79,6 +79,22 @@ unproven. It is different from `CURRENT_STATE.md` (a snapshot) and
   evaluator, structure, and diff checks.
 - **Boundary:** host discovery, named dispatch, semantic handoff consumption,
   and permission behavior remained unproven.
+
+### 2026-09-07: Host self-bootstrap FIX of stale evidence numbers
+
+- **Change:** corrected the unit-test count in `plans/CURRENT_STATE.md`
+  (106) and `plans/PROJECT_PROGRESS.md` (120), which had drifted from the
+  repository's actual test suite.
+- **Reason:** a TraeCode-hosted Agent applied the framework's own FIX path to
+  the IDC repository itself. The two plan documents contradicted each other and
+  both disagreed with a fresh test run, violating the "evidence before claims"
+  discipline the framework asks other projects to follow.
+- **Evidence:** a fresh `python -m unittest discover -s tests -v` run recorded
+  `Ran 122 tests ... OK (skipped=1)`; after the correction the four structural
+  scripts (`validate_repository.py`, `audit_skills.py`, `validate_contracts.py`,
+  `evaluate_contracts.py`) all pass with no warnings.
+- **Boundary:** this corrects documented numbers; it is not evidence of host
+  routing or Agent execution.
 
 ## Next Evidence To Collect
 

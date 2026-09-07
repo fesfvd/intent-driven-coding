@@ -1,6 +1,6 @@
 # Current State
 
-Status date: 2026-09-05
+Status date: 2026-09-07
 
 ## Product Position
 
@@ -26,7 +26,7 @@ The intended value is to help a developer and a coding Agent derive a small, evi
 
 The latest repository verification and first host pilot provide the following evidence:
 
-- 106 unit tests passed.
+- 122 unit tests passed (1 skipped) as of 2026-09-07.
 - Contract validation passed for 2 example contract documents.
 - Offline evaluation passed for 1 evaluation record.
 - Repository validation and Skill audit passed.
