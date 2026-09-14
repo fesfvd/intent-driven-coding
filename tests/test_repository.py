@@ -175,6 +175,28 @@ class RepositoryTests(unittest.TestCase):
         ):
             self.assertIn(required_field, scenarios)
 
+    def test_readme_repository_map_lists_current_entry_points(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        required_entries = (
+            "|   |-- MINIMAL.md",
+            "|   |-- PROGRESSIVE_TASKS.md",
+            "|   |-- CLI.md",
+            "|   |-- HOST_ACCEPTANCE.md",
+            "|   `-- idc-task-event-v1.schema.json",
+            "|-- idc_core/",
+            "|-- self-use/",
+            "|-- .claude-plugin/",
+            "|-- .opencode/",
+            "|-- hooks/",
+            "|   |-- legacy.py",
+            "|   `-- resources/",
+        )
+        tree_start = readme.index("## Repository Contents")
+        tree_end = readme.index("## Optional Scaffold Quick Start", tree_start)
+        tree = readme[tree_start:tree_end]
+        for entry in required_entries:
+            self.assertIn(entry, tree)
+
     def test_installation_guide_and_project_marker_are_registered(self) -> None:
         validator = (ROOT / "scripts" / "validate_repository.py").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

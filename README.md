@@ -304,11 +304,27 @@ intent-driven-coding/
 |-- AI_START_HERE.md
 |-- LICENSE
 |-- QUICKSTART.md
+|-- DESIGN.md
+|-- pyproject.toml
 |-- requirements.txt
+|-- .claude-plugin/
+|   |-- plugin.json
+|   `-- marketplace.json
+|-- .opencode/
+|   |-- INSTALL.md
+|   `-- plugins/
+|-- hooks/
+|   |-- hooks.json
+|   `-- session-start
 |-- docs/
+|   |-- MINIMAL.md
+|   |-- PROGRESSIVE_TASKS.md
+|   |-- CLI.md
+|   |-- INSTALLATION.md
+|   |-- HOST_ACCEPTANCE.md
+|   |-- PLATFORM_ADAPTERS.md
 |   |-- PROTOCOL.md
 |   |-- TASK_SCENARIOS.md
-|   |-- INSTALLATION.md
 |   |-- CONTEXT_ARCHITECTURE.md
 |   |-- TEAM_PLAYBOOK.md
 |   |-- SQUAD_METHOD.md
@@ -317,11 +333,12 @@ intent-driven-coding/
 |   |-- PROJECT_ARCHETYPES.md
 |   |-- SQUAD_CATALOG.md
 |   |-- EVALUATION.md
-|   |-- PLATFORM_ADAPTERS.md
 |   |-- OPENCODE_ADAPTER.md
 |   |-- CLAUDE_CODE_ADAPTER.md
 |   |-- CONTRACTS.md
 |   |-- PERMISSIONS.md
+|   |-- ORCHESTRATION.md
+|   |-- KNOWN_TENSIONS.md
 |   `-- ADAPTATION_GUIDE.md
 |-- templates/
 |   |-- AGENT_ENTRY.md
@@ -329,7 +346,9 @@ intent-driven-coding/
 |   |-- AI_ENGINEERING_PLAYBOOK.md
 |   |-- IDC_TASK.md
 |   |-- SQUADS.md
-|   `-- SQUAD.md
+|   |-- SQUAD.md
+|   |-- claude/
+|   `-- opencode/
 |-- skills/
 |   |-- team/SKILL.md
 |   |-- architecture/SKILL.md
@@ -342,24 +361,48 @@ intent-driven-coding/
 |   |-- squad-routing.json
 |   `-- skill-design.json
 |-- schemas/
-|   `-- intent-driven-coding-contract-v1.schema.json
+|   |-- intent-driven-coding-contract-v1.schema.json
+|   `-- idc-task-event-v1.schema.json
 |-- contracts/
 |   `-- examples/
 |-- examples/
 |   `-- requirement-translations.md
+|-- references/
+|   |-- README.md
+|   |-- external-review-*.md
+|   `-- host-acceptance/
 |-- plans/
 |   |-- CURRENT_STATE.md
 |   |-- PROJECT_PROGRESS.md
 |   `-- ROADMAP.md
 |-- scripts/
+|   |-- idc.py
 |   |-- bootstrap.py
+|   |-- prepare_host_acceptance_fixture.py
+|   |-- orchestrate_squad.py
 |   |-- audit_skills.py
 |   |-- validate_project.py
 |   |-- validate_contracts.py
 |   |-- evaluate_contracts.py
 |   `-- validate_repository.py
+|-- idc_core/
+|   |-- cli.py
+|   |-- events.py
+|   |-- workflow.py
+|   |-- obligations.py
+|   |-- legacy.py
+|   |-- projector.py
+|   |-- render.py
+|   |-- metrics.py
+|   `-- resources/
+|-- self-use/
+|   |-- README.md
+|   |-- CLAUDE.md
+|   |-- skills/
+|   `-- templates/
 `-- tests/
-    `-- test_repository.py
+    |-- test_repository.py
+    `-- test_progressive_*.py
 ```
 
 ## Optional Scaffold Quick Start
