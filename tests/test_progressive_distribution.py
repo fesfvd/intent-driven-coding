@@ -97,7 +97,7 @@ class ProgressiveDistributionTests(unittest.TestCase):
         metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
         self.assertEqual(metadata["project"]["name"], "intent-driven-coding")
-        self.assertEqual(metadata["project"]["scripts"]["idc"], "scripts.idc:main")
+        self.assertEqual(metadata["project"]["scripts"]["idc"], "idc_core.inspect_cli:main")
         self.assertIn("jsonschema", metadata["project"]["dependencies"][0])
 
     def test_module_entrypoint_exposes_existing_and_progressive_commands(self) -> None:

@@ -5,7 +5,9 @@ idc_core/__init__.py
 idc_core/__main__.py
 idc_core/cli.py
 idc_core/events.py
+idc_core/inspect_cli.py
 idc_core/legacy.py
+idc_core/metrics.py
 idc_core/obligations.py
 idc_core/projector.py
 idc_core/render.py
@@ -31,6 +33,7 @@ scripts/validate_repository.py
 tests/test_legacy_and_doctor.py
 tests/test_progressive_cli.py
 tests/test_progressive_distribution.py
+tests/test_progressive_metrics.py
 tests/test_progressive_tasks.py
 tests/test_progressive_workflow.py
 tests/test_repository.py

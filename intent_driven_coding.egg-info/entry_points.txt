@@ -1,2 +1,2 @@
 [console_scripts]
-idc = scripts.idc:main
+idc = idc_core.inspect_cli:main

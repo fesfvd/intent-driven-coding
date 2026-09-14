@@ -13,10 +13,10 @@ authors = [{name = "凸( →_→ )凸"}]
 dependencies = ["jsonschema>=4.23,<5"]
 
 [project.scripts]
-idc = "scripts.idc:main"
+idc = "idc_core.inspect_cli:main"
 
 [tool.setuptools]
-packages = ["idc_core", "idc_core.resources", "scripts"]
+packages = ["idc_core", "idc_core.resources"]
 
 [tool.setuptools.package-data]
 "idc_core.resources" = ["*.json"]
