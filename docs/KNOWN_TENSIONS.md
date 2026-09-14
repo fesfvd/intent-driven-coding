@@ -88,6 +88,20 @@ These are structural tensions built into the framework's design. They are not bu
 
 ---
 
+## T7: First-touch work report vs performative card filling
+
+**What it is:** Since v1.1.0, the task card exists from the first touch: `idc start` prints a provisional card (header, current state, initial scene, outstanding obligations) as the first work report, and `start --scene` records the agent's initial scene read. The intended effect is that the card threads through the model's output as a live report. The risk is the opposite pull: a visible card with many empty sections invites the model to fill the form — producing performative shaping (invented acceptance items, premature scope, confident-sounding scene labels) instead of doing the work.
+
+**When it bites:** When a model treats the printed card as a form to complete rather than a projection that grows from events. The provisional card's "Intent Translation: none" section can read as a blank to fill immediately, even when the request needs investigation first.
+
+**Mitigation:** The card is a generated projection, never a hand-filled form; empty sections are honest placeholders; the initial scene read is recorded with `claimed` provenance and the docs declare scene labels mutable (`idc classify` re-labels); AGENT_ENTRY instructs the model to *show* the returned header, not to complete the card; dynamic obligations are derived from events, so premature shaping cannot upgrade into closed obligations.
+
+**Evidence:** Framework design logic — the provisional card feature and the "no complete plan before investigation" principle pull in opposite directions by construction.
+
+**Resolvable:** Partially. Projection semantics and provenance labels cap the damage, but whether a given host model reports progress versus performs it depends on model behavior that the framework cannot prove (see T2).
+
+---
+
 ## Future Directions
 
 These are not tensions in the current framework but open questions about its evolution as model capabilities grow:

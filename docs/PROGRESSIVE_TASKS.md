@@ -9,6 +9,14 @@ Every actionable request can begin as a lightweight `captured` record. It become
 a durable task only when investigation, a material decision, or a change begins.
 The record then grows through append-only events:
 
+The card exists from the first touch, not only after promotion. `idc start`
+writes a provisional card at `.idc/work-items/<record-id>/CARD.md` and prints it
+as the first work report: header, current state, initial scene, and outstanding
+obligations. `start --scene <label>` records the initial scene identification as
+the first classification event; scene labels stay mutable through `idc classify`.
+Promotion moves the projection to `.idc/tasks/<task-id>.md` and removes the
+provisional file; discard or expiry removes it while keeping the event history.
+
 Use `idc start --temporary` for exploratory thoughts that may be discarded. The
 default temporary TTL is 72 hours; expiry appends an event and never deletes
 history. `idc discard` closes an unpromoted capture without creating a task card.
@@ -49,6 +57,7 @@ and routing hints. The obligation engine, not the label, controls hard gates.
 .idc/
 |-- config.json
 |-- work-items/<record-id>/events.jsonl   # authoritative append-only facts
+|-- work-items/<record-id>/CARD.md        # provisional card for unpromoted captures
 |-- task-ids/<task-id>                    # atomic identity reservation
 `-- tasks/<task-id>.md                    # generated human-readable projection
 ```
@@ -67,7 +76,7 @@ Agents must keep their own claims separate from explicit human confirmation.
 
 ```text
 idc init        initialize project identity and record policy
-idc start       capture the request before work
+idc start       capture the request before work; --scene adds the initial scene read
 idc start --temporary --ttl-hours 24
 idc promote     assign a durable task ID when work begins
 idc discard     retain history while discarding an unpromoted capture

@@ -30,7 +30,17 @@ class Workflow:
         self.project = project.resolve()
         self.store = EventStore(self.project, clock=clock)
 
-    def start(self, summary: str, actor: str = "agent", *, temporary: bool = False, ttl_hours: int | None = None) -> str:
+    def start(
+        self,
+        summary: str,
+        actor: str = "agent",
+        *,
+        temporary: bool = False,
+        ttl_hours: int | None = None,
+        scenes: list[str] | None = None,
+    ) -> str:
+        if scenes and any(not scene.strip() for scene in scenes):
+            raise ValueError("scene labels must not be empty")
         if ttl_hours is None:
             ttl_hours = 72
             config_path = self.project / ".idc" / "config.json"
@@ -42,7 +52,19 @@ class Workflow:
                         ttl_hours = configured
                 except (OSError, json.JSONDecodeError):
                     pass
-        return self.store.capture(summary, actor=actor, temporary=temporary, ttl_hours=ttl_hours).record_id
+        record_id = self.store.capture(
+            summary, actor=actor, temporary=temporary, ttl_hours=ttl_hours
+        ).record_id
+        if scenes:
+            self.classify(
+                record_id,
+                scenes,
+                reason="Initial scene identification from the request",
+                actor=actor,
+            )
+        else:
+            self._render(record_id)
+        return record_id
 
     def promote(self, record_id: str, project_key: str, actor: str = "agent") -> str:
         state = self.state(record_id)
@@ -302,6 +324,7 @@ class Workflow:
                 provenance="artifact-evidence",
             )
             state = fold_events(self.store.read(record_id), now=now)
+            self._render(record_id)
         return state
 
     def _append(
@@ -324,9 +347,19 @@ class Workflow:
 
     def _render(self, record_id: str) -> None:
         state = self.state(record_id)
-        if not state.task_id:
+        provisional = self.store.records_root / record_id / "CARD.md"
+        if state.task_id:
+            path = self.project / ".idc" / "tasks" / f"{state.task_id}.md"
+            if provisional.exists():
+                provisional.unlink()
+        elif state.capture_disposition == "open":
+            path = provisional
+        else:
+            # Discarded or expired captures keep their event history but no
+            # live card, matching the documented discard behavior.
+            if provisional.exists():
+                provisional.unlink()
             return
-        path = self.project / ".idc" / "tasks" / f"{state.task_id}.md"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(render_card(state), encoding="utf-8", newline="\n")
 

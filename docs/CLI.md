@@ -8,11 +8,14 @@
 
 权威记录位于 `.idc/work-items/<record-id>/events.jsonl`。任务身份采用
 `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`，场景代码是 mutable label；
-`.idc/tasks/<task-id>.md` 是自动生成的投影，不应手工编辑。
+未 promote 的捕获在 `.idc/work-items/<record-id>/CARD.md` 生成带 `(capture)`
+表头的临时卡，`start --scene <label>` 把开局场景初判写入首个分类事件，
+`start` 的输出即第一份工作报告。`.idc/tasks/<task-id>.md` 是自动生成的投影，
+不应手工编辑。
 
 ```powershell
 idc init --project ../my-project --project-key MYPROJECT --platform neutral
-idc start --project ../my-project --summary "Fix blank report" --actor human
+idc start --project ../my-project --summary "Fix blank report" --scene debug --actor human
 idc promote --project ../my-project --record <record-id>
 idc doctor --project ../my-project
 ```

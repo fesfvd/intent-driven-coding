@@ -35,6 +35,9 @@ class ProgressiveWorkflowTests(unittest.TestCase):
         state = workflow.state(record)
         self.assertEqual(state.capture_mode, "temporary")
         self.assertIsNone(state.task_id)
+        provisional = self.project / ".idc" / "work-items" / record / "CARD.md"
+        self.assertTrue(provisional.is_file())
+        self.assertIn("(capture)", provisional.read_text(encoding="utf-8"))
         self.assertEqual(list((self.project / ".idc" / "tasks").glob("*.md")), [
             self.project / ".idc" / "tasks" / f"{self.task_id}.md"
         ])
@@ -42,6 +45,37 @@ class ProgressiveWorkflowTests(unittest.TestCase):
         expired = workflow.state(record)
         self.assertEqual(expired.capture_disposition, "expired")
         self.assertEqual(expired.events[-1]["type"], "capture.expired")
+        self.assertFalse(provisional.exists())
+
+    def test_start_scenes_record_the_initial_classification_and_first_report(self) -> None:
+        workflow = Workflow(self.project, clock=lambda: NOW)
+        record = workflow.start("Login times out on production", scenes=["debug"])
+
+        state = workflow.state(record)
+        self.assertEqual(state.lifecycle, "captured")
+        self.assertEqual(state.classifications, ["debug"])
+        self.assertEqual(state.events[1]["type"], "classification.changed")
+        self.assertEqual(
+            state.events[1]["payload"]["reason"],
+            "Initial scene identification from the request",
+        )
+
+        provisional = self.project / ".idc" / "work-items" / record / "CARD.md"
+        card = provisional.read_text(encoding="utf-8")
+        self.assertIn(f"# {record} (capture)", card)
+        self.assertIn("Classifications: debug", card)
+        self.assertIn("- Capture: `durable`", card)
+
+        task_id = workflow.promote(record, project_key="LAS")
+        durable = (self.project / ".idc" / "tasks" / f"{task_id}.md").read_text(encoding="utf-8")
+        self.assertIn("Classifications: debug", durable)
+        self.assertFalse(provisional.exists())
+
+    def test_start_rejects_empty_scene_labels(self) -> None:
+        with self.assertRaisesRegex(ValueError, "scene"):
+            self.workflow.start("Invalid scene", scenes=[""])
+        with self.assertRaisesRegex(ValueError, "scene"):
+            self.workflow.start("Invalid scene", scenes=["debug", "  "])
 
     def test_discarded_temporary_capture_cannot_be_promoted(self) -> None:
         workflow = Workflow(self.project, clock=lambda: NOW)

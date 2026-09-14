@@ -556,6 +556,132 @@ class ProgressiveCliTests(unittest.TestCase):
             self.assertEqual(cleared.returncode, 0, cleared.stderr)
             self.assertEqual(json.loads(cleared.stdout)["conditions"], [])
 
+    def test_start_prints_the_first_work_report_and_writes_a_provisional_card(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            project.mkdir()
+
+            initialized = self.run_idc(
+                "init", "--project", str(project), "--project-key", "LAS", "--json"
+            )
+            self.assertEqual(initialized.returncode, 0, initialized.stderr)
+
+            started = self.run_idc(
+                "start", "--project", str(project), "--summary", "Add PDF export"
+            )
+            self.assertEqual(started.returncode, 0, started.stderr)
+            record_id = started.stdout.split("record_id: ", 1)[1].splitlines()[0]
+            self.assertIn("#", started.stdout)
+            self.assertIn("(capture)", started.stdout)
+            self.assertIn("## Outstanding Obligations", started.stdout)
+
+            card = project / ".idc" / "work-items" / record_id / "CARD.md"
+            self.assertTrue(card.is_file())
+            self.assertIn(f"# {record_id} (capture)", card.read_text(encoding="utf-8"))
+            self.assertIn("Classifications: unclassified", card.read_text(encoding="utf-8"))
+
+    def test_start_scene_records_the_initial_classification(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            project.mkdir()
+
+            initialized = self.run_idc(
+                "init", "--project", str(project), "--project-key", "LAS", "--json"
+            )
+            self.assertEqual(initialized.returncode, 0, initialized.stderr)
+
+            started = self.run_idc(
+                "start",
+                "--project",
+                str(project),
+                "--summary",
+                "Login times out on production",
+                "--scene",
+                "debug",
+                "--json",
+            )
+            self.assertEqual(started.returncode, 0, started.stderr)
+            report = json.loads(started.stdout)
+            self.assertEqual(report["scenes"], ["debug"])
+            self.assertIn("Classifications: debug", report["card"])
+            self.assertIn("(capture)", report["card"])
+
+            record_id = report["record_id"]
+            events = (
+                project / ".idc" / "work-items" / record_id / "events.jsonl"
+            ).read_text(encoding="utf-8")
+            self.assertIn('"classification.changed"', events)
+
+    def test_promote_moves_the_card_and_removes_the_provisional_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            project.mkdir()
+
+            initialized = self.run_idc(
+                "init", "--project", str(project), "--project-key", "LAS", "--json"
+            )
+            self.assertEqual(initialized.returncode, 0, initialized.stderr)
+            started = self.run_idc(
+                "start",
+                "--project",
+                str(project),
+                "--summary",
+                "Add PDF export",
+                "--scene",
+                "build",
+                "--json",
+            )
+            record_id = json.loads(started.stdout)["record_id"]
+
+            promoted = self.run_idc(
+                "promote", "--project", str(project), "--record", record_id, "--json"
+            )
+            self.assertEqual(promoted.returncode, 0, promoted.stderr)
+            task_id = json.loads(promoted.stdout)["task_id"]
+
+            card = (project / ".idc" / "tasks" / f"{task_id}.md").read_text(encoding="utf-8")
+            self.assertIn(f"# {task_id}", card)
+            self.assertIn("Classifications: build", card)
+            self.assertFalse(
+                (project / ".idc" / "work-items" / record_id / "CARD.md").exists()
+            )
+
+    def test_discard_removes_the_provisional_card_but_keeps_history(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            project.mkdir()
+
+            initialized = self.run_idc(
+                "init", "--project", str(project), "--project-key", "LAS", "--json"
+            )
+            self.assertEqual(initialized.returncode, 0, initialized.stderr)
+            started = self.run_idc(
+                "start", "--project", str(project), "--summary", "Investigate idea", "--json"
+            )
+            record_id = json.loads(started.stdout)["record_id"]
+            self.assertTrue(
+                (project / ".idc" / "work-items" / record_id / "CARD.md").is_file()
+            )
+
+            discarded = self.run_idc(
+                "discard",
+                "--project",
+                str(project),
+                "--record",
+                record_id,
+                "--reason",
+                "Not needed",
+                "--json",
+            )
+            self.assertEqual(discarded.returncode, 0, discarded.stderr)
+            self.assertFalse(
+                (project / ".idc" / "work-items" / record_id / "CARD.md").exists()
+            )
+            events = (
+                project / ".idc" / "work-items" / record_id / "events.jsonl"
+            ).read_text(encoding="utf-8")
+            self.assertIn('"capture.discarded"', events)
+
 
 if __name__ == "__main__":
     unittest.main()

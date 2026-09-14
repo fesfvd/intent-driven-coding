@@ -13,6 +13,7 @@ from jsonschema import Draft202012Validator
 from .events import EventStore
 from .legacy import import_legacy
 from .metrics import build_progressive_metrics
+from .render import render_card
 from .workflow import GateBlocked, Workflow
 
 
@@ -55,6 +56,7 @@ def add_progressive_subcommands(subcommands: argparse._SubParsersAction) -> None
     start = subcommands.add_parser("start", help="Capture a request before work begins.")
     _project(start)
     start.add_argument("--summary", required=True)
+    start.add_argument("--scene", dest="scenes", action="append", help="Initial scenario label read from the request; repeatable.")
     start.add_argument("--actor", choices=("human", "agent", "system"), default="agent")
     start.add_argument("--temporary", action="store_true")
     start.add_argument("--ttl-hours", type=int)
@@ -215,15 +217,20 @@ def run_progressive(args: argparse.Namespace) -> int:
                     ttl_hours = load_config(project)["capture_ttl_hours"]
                 if args.temporary and (ttl_hours is None or ttl_hours <= 0):
                     raise ValueError("ttl-hours must be a positive integer")
+                record_id = workflow.start(
+                    args.summary,
+                    actor=args.actor,
+                    temporary=args.temporary,
+                    ttl_hours=ttl_hours if ttl_hours is not None else 72,
+                    scenes=args.scenes,
+                )
                 report = {
-                    "record_id": workflow.start(
-                        args.summary,
-                        actor=args.actor,
-                        temporary=args.temporary,
-                        ttl_hours=ttl_hours if ttl_hours is not None else 72,
-                    ),
+                    "record_id": record_id,
                     "lifecycle": "captured",
+                    "card": render_card(workflow.state(record_id)),
                 }
+                if args.scenes:
+                    report["scenes"] = args.scenes
             elif args.command == "promote":
                 config = load_config(project)
                 task_id = workflow.promote(args.record, project_key=config["project_key"])
@@ -486,8 +493,14 @@ def _emit(args: argparse.Namespace, report: dict[str, Any], code: int) -> int:
         for key in ("record_id", "task_id", "lifecycle", "outcome"):
             if report.get(key) is not None:
                 print(f"{key}: {report[key]}")
+        for scene in report.get("scenes", []):
+            print(f"scene: {scene}")
         for warning in report.get("warnings", []):
             print(f"warning: {warning}")
+        card = report.get("card")
+        if card:
+            print()
+            print(card, end="" if card.endswith("\n") else "\n")
     return code
 
 

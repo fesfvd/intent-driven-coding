@@ -98,12 +98,17 @@ validation.
    For the first real request, keep the record lightweight and append-only:
 
    ```powershell
-   idc start --project ../my-project --summary "Describe the request" --actor human
+   idc start --project ../my-project --summary "Describe the request" --scene <initial-scene> --actor human
    # If the idea is exploratory, use --temporary (default TTL: 72 hours).
    idc start --project ../my-project --summary "Investigate an idea" --temporary
    idc promote --project ../my-project --record <record-id>
    idc metrics --project ../my-project --json
    ```
+
+   `start` prints the provisional card (header, scene, outstanding obligations)
+   as the first work report and writes it to
+   `.idc/work-items/<record-id>/CARD.md`; promotion moves it to
+   `.idc/tasks/<task-id>.md`.
 
    Temporary captures can be discarded without deleting their event history:
    `idc discard --project ../my-project --record <record-id> --reason "Not needed"`.
