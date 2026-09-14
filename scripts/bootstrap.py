@@ -68,9 +68,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project-name", required=True, help="Name used in generated headings")
     parser.add_argument(
         "--platform",
-        choices=("neutral", "opencode", "claude-code"),
+        choices=("neutral", "codex", "opencode", "claude-code"),
         default="neutral",
-        help="Generated layout: neutral (default) or OpenCode",
+        help="Generated layout: neutral (default), Codex, OpenCode, or Claude Code",
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--apply", action="store_true", help="Write the planned files")
@@ -104,6 +104,19 @@ def planned_files(platform: str) -> list[tuple[Path, Path, bool]]:
     if platform == "neutral":
         files.extend((source, destination, False) for source, destination in RESOURCE_FILES.items())
         skill_root = Path(".agent") / "skills"
+    elif platform == "codex":
+        files.extend(
+            (source, Path(".agents") / "evals" / destination.name, False)
+            for source, destination in RESOURCE_FILES.items()
+        )
+        files = [
+            (source, Path(".agents") / "templates" / destination.name, is_template)
+            if destination == Path(".agent") / "templates" / "SQUAD.md"
+            else (source, destination, is_template)
+            for source, destination, is_template in files
+            if destination != Path(".agent") / "AGENT_ENTRY.md"
+        ]
+        skill_root = Path(".agents") / "skills"
     elif platform == "opencode":
         files.extend(
             (source, Path(".opencode") / "evals" / destination.name, False)
@@ -232,7 +245,7 @@ def main() -> int:
         destination.parent.mkdir(parents=True, exist_ok=True)
         if is_template:
             destination.write_text(render_template(source, args.project_name), encoding="utf-8")
-        elif args.platform in {"opencode", "claude-code"} and source.parent.parent == ROOT / "skills":
+        elif args.platform in {"codex", "opencode", "claude-code"} and source.parent.parent == ROOT / "skills":
             destination.write_text(render_platform_skill(source), encoding="utf-8")
         else:
             shutil.copyfile(source, destination)

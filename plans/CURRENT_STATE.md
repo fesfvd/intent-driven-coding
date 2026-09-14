@@ -1,6 +1,6 @@
 # Current State
 
-Status date: 2026-09-07
+Status date: 2026-09-12
 
 ## Product Position
 
@@ -12,25 +12,32 @@ The intended value is to help a developer and a coding Agent derive a small, evi
 
 - Requirement translation, progressive context, human decision boundaries, and the small-Squad method.
 - Seven starter capabilities: `team`, `architecture`, `debug`, `code-review`, `verify`, `meta-skill-designer`, and `skill-creator`.
-- Neutral, OpenCode, and Claude Code scaffold layouts.
+- Neutral, Codex, OpenCode, and Claude Code scaffold layouts.
 - Project structure validation, Skill auditing, bootstrap safety checks, and platform-specific template validation.
 - JSON Schema v1 for Squad contracts, evaluation cases, and evaluation records.
 - Offline contract validation and offline comparison of evaluation records with contract expectations.
 - An experimental `scripts/orchestrate_squad.py` controller that records a serial, explicit OpenCode route; validates declared artifact consumption; captures command evidence; and blocks unsupported authorization and selected effectful verification commands.
-- Experimental `scripts/idc.py status`, `scripts/idc.py evidence`, and `scripts/idc.py portfolio` local CLI commands that read only explicitly supplied projects' `.idc` contracts, evaluations, and controller runs; they have stable JSON output and explicit Chinese or English terminal output.
-- A task-scenario taxonomy and reusable `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` task-start card covering intent, scope, impact, route, acceptance, verification, and permission gates; the bootstrapper and primary host entries deliver these references to generated projects.
+- A host-neutral `idc` CLI that preserves the read-only `status`, `evidence`, and `portfolio` reports and adds progressive task capture, promotion, shaping, classification, changes, decisions, conditions, activities, evidence, permissions, recovery, rendering, closure, legacy snapshot import, and diagnostics.
+- Event-first task records at `.idc/work-items/<record-id>/events.jsonl`, durable `IDC-<PROJECT>-<YYYYMMDD>-<NNN>` identities, mutable scenario labels, a universal lifecycle, dynamic obligations, and generated Markdown projections.
 - A canonical clone-to-first-task installation guide and generated project-root `IDC.md` marker that separates framework operating guidance from target-project architecture facts; Claude Code and OpenCode remain structural adapters pending host acceptance.
+- An untracked personal `self-use/` profile: a resident core-principles entry, three on-demand method files (`debug`, `architecture`, `verify`), and light plus decision-log task-card templates; repository validation ignores illustration links inside fenced code blocks, and this personal layer is deliberately absent from the published `REQUIRED_FILES` list.
 - A design language for a future read-only multi-project Observatory in `DESIGN.md`.
 
 ## Latest Local Evidence
 
 The latest repository verification and first host pilot provide the following evidence:
 
-- 122 unit tests passed (1 skipped) as of 2026-09-07.
+- 178 unit tests passed as of 2026-09-14, covering progressive workflow, CLI,
+  distribution, legacy import, repository contracts, and the pre-existing
+  framework checks.
 - Contract validation passed for 2 example contract documents.
 - Offline evaluation passed for 1 evaluation record.
 - Repository validation and Skill audit passed.
 - `git diff --check` passed.
+- The read-only `idc metrics --project <path> --json` report now derives capture,
+  promotion, discard/expiry, requirement-change, acceptance, and event-distribution
+  metrics directly from `.idc/work-items/*/events.jsonl`; unavailable dimensions remain
+  explicitly unavailable rather than inferred.
 - A disposable OpenCode `1.18.5` fixture passed structural validation and exposed its project `team` Agent plus seven project Skills.
 - The OpenCode `1.18.5` pilot ran 10 routing prompts with `opencode/deepseek-v4-flash-free`. It produced only partial, mismatched, or unobservable runs; it did not establish route accuracy, usable handoffs, or permission acceptance. See `references/host-acceptance/opencode-1.18.5-2026-07-26.md`.
 - The versioned non-leaking host-acceptance fixture is prepared by `scripts/prepare_host_acceptance_fixture.py`; its OpenCode and Claude Code layouts pass structural validation before model runs.
@@ -60,7 +67,8 @@ These checks prove repository structure, scripts, fixtures, and documented const
 3. Current contract examples cover only one three-member cross-layer Squad.
 4. Provenance taxonomy is documented and has one real-project case plus designated-owner review, but it has not been added to evaluation records or independently shown to improve reviewability.
 5. The value of cross-project visualization remains a hypothesis; the local metadata portfolio has not established that a web dashboard is needed.
-6. Task-card field usefulness and consistent host-side creation remain adoption hypotheses; no host is claimed to generate or maintain cards automatically.
+6. Progressive record usefulness and consistent host-side event capture remain adoption hypotheses; no host is claimed to create or maintain records automatically.
+7. The personal `self-use/` layer is documentation only: it has no real-project execution record, its method paths are absolute to one checkout, and nothing verifies that the resident principles actually change Agent behavior.
 
 ## Current Decisions
 

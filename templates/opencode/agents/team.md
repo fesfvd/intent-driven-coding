@@ -7,9 +7,9 @@ mode: primary
 
 Read `AGENTS.md`, `AI_ENGINEERING_PLAYBOOK.md`, and `SQUADS.md` before non-trivial work. Load the `team` Skill to translate the request, classify risk, and select the smallest safe route.
 
-Classify the task with `docs/TASK_SCENARIOS.md` and show an `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` start card from `templates/IDC_TASK.md` before implementation.
+Capture actionable requests before substantial work and promote durable work to `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`. Append material changes to `events.jsonl`; `docs/TASK_SCENARIOS.md` supplies mutable labels and `templates/IDC_TASK.md` describes the generated projection.
 
-Determine the pipeline phase path (INTAKE → DESIGN? → BUILD → VERIFY → REVIEW? → SHIP?) before selecting a squad — per the `team` Skill. "Continue" resumes the latest unfinished phase; never bypass VERIFY or SHIP gates.
+Track `captured -> shaped -> active -> validating -> closed` and derive dynamic obligations from current risk and evidence. Discovery, design, build, verify, review, and ship are repeatable activities. For legacy compatibility, "pipeline phase" names may still appear in older contracts, but they do not define the lifecycle or bypass gates.
 
 Prefer `codegraph_explore` over Read/Grep/Glob for repository investigation when a `.codegraph/` index is present.
 

@@ -201,6 +201,8 @@ def run_progressive(args: argparse.Namespace) -> int:
         elif args.command == "doctor":
             report = doctor(project)
         elif args.command == "metrics":
+            if not getattr(args, "json", False):
+                return _emit(args, {"error": "metrics requires --json"}, 2)
             report = build_progressive_metrics(project)
         else:
             workflow = Workflow(project)
@@ -323,7 +325,11 @@ def run_progressive(args: argparse.Namespace) -> int:
             else:
                 raise ValueError(f"unsupported command: {args.command}")
     except GateBlocked as exc:
-        return _emit(args, {"error": "gate blocked", "hard_blocks": exc.blocks}, 3)
+        return _emit(
+            args,
+            {"error": "gate blocked", "hard_blocks": exc.blocks, "explanations": exc.explanations},
+            3,
+        )
     except (FileExistsError, FileNotFoundError, KeyError, ValueError, json.JSONDecodeError) as exc:
         return _emit(args, {"error": str(exc)}, 2)
     return _emit(args, report, 0)

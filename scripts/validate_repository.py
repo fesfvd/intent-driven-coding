@@ -19,6 +19,7 @@ REQUIRED_FILES = (
     "AI_START_HERE.md",
     "QUICKSTART.md",
     "DESIGN.md",
+    "pyproject.toml",
     "LICENSE",
     "docs/PROTOCOL.md",
     "docs/CONTEXT_ARCHITECTURE.md",
@@ -31,6 +32,7 @@ REQUIRED_FILES = (
     "docs/EVALUATION.md",
     "docs/HOST_ACCEPTANCE.md",
     "docs/MINIMAL.md",
+    "docs/PROGRESSIVE_TASKS.md",
     "docs/TASK_SCENARIOS.md",
     "docs/ORCHESTRATION.md",
     "docs/PLATFORM_ADAPTERS.md",
@@ -92,6 +94,7 @@ REQUIRED_FILES = (
     "evals/skill-design.json",
     "evals/fixtures/cross-layer-feature.record.json",
     "schemas/intent-driven-coding-contract-v1.schema.json",
+    "schemas/idc-task-event-v1.schema.json",
     "contracts/examples/cross-layer-feature.squad.json",
     "contracts/examples/cross-layer-feature.evaluation.json",
     "examples/requirement-translations.md",
@@ -103,6 +106,7 @@ REQUIRED_FILES = (
     "scripts/evaluate_contracts.py",
     "scripts/orchestrate_squad.py",
     "scripts/idc.py",
+    "scripts/__init__.py",
     "scripts/prepare_host_acceptance_fixture.py",
     ".claude-plugin/plugin.json",
     ".claude-plugin/marketplace.json",
@@ -111,6 +115,17 @@ REQUIRED_FILES = (
     "hooks/session-start",
     ".opencode/plugins/intent-driven-coding.js",
     ".opencode/INSTALL.md",
+    "idc_core/__init__.py",
+    "idc_core/__main__.py",
+    "idc_core/cli.py",
+    "idc_core/events.py",
+    "idc_core/legacy.py",
+    "idc_core/obligations.py",
+    "idc_core/projector.py",
+    "idc_core/render.py",
+    "idc_core/workflow.py",
+    "idc_core/resources/__init__.py",
+    "idc_core/resources/idc-task-event-v1.schema.json",
 )
 ALLOWED_TEMPLATE_FILES = {
     Path("templates/AGENT_ENTRY.md"),
@@ -145,6 +160,7 @@ CLAUDE_AGENT_NAMES = (
     "skill-creator",
 )
 LINK_PATTERN = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+FENCE_PATTERN = re.compile(r"^\s*(`{3,}|~{3,})")
 
 
 # Dependency caches can contain arbitrary third-party Markdown and links. They
@@ -159,6 +175,45 @@ def markdown_files() -> list[Path]:
         for path in ROOT.rglob("*.md")
         if not any(part in MARKDOWN_EXCLUDED_PARTS for part in path.parts)
     )
+
+
+def strip_fenced_code(text: str) -> str:
+    """Return the text with fenced code blocks removed.
+
+    Illustrative Markdown inside a fence - task-card examples, command
+    transcripts, generated-file samples - is documentation content, not a
+    navigational link, so the local-link check must not follow it. The
+    template-token and private-data checks still run on the raw text, because a
+    token or an accidental secret is worth reporting wherever it appears.
+    """
+
+    kept: list[str] = []
+    fence: str | None = None
+    for line in text.splitlines():
+        match = FENCE_PATTERN.match(line)
+        if fence is None:
+            if match:
+                fence = match.group(1)[0]
+                continue
+            kept.append(line)
+        elif match and match.group(1)[0] == fence:
+            fence = None
+    return "\n".join(kept)
+
+
+def broken_local_links(text: str, base: Path) -> list[str]:
+    """Return local link targets outside code fences that do not exist."""
+
+    broken: list[str] = []
+    for target in LINK_PATTERN.findall(strip_fenced_code(text)):
+        if target.startswith(("http://", "https://", "mailto:", "#", "<")):
+            continue
+        link_path = target.split("#", 1)[0]
+        if not link_path:
+            continue
+        if not (base / link_path).resolve().exists():
+            broken.append(target)
+    return broken
 
 
 def parse_frontmatter(text: str) -> dict[str, str]:
@@ -269,15 +324,8 @@ def validate() -> list[str]:
         for label, pattern in PRIVATE_PATTERNS:
             if pattern.search(text):
                 errors.append(f"{relative}: possible {label}")
-        for target in LINK_PATTERN.findall(text):
-            if target.startswith(("http://", "https://", "mailto:", "#", "<")):
-                continue
-            link_path = target.split("#", 1)[0]
-            if not link_path:
-                continue
-            destination = (path.parent / link_path).resolve()
-            if not destination.exists():
-                errors.append(f"{relative}: broken local link '{target}'")
+        for target in broken_local_links(text, path.parent):
+            errors.append(f"{relative}: broken local link '{target}'")
 
     return errors
 

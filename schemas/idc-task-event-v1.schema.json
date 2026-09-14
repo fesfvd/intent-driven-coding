@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intent-driven-coding.dev/schemas/idc-task-event-v1.schema.json",
+  "title": "Intent-Driven Coding Progressive Task Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_id",
+    "seq",
+    "timestamp",
+    "actor",
+    "type",
+    "provenance",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "record_id": {"type": "string", "pattern": "^work-[a-z0-9-]+$"},
+    "seq": {"type": "integer", "minimum": 0},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {"enum": ["human", "agent", "system"]},
+        "id": {"type": "string", "minLength": 1}
+      }
+    },
+    "type": {
+      "oneOf": [
+        {
+          "enum": [
+            "request.captured",
+            "task.promoted",
+            "intent.translated",
+            "scope.changed",
+            "acceptance.changed",
+            "classification.changed",
+            "uncertainty.changed",
+            "impact.assessed",
+            "lifecycle.changed",
+            "requirement.changed",
+            "condition.changed",
+            "activity.recorded",
+            "decision.resolved",
+            "evidence.recorded",
+            "check.omitted",
+            "permission.requested",
+            "permission.granted",
+            "permission.rejected",
+            "permission.executed",
+            "recovery.recorded",
+            "task.closed",
+            "learn.candidate",
+            "legacy.snapshot-imported"
+            ,"capture.discarded"
+            ,"capture.expired"
+          ]
+        },
+        {"type": "string", "pattern": "^x\\.[a-z0-9][a-z0-9.-]*$"}
+      ]
+    },
+    "provenance": {
+      "enum": [
+        "claimed",
+        "host-observed",
+        "command-evidence",
+        "artifact-evidence",
+        "human-confirmed",
+        "reconstructed"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "confirmation_ref": {"type": ["string", "null"]},
+        "expires_at": {"type": ["string", "null"], "format": "date-time"},
+        "expired_at": {"type": ["string", "null"], "format": "date-time"},
+        "capture_mode": {"enum": ["temporary", "durable"]},
+        "observed_at": {"type": ["string", "null"], "format": "date-time"},
+        "collector": {"type": ["string", "null"]},
+        "freshness": {"type": ["string", "null"]},
+        "scope": {"type": ["string", "null"]},
+        "independence": {"type": ["string", "null"]},
+        "supersedes": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

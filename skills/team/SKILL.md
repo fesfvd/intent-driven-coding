@@ -1,186 +1,145 @@
 ---
 name: team
-description: Routes ordinary-language software requests into the smallest safe two- or three-Skill squad registered by the project. Use for "build this", "fix it", "continue", "optimize", bugs, cross-layer features, reviews, verification, release preparation, Skill-team design, and other non-trivial work when the user should not need to name Skills, files, tests, or risk levels.
-allowed-tools: [Read, Grep, Glob, Skill]
+description: Route ordinary development requests through progressive IDC records, dynamic obligations, and the smallest useful specialist chain.
+allowed-tools: Read, Grep, Glob
 ---
 
-# Team Router
+# Progressive Team Router
 
-Translate natural language, classify risk, and select the minimum outcome-oriented squad. This router is the control plane, not a squad member. Do not copy specialist procedures into it.
+## Purpose
 
-The router owns one control-plane decision: select the next smallest safe route from user intent, repository evidence, workflow state, risk traits, and permission boundaries. Requirement translation, risk classification, state tracking, and permission checks are inputs and constraints to that decision, not separate specialist conclusions.
+Translate ordinary user intent, start a lightweight record before work, and select
+only the professional judgment that changes the result. Scenario labels are
+mutable routing hints. Risk, uncertainty, evidence, and requested effects produce
+dynamic obligations.
 
-<!-- DESIGN TENSION (T5): Router classification is itself a guess. The Router must
-classify user intent (e.g., "unknown-root-cause bug" vs "cross-layer feature") from
-minimal input — often a single sentence. This classification determines the Squad, but
-the user may know the root cause and simply not have stated it. Mitigation: state the
-classification explicitly and invite correction ("I'm treating this as an unknown-root-cause
-bug. If you already know the cause, tell me and I'll route differently.").
-See docs/KNOWN_TENSIONS.md. -->
-
-## Requirement Translation Gate
-
-Classify information as:
-
-| Class | Treatment |
-|---|---|
-| Explicit intent | Convert to observable behavior without changing meaning |
-| Repository fact | Discover from current evidence and add to scope/preservation |
-| Proposed default | Recommend the simplest valid approach and label it |
-| Open decision | Ask only when alternatives change behavior, data, permissions, privacy, cost, or irreversible effects |
-
-Proceed without asking when no open decision remains. Never ask the user to choose files, Skills, tests, architecture patterns, or risk labels that the repository can establish.
-
-### Presentation Language
-
-Resolve Presentation language before producing a user-facing final response, report, status update, or handoff intended for the user. Use an explicit user language preference first, then the current user language, then an explicitly established target-audience language. Preserve code, commands, identifiers, APIs, and maintainer-only document conventions unless the user asks to translate them.
-
-Pass the resolved Presentation language to every specialist whose artifact will be shown to the user. Ask only when mixed-language input leaves a material user-visible choice unresolved.
-
-## Adoption Mode: Collaborative Learning Mode
-
-When this framework is new to the target repository, deliver the current safe task before proposing a full operating system. Use available base methods directly, investigate only the relevant path, and keep framework setup out of the critical path.
-
-While working, collect lightweight evidence of repeated corrections, missing context, recurring risk checks, duplicated investigation, and useful handoff artifacts. Ask for the user's observed pain, prior experience, objections, and priorities when they can change whether a pattern is real or worth formalizing. Route to `meta-skill-designer -> skill-creator` only when progressive evidence and human judgment pass the creation gate or the user explicitly asks to design the system.
-
-Teach through brief decisions: explain why a specialist, question, verification step, or permission gate matters at the point it changes the work. Include the relevant concept, evidence, uncertainty, or tradeoff so the user can evaluate and correct the route. Do not assign the user a framework reading curriculum, but do not hide system-design reasoning from them either.
-
-## Squad Selection
-
-Before selecting a Squad, classify the request using
-[`docs/TASK_SCENARIOS.md`](../../docs/TASK_SCENARIOS.md). Assign one primary
-scenario code (`FIX`, `SEC`, `FEAT`, `CHG`, `REF`, `REVIEW`, `OPS`, `EXP`, or
-`META`), then record impact dimensions and uncertainty modifiers separately.
-Do not treat "clear goal" as a low-risk category. A clear request can still
-change authorization, persisted data, privacy, cost, or deployed state.
-
-| Outcome | Squad | Phase path |
-|---|---|---|
-| Exact low-risk edit | Main agent -> `verify` | INTAKE → BUILD → VERIFY |
-| Cross-layer feature or contract | `architecture` -> `verify`; add `code-review` only for a distinct material risk boundary | INTAKE → DESIGN → BUILD → VERIFY (+ REVIEW) |
-| Unknown-root-cause bug | `debug` -> `verify`; add `code-review` only when the fix creates a distinct regression boundary | INTAKE → DESIGN(debug) → BUILD → VERIFY (+ REVIEW) |
-| Explicit review | `code-review` -> report verification gaps | INTAKE → REVIEW → VERIFY |
-| Release preparation | `verify` -> `code-review` -> project-specific release process | INTAKE → VERIFY → REVIEW → SHIP |
-| Skill roster or squad design | `meta-skill-designer` -> `skill-creator` | INTAKE → DESIGN(meta) → BUILD(meta) |
-
-For every non-trivial request, start with an `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>`
-task identity and a short task card. The card must state intent, scope and
-exclusions, baseline facts, impact, route, acceptance, verification, permission
-gates, and blocking open decisions. Use
-[`templates/IDC_TASK.md`](../../templates/IDC_TASK.md) when a durable project
-record is useful. The ID is a reference, not evidence of success.
-
-Read the project's `SQUADS.md` when present. Prefer two Skills: primary judgment plus independent proof. A third Skill must guard a distinct domain or risk and must produce a distinct artifact. Use project-specific specialists when their expertise changes the result. Do not load a long chain because many files are involved.
-
-## Risk
-
-| Risk | Boundary | Process |
-|---|---|---|
-| Low | Local and reversible; no persistent/API/permission/production impact | Read -> edit -> focused check -> verify |
-| Medium | Cross-module, UI flow, API adaptation, generated artifact | Contract -> specialist if needed -> implement -> test -> review -> verify |
-| High | Auth, persisted schema, billing, privacy, destructive or production effect | Contract -> test/contract -> implement -> security/review -> verify -> explicit permission |
-
-## Pipeline Phases
-
-Every non-trivial task flows through a subset of these phases. The router determines which phases apply, then gates each transition.
-
-| Phase | Trigger | Squad activated |
-|---|---|---|
-| **INTAKE** | Every non-trivial request | Router classifies task type and risk |
-| **DESIGN** | Cross-boundary change or unknown root cause | `architecture` (contract/impact) or `debug` (root cause) |
-| **PLAN** | User explicitly requests a plan, or safe execution requires multi-step coordination | `architecture` (optional) |
-| **BUILD** | All implementation tasks | Main agent implements from the DESIGN handoff |
-| **VERIFY** | Every implementation task (not skippable) | `verify` |
-| **REVIEW** | Medium/high risk or explicit review request | `code-review` |
-| **SHIP** | Explicit deploy/release authorization | Permission gate only (not a squad member) |
-| **LEARN** | Repeated failures or workflow friction | `meta-skill-designer` |
-
-**Phase paths by task type:**
-
-| Task type | Phase path | Force level |
-|---|---|---|
-| Typo / low-risk edit | INTAKE → BUILD → VERIFY | Minimal (2 phases) |
-| Unknown-root-cause bug | INTAKE → DESIGN(debug) → BUILD → VERIFY | Standard (4 phases) |
-| Security-sensitive bug | INTAKE → DESIGN(debug) → BUILD → VERIFY → REVIEW | Reinforced (5 phases) |
-| Cross-layer feature | INTAKE → DESIGN(architecture) → BUILD → VERIFY → REVIEW | Reinforced (5 phases) |
-| Explicit review request | INTAKE → REVIEW → VERIFY | Special (3 phases) |
-| Release preparation | INTAKE → VERIFY → REVIEW → SHIP | Full (4 phases) |
-| Skill system design | INTAKE → DESIGN(meta) → BUILD(meta) | Meta (3 phases) |
-
-**Phase gates:**
-
-<PHASE-GATE phase="BUILD">
-Do NOT enter BUILD until:
-- [ ] DESIGN phase is complete (if required for this task type)
-- [ ] All DESIGN handoff artifacts are produced and reviewed
-- [ ] Open decisions (if any) are resolved by the user
-</PHASE-GATE>
-
-<PHASE-GATE phase="SHIP">
-Do NOT enter SHIP without explicit user authorization naming the exact side effect (commit, push, deploy, migration, production write). Local implementation success does not imply SHIP authorization.
-</PHASE-GATE>
-
-**Artifact discipline:** Even when a single model handles multiple phases, require explicit handoff artifacts at phase boundaries. An `impact-contract` (even a 5-line structured comment) before BUILD. A `verification-report` (even a checklist with checkmarks) before claiming completion. The artifact, not the model's confidence, carries the proof. This discipline is what survives when automatic Squad orchestration is abandoned — the artifacts remain as checkable evidence of professional judgment.
-
-## State
-
-The pipeline phases above map to this state machine:
+## Progressive Lifecycle
 
 ```text
-Intake -> Design? -> Plan? -> Build -> Verify -> Review? -> Ship? -> Learn?
+captured -> shaped -> active -> validating -> closed
+                ^         |
+                `---------` requirement or scope change
 ```
 
-"Continue" resumes the latest unfinished safe stage. It never bypasses a permission gate.
+- `captured`: preserve the request before investigation or mutation.
+- `shaped`: current intent, boundaries, decisions, and acceptance are visible.
+- `active`: investigation, design, implementation, or review is happening.
+- `validating`: current claims are being checked against acceptance.
+- `closed`: one explicit outcome was recorded.
 
-## Permission Gate
+Low-risk shaping gaps warn. Material open decisions, external effects, and
+completion evidence use hard gates. Emergency mode may defer shaping but cannot
+waive permission, recovery, or completion obligations.
 
-Do not infer authorization for commit, push, PR, deployment, production writes, external submissions, paid calls, destructive actions, or credential changes.
+## Pipeline Phases (Legacy Vocabulary)
 
-## Output
+`INTAKE`, `DESIGN`, `PLAN`, `BUILD`, `VERIFY`, `REVIEW`, `SHIP`, and `LEARN`
+remain useful names for activities and old records. They are not a mandatory
+Phase path. Activities can repeat, be skipped when irrelevant, or return the task to
+`shaped` when facts or requirements change.
 
-Keep routing internal unless the user asks. When visible detail is useful:
+Promoted work uses `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`; classification never changes
+that identity.
 
-```markdown
-- Task ID:
-- Task type:
-- Scenario modifiers:
-- Risk:
-- Current stage:
-- Specialist chain:
-- Permission gate:
-- Presentation language:
-```
+| Activity | Use when it changes the result |
+|---|---|
+| discover/debug | Current behavior or cause is uncertain |
+| design/plan | A contract, boundary, or multi-step dependency needs judgment |
+| build | The accepted outcome requires an implementation change |
+| verify | A claim must be supported by fresh evidence |
+| review | An independent risk boundary is material |
+| ship | An explicitly authorized external effect is requested |
+| observe | Post-change behavior must be checked |
+| learn | Repeated evidence may justify a durable method change |
+
+<PHASE-GATE phase="DYNAMIC">
+Do not use a scenario label to justify a transition. Evaluate current dynamic
+obligations. Do not record `ship` without authorization for the exact effect, and
+do not close as `completed` without passing evidence mapped to acceptance.
+</PHASE-GATE>
+
+## Requirement Translation
+
+Maintain four distinct information classes:
+
+- Explicit intent: preserve the user's meaning as observable behavior.
+- Repository fact: investigate source, configuration, tests, and runtime evidence.
+- Proposed default: label the Agent's simplest recommendation as a proposal.
+- Open decision: ask only when alternatives materially change behavior, data,
+  privacy, permission, cost, or an irreversible effect.
+
+Do not ask users to choose files, tests, Skills, or internal implementation details
+that the repository can establish.
+
+### Requirement Translation Gate
+
+Before `active`, resolve only decisions that materially change behavior, data,
+privacy, permission, cost, or irreversible effects. When information is merely
+incomplete and low risk, record the warning and take the next smallest safe route.
+Append later corrections instead of rewriting the original request.
+
+Presentation language follows the user's explicit language preference, then the
+current user language. Preserve code, commands, identifiers, and maintainer-only
+conventions unless translation is requested.
+
+## Adoption Mode
+
+On first use, deliver the current safe task before trying to install or customize
+the whole framework. Capture progressive evidence from real friction, corrections,
+handoffs, and risk boundaries. Propose durable guidance, Skills, or squads only
+when repeated evidence and human judgment show that they will improve later work.
+
+## Collaborative Learning Mode
+
+The Agent investigates, explains relevant evidence and tradeoffs, and makes a
+concrete recommendation. The human contributes lived pain, priorities, domain
+experience, objections, and decisions about durable practice. Teach through brief
+decisions during real work; do not turn framework study into a prerequisite.
+
+## Routing
+
+1. Read `docs/TASK_SCENARIOS.md` when a label helps search or specialist choice.
+2. Prefer direct work plus verification for local, reversible changes.
+3. Add `debug` for unknown causes, `architecture` for material cross-boundary
+   contracts, `code-review` for an independent risk boundary, and `verify` when
+   implementation claims need proof.
+4. Use two or three members only when distinct judgments and named handoffs exist.
+5. Reclassify through an event when evidence changes the task meaning.
 
 ## Execution Checklist
 
-You **MUST** complete these in order:
-
-- [ ] 1. Classify user intent into the 4 information classes (explicit intent, repository fact, proposed default, open decision).
-- [ ] 2. Determine the primary scenario and impact/uncertainty modifiers using `docs/TASK_SCENARIOS.md`.
-- [ ] 3. Map task type to required pipeline phases using the Phase paths table.
-- [ ] 4. Select the smallest squad for the active phase from the Squad Selection table.
-- [ ] 5. Verify no open decision blocks execution; ask the user only for blocking decisions.
-- [ ] 6. Hand off to the first squad member with a named artifact contract.
+- [ ] 1. Capture the actionable request with `idc start` before investigation or mutation.
+- [ ] 2. Promote it when investigation, a material decision, or a change begins.
+- [ ] 3. Translate intent progressively; do not invent missing product meaning.
+- [ ] 4. Evaluate current impact, uncertainty, conditions, and dynamic obligations.
+- [ ] 5. Select the smallest useful specialist chain and name any handoff artifact.
+- [ ] 6. Append requirement, scope, risk, route, and decision changes as events.
+- [ ] 7. Map fresh evidence to acceptance before a completion claim.
 
 <HARD-GATE>
-Do NOT enter BUILD phase until DESIGN phase gate is satisfied (if DESIGN is required). Do NOT enter SHIP phase without explicit user authorization. Do NOT infer commit, push, deploy, or production write authorization from local implementation success. A router selects expertise; it does not make the expert's conclusion.
+Never reconstruct a normal task only after completion. Never infer commit, push,
+deployment, production write, paid call, publication, or destructive authorization
+from local work. A recorded authorization describes scope; it does not grant it.
 </HARD-GATE>
 
-## Constraints
+## Output
 
-- Query volatile repository facts; do not freeze routes, versions, service names, or thresholds here. Prefer CodeGraph (`codegraph_explore`) over Read/Grep/Glob when a `.codegraph/` index exists — one symbol-level query replaces multiple file searches and reveals call paths grep cannot follow.
-- Every implementation step must trace to explicit intent, repository evidence, an accepted default, or required verification.
-- A router selects expertise; it does not make the expert's conclusion.
-- A router does not count itself as a squad member.
-- Every sequential handoff must name an artifact the next member consumes.
-- Every user-facing handoff must preserve the resolved Presentation language.
+Keep routing mechanics internal unless they help a human decision. The ordinary
+user-facing start is short:
+
+```text
+IDC <task-id or capture-id>: <current observable goal>
+State: <lifecycle>; labels: <current labels or unclassified>
+Open decision or hard gate: <only when present>
+```
 
 ## Example Triggers
 
 1. "The report is blank. Find the cause and fix it."
-2. "Add filtering to this list without breaking the existing API."
-3. "Continue with the release checks."
+2. "Add filtering without breaking the existing API."
+3. "The requirement changed: deploy both Web and Worker."
 
 ## Safety Statement
 
-This Skill only classifies and orchestrates. Side effects remain governed by the project playbook and the responsible specialist.
+This Skill coordinates records and professional judgment. It does not broaden the
+requested scope or authorize external effects.

@@ -26,17 +26,19 @@ The intended pattern is collaborative learning: AI learns and explains; the huma
 
 Before reading the full method, identify whether you are Claude Code, OpenCode, Codex, Cursor, GitHub Copilot, or another coding agent. Then read the matching section in `docs/PLATFORM_ADAPTERS.md` and use the host's real instruction, Skill, agent, permission, and task mechanisms. Do not ask the user to translate this framework into your platform conventions.
 
-For non-trivial work, create an `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>`
-task identity and show the start card before implementation. The card is a
-shared boundary for intent, scope, impact, acceptance, verification, and
-permission; it is not a completion claim.
+Capture an actionable request before substantial investigation or change. When
+work becomes durable, promote it to `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`. The
+authoritative record is append-only `events.jsonl`; the Markdown card is a
+generated projection. Scenario codes are mutable labels, while dynamic
+obligations derive from current risk, uncertainty, acceptance, and external
+effects.
 
 ## Read In This Order
 
 Read only as far as needed for the next adaptation decision:
 
 1. `docs/PLATFORM_ADAPTERS.md` for your own host-specific path.
-2. `docs/TASK_SCENARIOS.md` to classify the current task and prepare its IDC task card.
+2. `docs/PROGRESSIVE_TASKS.md` and `docs/TASK_SCENARIOS.md` to capture work and apply mutable labels.
 3. `docs/PROTOCOL.md` and the relevant base Skill for the current task.
 4. `docs/CONTEXT_ARCHITECTURE.md` when deciding where durable knowledge belongs.
 5. `docs/SQUAD_METHOD.md` when more than one professional judgment is needed.

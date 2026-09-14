@@ -26,11 +26,11 @@ Ask only about open decisions. Discover files, tests, architecture, and implemen
 
 ## Task Contract
 
-Classify each non-trivial task with [`docs/TASK_SCENARIOS.md`](../docs/TASK_SCENARIOS.md)
-and assign an `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` identity. Use
-[`templates/IDC_TASK.md`](IDC_TASK.md) for a durable project card.
-Scenario describes the work intent; impact dimensions and uncertainty modifiers
-decide the required gates.
+Capture each actionable request before substantial work and promote durable work
+to `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`. Append changes to `events.jsonl`; use
+[`templates/IDC_TASK.md`](IDC_TASK.md) only as the generated human-readable
+projection. [`docs/TASK_SCENARIOS.md`](../docs/TASK_SCENARIOS.md) supplies
+mutable labels. Current impact and uncertainty derive dynamic obligations.
 
 For non-trivial work, establish:
 

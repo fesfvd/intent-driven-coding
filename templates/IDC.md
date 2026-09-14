@@ -8,9 +8,10 @@ an AI coding assistant should read after entering this repository.
 1. Identify the current host platform and read its matching adapter guidance.
 2. Read `AGENTS.md` for this project's architecture and
    `AI_ENGINEERING_PLAYBOOK.md` for its workflow.
-3. For non-trivial work, classify the request with
-   `docs/TASK_SCENARIOS.md` and show an `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>`
-   task card using `templates/IDC_TASK.md`.
+3. Capture actionable requests before substantial work. Promote durable work to
+   `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`, keep scenario codes as mutable labels, and
+   treat `events.jsonl` as authoritative. `templates/IDC_TASK.md` documents the
+   generated projection; dynamic obligations control what must be proved next.
 4. Inspect current source, configuration, tests, and runtime evidence before
    deciding implementation details.
 5. Use the smallest route registered in `SQUADS.md`; read the relevant Skills
@@ -25,7 +26,8 @@ an AI coding assistant should read after entering this repository.
 - Method source and platform installation: the cloned IDC repository's
   `AI_START_HERE.md` and `docs/INSTALLATION.md`.
 - Task classification: `docs/TASK_SCENARIOS.md`.
-- Durable task record: `.idc/tasks/<task-id>.md`.
+- Authoritative task record: `.idc/work-items/<record-id>/events.jsonl`.
+- Generated task projection: `.idc/tasks/<task-id>.md`.
 - Project facts: current source, configuration, tests, and `AGENTS.md`.
 - Project workflow: `AI_ENGINEERING_PLAYBOOK.md`.
 - Accepted formations: `SQUADS.md`.

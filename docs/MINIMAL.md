@@ -7,11 +7,12 @@ This is the smallest useful adoption path. Stop after one safe task unless repea
 - **Contract**: a human- or machine-readable statement of the route, handoffs, evidence, and permission boundary.
 - **Evidence**: fresh source, test, command, artifact, host, or human facts that support a claim.
 
-For the first task, inspect the target repository, classify the work with
-[Task Scenarios](TASK_SCENARIOS.md), read only the relevant Skill on demand,
-and make the smallest safe change. For non-trivial work, begin with an
-`IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` task card containing intent, scope,
-impact, acceptance, verification, and permission gates. Record uncertainty
+For the first task, capture the request, inspect the target repository, apply
+mutable labels from [Task Scenarios](TASK_SCENARIOS.md), read only the relevant
+Skill on demand, and make the smallest safe change. Promote durable work to
+`IDC-<PROJECT>-<YYYYMMDD>-<NNN>` and append facts to `events.jsonl`; derive
+dynamic obligations from impact, acceptance, verification, and permission.
+Record uncertainty
 instead of inventing requirements. A `debug` -> `verify` sequence is enough for
 an unknown-root-cause bug; use a third judgment only when it controls a
 distinct risk.

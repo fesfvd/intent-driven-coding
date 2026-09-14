@@ -1,167 +1,95 @@
 # IDC Task Scenarios
-
 ## Purpose
 
-`team` decides which professional judgment is needed. This document defines the
-task shape that decision starts from. It prevents every request from being
-treated as either a generic "bug" or a generic "feature".
+Scenario codes are a **mutable label** vocabulary for search, routing hypotheses,
+and later comparison. They do not form the task identity and do not select a
+fixed Phase path. A task may begin unclassified, hold several candidate labels,
+or append `classification.changed` when repository evidence changes the meaning.
 
-The framework uses two separate questions:
+All tasks use the universal `captured -> shaped -> active -> validating -> closed`
+lifecycle from [Progressive Task Records](PROGRESSIVE_TASKS.md). Risk and evidence
+produce **dynamic obligations** independently of labels.
 
-1. **What kind of work is this?** Choose one primary scenario code.
-2. **What can this work affect?** Record impact dimensions and risk modifiers.
+## Outcome Labels
 
-"The user has a clear goal" is not a scenario. It is an intake fact that can
-reduce uncertainty, but a clear goal may still be a high-risk `FEAT`, `CHG`, or
-`OPS` task.
+| Label | Current intended outcome |
+|---|---|
+| `FIX` | Restore established behavior or an invariant |
+| `SEC` | Correct a security, privacy, isolation, or trust-boundary failure |
+| `FEAT` | Introduce a new user-visible or system capability |
+| `CHG` | Deliberately change an existing rule, output, policy, or flow |
+| `REF` | Change internal structure while preserving relevant behavior |
+| `REVIEW` | Produce evidence-backed findings without changing the subject |
+| `OPS` | Perform or prepare a release, migration, or operational action |
+| `EXP` | Reduce uncertainty and produce knowledge or a feasibility decision |
+| `META` | Change the project's AI engineering or IDC operating system |
 
-## Scenario Codes
+Do not force an early choice. Classification is useful only when it changes the
+next investigation, specialist method, evidence requirement, or later query.
 
-Choose the code whose primary outcome matches the request. Do not choose a code
-because it sounds more sophisticated, and do not create a new code for every
-domain noun. Apply these precedence rules when a request has more than one
-possible label:
+## Orthogonal Dimensions
 
-1. `REVIEW` wins when the requested outcome is findings and no code change.
-2. `OPS` wins when the requested outcome is an environment, release, migration,
-   or external operation, even if code changes are needed to prepare it.
-3. `META` wins when the subject is the project's AI engineering system itself.
-4. `EXP` wins when the requested outcome is knowledge or a feasibility decision,
-   not a committed product change.
-5. `SEC` wins over `FIX` when the primary defect is a trust-boundary, access,
-   disclosure, privacy, or unsafe-execution failure.
-6. Otherwise choose `FEAT`, `CHG`, `REF`, or `FIX` by the intended outcome.
-
-| Code | Scenario | Outcome | Typical route |
-|---|---|---|---|
-| `FIX` | Known defect repair | Restore an established behavior or invariant that is wrong | INTAKE -> BUILD -> VERIFY; add `debug` when the cause is uncertain |
-| `SEC` | Security or trust-boundary correction | Prevent unauthorized access, disclosure, privilege escalation, unsafe execution, or privacy failure | INTAKE -> DESIGN(debug) -> BUILD -> REVIEW -> VERIFY |
-| `FEAT` | New capability | Introduce behavior, interface, data, or workflow that did not previously exist | INTAKE -> DESIGN(architecture) -> BUILD -> REVIEW -> VERIFY |
-| `CHG` | Existing behavior adjustment | Deliberately change a current rule, output, flow, policy, or configuration | INTAKE -> DESIGN(architecture) when boundaries change -> BUILD -> VERIFY |
-| `REF` | Structural refactor | Change internal structure while preserving externally relevant behavior | INTAKE -> DESIGN(architecture) -> BUILD -> VERIFY; add REVIEW for a material boundary |
-| `REVIEW` | Assessment or audit | Produce an evidence-backed finding about code, architecture, security, or a diff without changing the subject | INTAKE -> REVIEW -> VERIFY |
-| `OPS` | Release, migration, or operational action | Move a known change across an environment, alter deployed state, or perform a controlled maintenance operation | INTAKE -> VERIFY -> REVIEW -> SHIP |
-| `EXP` | Investigation or feasibility study | Reduce uncertainty and record a decision, measurement, prototype result, or recommendation | INTAKE -> DESIGN/PLAN -> VERIFY; no implementation claim unless the task changes class |
-| `META` | Project-system evolution | Change Skills, Squads, contracts, evaluation, host adapters, or IDC operating rules | INTAKE -> DESIGN(meta) -> BUILD(meta) -> VERIFY |
-
-Documentation-only work normally uses `CHG` when it changes project guidance,
-`META` when it changes the IDC system itself, or `REVIEW` when it only audits
-existing documentation. Use `FEAT` only when the documentation is a user-facing
-capability with its own acceptance behavior.
-
-## Orthogonal Impact Dimensions
-
-Scenario code describes intent. The task card must also score the possible
-impact of the change. Use `none`, `low`, `medium`, `high`, or `unknown` and
-explain every `medium` or higher value.
+Record only dimensions relevant to the current work. Unknown material impact is
+itself a reason to investigate.
 
 | Dimension | Question |
 |---|---|
-| Behavior | Can users or callers observe a different result or workflow? |
+| Behavior | Can a user or caller observe a different result? |
 | Data | Can data be created, transformed, migrated, deleted, or exposed? |
-| Security | Can identity, authorization, isolation, secrets, or trust boundaries change? |
-| Privacy | Can personal, private, or sensitive information become more or less visible? |
-| Permission | Can a user, service, or operator gain or lose an action? |
-| Cost | Can this change consume money, quota, provider capacity, or significant compute? |
-| Availability | Can it affect uptime, latency, concurrency, recovery, or operational capacity? |
-| External effect | Can it send, deploy, publish, commit, push, or write outside the local workspace? |
-| Reversibility | How difficult is it to undo if the assumption is wrong? |
+| Security | Can identity, trust, authorization, or secret handling change? |
+| Privacy | Can private information become more or less visible? |
+| Permission | Can an actor gain or lose an action? |
+| Cost | Can the task consume money, quota, capacity, or significant compute? |
+| Availability | Can uptime, latency, concurrency, or recovery change? |
+| External effect | Can it commit, push, publish, deploy, send, or write remotely? |
+| Reversibility | How difficult is it to undo a wrong assumption? |
 
-The highest impact dimension determines the minimum process. A local `FEAT`
-with no persistent or external effect may use a short route. A small-looking
-`CHG` that changes authorization or deletion policy is high risk and must use a
-reinforced route.
+Uncertainty remains separate: `known-target`, `unknown-cause`,
+`unknown-contract`, `cross-boundary`, and `irreversible`. Conditions such as
+`emergency`, `blocked`, `waiting`, and `paused` can change during execution.
 
-## Uncertainty Modifiers
+## Dynamic Obligations By Trait
 
-Record these independently from impact:
-
-| Modifier | Meaning | Consequence |
-|---|---|---|
-| `known-target` | The affected behavior and likely production path are already established | Skip exploratory design only when repository evidence confirms the boundary |
-| `unknown-cause` | The symptom is clear but the first broken layer is not | Reproduce and diagnose before implementation; use `debug` |
-| `unknown-contract` | The desired product or data meaning is not established | Stop at INTAKE/DESIGN and ask a focused question |
-| `cross-boundary` | Multiple modules, services, artifacts, or teams must stay aligned | Produce an impact contract before BUILD |
-| `irreversible` | An incorrect action is destructive or expensive to undo | Require explicit authorization and a recovery or rollback condition |
-
-These modifiers are not extra members of a Squad. They select gates and
-evidence requirements.
-
-## Scenario-Specific Start Fields
-
-The common task card is mandatory, but each scenario adds a small set of fields
-that makes its acceptance testable. These fields are shown before BUILD.
-
-| Scenario | Add before implementation | Minimum completion proof |
-|---|---|---|
-| `FIX` | Expected behavior, observed behavior, reproduction, suspected cause, and preserved regressions | Reproduction passes after the fix and the relevant invariant remains true |
-| `SEC` | Asset, threat/actor, trust boundary, allowed path, denied path, exposure scope, and containment plan | Unauthorized path is denied, legitimate path works, and no sensitive data is exposed in evidence |
-| `FEAT` | User/stakeholder, new capability boundary, state transitions, compatibility expectations, and out-of-scope variants | New acceptance behavior passes plus existing consumers remain compatible |
-| `CHG` | Current rule, requested new rule, migration/compatibility impact, and rollback meaning | New rule passes, intentionally changed old behavior is recorded, and unrelated behavior is preserved |
-| `REF` | Behavior invariants, structural target, dependency/consumer map, and proof that semantics should not change | Focused characterization checks and relevant suite pass with no unexplained behavior change |
-| `REVIEW` | Review subject/revision, review question, scope, excluded files, and severity threshold | Findings cite concrete evidence; no safety claim exceeds the inspected scope |
-| `OPS` | Exact revision, environment, preconditions, external effects, observability, rollback/recovery, and approver | Preflight and postflight evidence exist; execution occurs only after named authorization |
-| `EXP` | Question, hypotheses, time/resource budget, measurement method, and stop/decision rule | Results answer the question or explicitly leave it unresolved; no prototype is mistaken for production work |
-| `META` | Repeated observation, proposed rule/Skill/Squad change, affected users, evaluation cases, and retirement condition | The framework change passes structural checks and a focused evaluation or real-task review |
-
-## Mandatory Task Start Card
-
-Every non-trivial task starts with an IDC task card. The agent should present a
-short version before implementation and maintain the full version in
-`.idc/tasks/` when the project uses that directory. The card contains:
-
-- **Task ID**: `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>`; uppercase project key,
-  one scenario code, UTC date, and a per-project sequence.
-- **Intent**: the user's requested outcome in observable language.
-- **Classification**: scenario code, uncertainty modifiers, and why nearby
-  scenarios were rejected.
-- **Scope**: included paths or boundaries, explicit exclusions, and preserved
-  behavior.
-- **Baseline**: repository facts, current behavior, reproduction, or diff that
-  establishes where the task starts.
-- **Impact**: the nine dimensions above, with rationale for medium or high
-  values.
-- **Route**: phases, Skills/Squad, handoff artifacts, and phase gates.
-- **Acceptance**: success criteria, regression invariants, and user-visible or
-  operational result expected at the end.
-- **Verification**: exact checks, evidence owner, and omitted checks.
-- **Permission gate**: any commit, push, deploy, migration, production write,
-  paid call, destructive action, or publication still requiring approval.
-- **Open decisions**: only decisions that change behavior, data, privacy,
-  permission, cost, or irreversible scope.
-
-The task ID identifies one piece of work; it is not a claim that the work
-passed. Status and evidence must be recorded separately.
-
-## Fixed Phase Gate Expectations
-
-| Stage | Must be known before moving on |
+| Current trait | Obligation added |
 |---|---|
-| `INTAKE` | Task ID, scenario, intent, initial scope, impact, uncertainty, and open decisions |
-| `DESIGN` | Current path, preservation rules, impact contract, proposed route, and resolved blocking decisions |
-| `BUILD` | Approved scope, explicit acceptance criteria, and no unmet design gate |
-| `VERIFY` | Fresh checks mapped to acceptance criteria, actual results, and omitted-check explanation |
-| `REVIEW` | Independent findings or explicit reason the review boundary does not apply |
-| `SHIP` | Exact side effect, target revision/environment, rollback or recovery condition, and explicit authorization |
-| `LEARN` | Repeated friction or risk worth turning into a project rule, Skill, Squad, or evaluation case |
+| Unknown cause | Reproduction or falsifiable diagnosis before a repair claim |
+| Unknown contract | Human decision before ordinary implementation |
+| Cross-boundary | Current impact/consumer contract before affected work |
+| Security or privacy impact | Allowed and denied paths plus focused review evidence |
+| Persistent data impact | Compatibility, migration, and recovery meaning |
+| External effect | Exact effect authorization before `ship` activity |
+| Medium/high reversibility risk | Recovery or rollback record |
+| Completion requested | Passing evidence mapped to every Acceptance item |
+| Emergency | Deferred-shaping warnings; no waiver of ship or completion gates |
 
-## Short User-Facing Format
+These are composable. New domains normally add a trait, evidence rule, or project
+Skill rather than another global scenario code.
 
-For ordinary work, the agent can show this compact card:
+## Progressive Task Contents
 
-```markdown
-IDC Task: IDC-MYPROJECT-FEAT-20260905-001
-Scenario: FEAT / cross-boundary
-Intent: [observable result]
-Scope: [included] / Excludes: [not included]
-Impact: behavior=medium, data=low, security=none, external=none
-Route: INTAKE -> DESIGN(architecture) -> BUILD -> VERIFY
-Acceptance: [what must be true]
-Permission gate: none / [exact action requiring approval]
-Open decision: none / [one focused question]
-```
+The Agent owns translation from ordinary language. Users do not fill a form.
 
-For an obvious one-file, low-risk correction, use the compact format rather than
-creating a durable file. The visible line still carries the IDC identity,
-scenario, outcome, and verification; the full card is reserved for work with
-meaningful scope, impact, handoffs, or decisions.
+- **Task ID**: `IDC-<PROJECT>-<YYYYMMDD>-<NNN>` after promotion; legacy IDs remain readable.
+- **Intent**: explicit request, repository facts, proposed defaults, and open decisions.
+- **Scope**: current included boundary and preserved behavior.
+- **Impact**: only assessed dimensions, with unknown retained honestly.
+- **Acceptance**: observable outcome IDs that evidence can reference.
+- **Verification**: actual evidence, result, provenance, and omitted checks.
+- **Permission gate**: exact external effect and its requested/granted/executed state.
+- **Classification**: zero or more revisable scenario labels.
+
+The initial `captured` event needs only a request summary. Shaping is progressive:
+low-risk omissions warn, while material open decisions and effectful operations
+create hard gates. The generated card in `templates/IDC_TASK.md` is a projection,
+not a form that must be completed before investigation.
+
+## Compatibility Vocabulary
+
+Older IDC material calls activities `INTAKE`, `DESIGN`, `PLAN`, `BUILD`, `VERIFY`,
+`REVIEW`, `SHIP`, and `LEARN`. Adapters may display these names, but the Phase path
+is no longer a fixed state machine:
+
+- `INTAKE` maps to `captured` and early shaping.
+- `DESIGN/PLAN/BUILD/VERIFY/REVIEW/SHIP/LEARN` map to repeatable activity events.
+- Requirement changes can return current work to `shaped` without erasing work.
+- `closed` records an explicit outcome rather than implying successful completion.

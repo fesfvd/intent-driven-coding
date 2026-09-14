@@ -15,7 +15,7 @@ The human does not need to study the whole framework first. The recommended path
 { "plugin": ["intent-driven-coding@git+https://github.com/fesfvd/intent-driven-coding.git"] }
 ```
 
-After plugin install, the agent auto-receives pipeline phase guidance at session start. The manual paths below remain available.
+After plugin install, the agent receives progressive-record guidance and dynamic obligation gates at session start. The manual paths below remain available.
 
 ## Manual Setup
 
@@ -36,10 +36,15 @@ Read ../intent-driven-coding/AI_START_HERE.md, identify your host-platform secti
 ```
 
 Then give it a real bug, feature, review, or refactor request. The agent should
-classify it with [`docs/TASK_SCENARIOS.md`](docs/TASK_SCENARIOS.md) and show a
-compact `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` task card before starting
-non-trivial work. The first useful result is a verified project outcome, not a
+capture the request before substantial work, promote it when the work becomes
+durable, and maintain `IDC-<PROJECT>-<YYYYMMDD>-<NNN>` through append-only
+`events.jsonl`. Scenario codes are mutable labels and the Markdown card is a
+generated view. The first useful result is a verified project outcome, not a
 generated framework directory.
+
+Use [`docs/TASK_SCENARIOS.md`](docs/TASK_SCENARIOS.md) for mutable labels and
+[`templates/IDC_TASK.md`](templates/IDC_TASK.md) to understand the generated
+projection format.
 
 ## What The Agent Does Incrementally
 
@@ -51,7 +56,7 @@ During ordinary work the agent should:
 4. Explain the core concept, evidence, uncertainty, or tradeoff when it affects a shared decision.
 5. Combine observed friction and risks with the user's experience, corrections, and priorities.
 6. Add a thin entry, architecture note, Skill, squad, or evaluation only when shared evidence and judgment show it will help future work.
-7. Keep a durable task card under `.idc/tasks/` when the work has meaningful scope, impact, handoffs, or decisions.
+7. Keep the authoritative event stream under `.idc/work-items/`; render `.idc/tasks/` projections for meaningful durable work.
 
 ## Human And AI Learn Together
 

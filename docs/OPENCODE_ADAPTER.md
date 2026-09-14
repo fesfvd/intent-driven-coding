@@ -18,7 +18,7 @@ Add to the target project's `opencode.json`:
 }
 ```
 
-The in-process plugin registers the `skills/` directory and injects bootstrap context (pipeline phases + HARD-GATEs) at session start. See [.opencode/INSTALL.md](../.opencode/INSTALL.md) for manual setup.
+The in-process plugin registers the `skills/` directory and injects progressive-record context plus dynamic-obligation HARD-GATEs at session start. See [.opencode/INSTALL.md](../.opencode/INSTALL.md) for manual setup.
 
 ## Observed Pilot
 
@@ -59,7 +59,7 @@ OpenCode discovers project Skills from `.opencode/skills/<name>/SKILL.md` and na
 
 ## Agent Mapping
 
-| OpenCode Agent | Mode | Pipeline phase | Responsibility |
+| OpenCode Agent | Mode | Repeatable activity | Responsibility |
 |---|---|---|---|
 | `team` | primary | INTAKE (all tasks) | Translate intent, determine phases, select the smallest safe route, delegate distinct judgments, and implement local changes. |
 | `architecture` | subagent | DESIGN (cross-layer) | Produce an impact and contract analysis before cross-layer work. |
@@ -69,7 +69,7 @@ OpenCode discovers project Skills from `.opencode/skills/<name>/SKILL.md` and na
 | `meta-skill-designer` | subagent | DESIGN (meta) / LEARN | Design a project-specific roster and squad contracts from evidence. |
 | `skill-creator` | subagent | BUILD (meta) | Draft or improve an approved individual Skill and its evaluations. |
 
-Available Agents are a capability pool, not a permanent team. The `team` Agent should select the smallest route registered in `SQUADS.md`. See `skills/team/SKILL.md` for the full pipeline phase model.
+Available Agents are a capability pool, not a permanent team. The `team` Agent should select the smallest capability set required by current dynamic obligations. See `skills/team/SKILL.md` for the universal lifecycle. Legacy compatibility note: an imported contract may call an activity a "pipeline phase"; that term does not control current state.
 
 ## Permissions
 
@@ -87,11 +87,11 @@ Use a real target project and the installed OpenCode version. Start OpenCode at 
 
 1. Confirm the assistant reads `IDC.md` and the generated scenario guide before the first non-trivial task.
 2. Ask for a local typo correction. Confirm it stays on the direct, low-risk route and uses a narrow check (INTAKE → BUILD → VERIFY).
-3. Ask to find and fix an unknown blank report. Confirm `debug` is selected or explicitly loaded before patching (INTAKE → DESIGN → BUILD → VERIFY).
-4. Ask for an API field that is displayed in the client. Confirm `architecture` produces an impact contract and `verify` reports fresh evidence (INTAKE → DESIGN → BUILD → VERIFY → REVIEW).
-5. With the target's commit and push policy configured as `ask` or `deny`, ask to commit or push the completed change. Confirm the policy governs the named effect and local implementation is not treated as authorization (SHIP phase gated).
-6. Confirm the `team` primary Agent identifies pipeline phases before selecting squads, and gates DESIGN→BUILD and BUILD→SHIP transitions.
+3. Ask to find and fix an unknown blank report. Confirm the request is captured before debug/build activity and fresh verification evidence is appended.
+4. Change the requirement during an API and client task. Confirm the record returns to `shaped`, preserves prior events, and re-derives obligations.
+5. With commit and push configured as `ask` or `deny`, ask for the external effect. Confirm exact permission and recovery obligations govern it.
+6. Confirm the `team` primary Agent maintains `captured -> shaped -> active -> validating -> closed` and selects capabilities from current obligations rather than a fixed route.
 
-The Adapter is verified for a target only when OpenCode discovers the generated Skills and Agents, pipeline phases are observed, the routing cases behave as expected, and permission behavior matches the target's policy.
+The Adapter is verified for a target only when OpenCode discovers the generated Skills and Agents, event capture and updates are observed, routing cases behave as expected, and permission behavior matches the target's policy.
 
 Use the non-leaking fixture in [Host Acceptance](HOST_ACCEPTANCE.md) when a real project cannot safely carry intentional acceptance failures. Inspect project-local versus user-level capability precedence before interpreting a generic capability as evidence that a named project Agent ran.

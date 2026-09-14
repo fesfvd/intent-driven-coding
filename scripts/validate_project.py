@@ -19,21 +19,25 @@ COMMON_REQUIRED_FILES = (
 )
 PLATFORM_REQUIRED_FILES = {
     "neutral": (Path(".agent/AGENT_ENTRY.md"),),
+    "codex": (Path(".agents/templates/SQUAD.md"),),
     "opencode": (Path(".opencode/templates/SQUAD.md"),),
     "claude-code": (Path(".claude/CLAUDE.md"), Path(".claude/templates/SQUAD.md")),
 }
 PLATFORM_SKILL_ROOTS = {
     "neutral": Path(".agent/skills"),
+    "codex": Path(".agents/skills"),
     "opencode": Path(".opencode/skills"),
     "claude-code": Path(".claude/skills"),
 }
 PLATFORM_EVAL_ROOTS = {
     "neutral": Path(".agent/evals"),
+    "codex": Path(".agents/evals"),
     "opencode": Path(".opencode/evals"),
     "claude-code": Path(".claude/evals"),
 }
 PLATFORM_FRAMEWORK_ROOTS = {
     "neutral": Path(".agent"),
+    "codex": Path(".agents"),
     "opencode": Path(".opencode"),
     "claude-code": Path(".claude"),
 }
@@ -78,6 +82,7 @@ CLAUDE_AGENT_TOOLS = {
 }
 PLATFORM_REQUIRED_SKILLS = {
     "neutral": ("team",),
+    "codex": ("team",),
     "opencode": ("team",),
     "claude-code": ("team",),
 }
@@ -95,7 +100,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--target", required=True, type=Path, help="目标项目目录")
     parser.add_argument(
         "--platform",
-        choices=("neutral", "opencode", "claude-code"),
+        choices=("neutral", "codex", "opencode", "claude-code"),
         default="neutral",
         help="已安装的框架布局",
     )

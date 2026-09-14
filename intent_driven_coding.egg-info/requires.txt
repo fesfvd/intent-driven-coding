@@ -1,0 +1,1 @@
+jsonschema<5,>=4.23

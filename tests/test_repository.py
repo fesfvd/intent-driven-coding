@@ -47,6 +47,39 @@ class RepositoryTests(unittest.TestCase):
         result = self.run_script(VALIDATOR)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_local_link_check_skips_fenced_examples_but_keeps_real_links(self) -> None:
+        import validate_repository
+
+        text = (
+            "See [the minimal guide](docs/MINIMAL.md).\n"
+            "\n"
+            "```markdown\n"
+            "- 详细诊断：[diagnosis.md](./20260909-001/diagnosis.md)\n"
+            "```\n"
+            "\n"
+            "~~~\n"
+            "[architecture.md](./YYYYMMDD-NNN/architecture.md)\n"
+            "~~~\n"
+            "\n"
+            "Missing: [gone](definitely-missing.md)\n"
+        )
+        self.assertEqual(
+            validate_repository.broken_local_links(text, ROOT),
+            ["definitely-missing.md"],
+        )
+
+    def test_self_use_layer_ships_the_files_its_readme_promises(self) -> None:
+        for relative in (
+            "self-use/README.md",
+            "self-use/CLAUDE.md",
+            "self-use/skills/debug.md",
+            "self-use/skills/architecture.md",
+            "self-use/skills/verify.md",
+            "self-use/templates/task-card-lite.md",
+            "self-use/templates/task-card-decision.md",
+        ):
+            self.assertTrue((ROOT / relative).is_file(), relative)
+
     def test_phase_one_routing_fixture_supports_manual_host_acceptance(self) -> None:
         routing_fixture = json.loads(
             (ROOT / "evals" / "squad-routing.json").read_text(encoding="utf-8")

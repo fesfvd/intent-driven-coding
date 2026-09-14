@@ -24,7 +24,7 @@ When documentation conflicts with executable evidence, follow source/tests and c
 - Teach the user through brief decision explanations rather than requiring prior framework study. Expose relevant concepts, evidence, uncertainty, and tradeoffs so the user can question and correct the system.
 - Human judgment is not limited to permission gates. Ask for lived pain, priorities, objections, and decisions about which abstractions should become durable project practice.
 - The user may describe a goal or symptom in ordinary language. Translate it into an executable task without inventing requirements.
-- For non-trivial work, classify the scenario with `docs/TASK_SCENARIOS.md` and show an `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` task card using `templates/IDC_TASK.md` before implementation.
+- Capture actionable requests before substantial work, promote durable work to `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`, and append every material change to `events.jsonl`. Use `docs/TASK_SCENARIOS.md` for mutable labels and `templates/IDC_TASK.md` for the generated projection contract; satisfy current dynamic obligations before gated effects or closure.
 - Resolve the language of user-facing final presentation from explicit preference first, then the current user language. Preserve code, commands, identifiers, APIs, and maintainer-only document conventions unless translation is requested.
 - Separate explicit intent, repository facts, proposed defaults, and open decisions.
 - Ask only when alternatives materially change product behavior, data, permissions, privacy, cost, or irreversible effects.

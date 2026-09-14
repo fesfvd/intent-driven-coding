@@ -11,7 +11,7 @@ Read `AGENTS.md` for current architecture and `AI_ENGINEERING_PLAYBOOK.md` for r
 - Name the artifact passed at every handoff.
 - Keep implementation with the main agent unless a project-specific implementation Skill is genuinely useful.
 - Do not create a squad for obvious low-risk work that direct implementation and focused verification can close.
-- Select the pipeline phase path per task type (see `skills/team/SKILL.md`); do not run every phase for every task.
+- Derive dynamic obligations from current risk and evidence; activities may repeat in any safe order. Legacy compatibility note: a pipeline phase path per task type is an import hint, not the current lifecycle.
 
 ## Registered Squads
 
@@ -20,7 +20,7 @@ Read `AGENTS.md` for current architecture and `AI_ENGINEERING_PLAYBOOK.md` for r
 | Field | Definition |
 |---|---|
 | Outcome | Locate an unknown root cause, implement the smallest fix, and prove the original symptom is resolved |
-| Phase route | INTAKE → DESIGN(debug) → BUILD → VERIFY |
+| Activity hints | discover/debug -> build -> verify |
 | Members | `debug` -> `verify` |
 | Handoff | Reproduction, first broken layer, evidence, root cause, and regression target |
 | Exit | Original symptom and relevant regressions have fresh evidence |
@@ -31,7 +31,7 @@ Read `AGENTS.md` for current architecture and `AI_ENGINEERING_PLAYBOOK.md` for r
 | Field | Definition |
 |---|---|
 | Outcome | Implement a feature that changes interfaces, persistence, routing, or multiple consumers |
-| Phase route | INTAKE → DESIGN(architecture) → BUILD → VERIFY → REVIEW |
+| Activity hints | design/architecture -> build -> verify -> review when obligated |
 | Members | `architecture` -> `code-review` -> `verify` |
 | Handoff | Contract/impact map -> implementation diff and risks -> acceptance evidence |
 | Exit | No blocking findings and acceptance checks are supported |
@@ -42,7 +42,7 @@ Read `AGENTS.md` for current architecture and `AI_ENGINEERING_PLAYBOOK.md` for r
 | Field | Definition |
 |---|---|
 | Outcome | Derive or improve the project's professional roster and squads |
-| Phase route | INTAKE → DESIGN(meta) → BUILD(meta) |
+| Activity hints | learn/design -> build |
 | Members | `meta-skill-designer` -> `skill-creator` |
 | Handoff | Role map, squad contracts, trigger hypotheses, and evaluation plan |
 | Exit | Candidate Skills have realistic positive, near-miss, handoff, and safety evaluations |
@@ -57,7 +57,7 @@ Add formations using `.agent/templates/SQUAD.md`. Replace this section with outc
 | Field | Definition |
 |---|---|
 | Outcome | {{CUSTOM_SQUAD_OUTCOME}} |
-| Phase route | {{CUSTOM_SQUAD_PHASE_ROUTE}} |
+| Activity hints | {{CUSTOM_SQUAD_PHASE_ROUTE}} |
 | Members | {{CUSTOM_SQUAD_MEMBERS}} |
 | Handoff | {{CUSTOM_SQUAD_HANDOFF}} |
 | Exit | {{CUSTOM_SQUAD_EXIT}} |
@@ -66,6 +66,9 @@ Add formations using `.agent/templates/SQUAD.md`. Replace this section with outc
 ## Evaluation
 
 For each registered squad maintain:
+
+Legacy templates called the activity-hint field `Phase route`; retain that name
+only when importing an old contract. It is not a fixed state machine.
 
 - positive selection cases;
 - near misses that should route elsewhere;

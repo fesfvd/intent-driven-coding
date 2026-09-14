@@ -9,6 +9,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from idc_core.cli import PROGRESSIVE_COMMANDS, add_progressive_subcommands, run_progressive
+from idc_core.metrics import build_progressive_metrics
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -31,10 +38,20 @@ def parse_args() -> argparse.Namespace:
     portfolio = subcommands.add_parser("portfolio", help="Compare explicit projects' .idc metadata.")
     portfolio.add_argument(
         "--paths",
-        required=True,
+        required=False,
         type=Path,
         nargs="+",
         help="Two or more explicit project directories",
+    )
+    portfolio.add_argument(
+        "--project",
+        type=Path,
+        help="One explicit project directory for --progressive-metrics",
+    )
+    portfolio.add_argument(
+        "--progressive-metrics",
+        action="store_true",
+        help="Read-only metrics from one project's progressive event log",
     )
     portfolio.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
     portfolio.add_argument(
@@ -43,6 +60,7 @@ def parse_args() -> argparse.Namespace:
         default="en",
         help="Language for terminal output; JSON field names remain stable.",
     )
+    add_progressive_subcommands(subcommands)
     return parser.parse_args()
 
 
@@ -406,8 +424,28 @@ def render_portfolio(portfolio: dict[str, Any], language: str) -> str:
 
 def main() -> int:
     args = parse_args()
+    if args.command in PROGRESSIVE_COMMANDS:
+        return run_progressive(args)
     if args.command == "portfolio":
-        if len(args.paths) < 2:
+        if args.progressive_metrics:
+            if args.project is not None and args.paths:
+                print("ERROR: --project cannot be combined with --paths.", file=sys.stderr)
+                return 2
+            project_arg = args.project or (args.paths[0] if args.paths and len(args.paths) == 1 else None)
+            if project_arg is None:
+                print("ERROR: --progressive-metrics requires one --project directory.", file=sys.stderr)
+                return 2
+            project = project_arg.expanduser().resolve()
+            if not project.is_dir():
+                print(f"ERROR: project directory does not exist: {project}", file=sys.stderr)
+                return 2
+            report = build_progressive_metrics(project)
+            if not args.json:
+                print("ERROR: --progressive-metrics requires --json.", file=sys.stderr)
+                return 2
+            print(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+            return 0
+        if not args.paths or len(args.paths) < 2:
             print("ERROR: --paths requires at least two project directories.", file=sys.stderr)
             return 2
         projects = [path.expanduser().resolve() for path in args.paths]

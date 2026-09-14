@@ -9,7 +9,7 @@
 Intent-Driven Coding 是一套面向真实软件项目的 AI 编程方法论、模板与结构校验工具，用来帮助开发者设计属于自己项目的专业 Skill 小队；它不是已被宿主实证验证的自动编排产品。
 
 IDC 不是提示词包，不是固定 Agent 团队，也不是自动编排运行时。它提供
-任务启动卡、专业判断方法、最小 Squad 组合、权限门和新鲜验证证据之间的
+渐进式任务记录、专业判断方法、最小 Squad 组合、权限门和新鲜验证证据之间的
 工作协议，并允许每个项目根据真实重复工作逐步形成自己的工程系统。
 
 它不是一批要求你原样照搬的提示词，也不是一支固定不变的“万能团队”。这个仓库分享的是一套搭建方法：用户可以先用自然语言表达目标，AI 调查仓库、翻译需求、提出最小专业链并完成工程实现与验证；人则提供目标、经验、痛点、质疑和取舍。没有通过宿主验收前，Skill 和 Squad 应按需显式读取，不应假定宿主会自动选择它们。
@@ -33,7 +33,9 @@ IDC 的核心产品不是“更多提示词”，而是把一次 AI 编程任务
 | 任务管理或聊天工具 | 不接管任务分派和产品决策；只定义当前工程任务的范围、路线、验收和权限边界 |
 | 一次性脚手架 | 不把生成文件当成适配完成；要求真实任务、真实宿主和新鲜验证证据反馈到项目规则 |
 
-IDC 的可识别工作单元是 `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` 任务卡。它在实现开始前固定目标、范围、影响、验收和权限门，在完成时对照新鲜证据，而不是只留下一个“AI 已经处理过”的模糊记录。这个差异目前是方法和结构上的承诺；宿主自动路由仍必须按 [Host Acceptance](docs/HOST_ACCEPTANCE.md) 单独验证。
+IDC 的持久工作单元是 `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`，场景代码只是可变标签，不再写入身份。请求先成为轻量 `captured` 记录，在调查、决策或修改开始时再晋升；`.idc/work-items/<record-id>/events.jsonl` 是权威事实，Markdown 任务卡只是可重新生成的投影。当前风险、未知项、验收和外部影响推导 dynamic obligations，而不是让任务套进固定流程。宿主自动捕获和路由仍必须按 [Host Acceptance](docs/HOST_ACCEPTANCE.md) 单独验证。
+
+迁移说明：旧版把 Markdown 投影称为“任务启动卡”；1.1 仍可只读导入该卡片，但不会把它当成正常任务的权威历史。
 
 ## 一个真实例子：修复空白报表
 
@@ -124,7 +126,7 @@ AI 把用户的自然语言需求翻译为工程任务时，还需要区分四�
 - 安装引导器、Skill 新鲜度巡检、路由与交接评测样例。
 - 一个实验性的本地 OpenCode 编排控制器：执行显式选定的合同、保存交接与命令证据，但不替代宿主 runtime。
 - 一个实验性的[本地 CLI](docs/CLI.md)：当前汇总、分类或比较显式项目路径下的 `.idc` metadata，不读取项目源码或宿主配置。
-- 一套任务场景分类和 `IDC-项目-场景-日期-序号` 任务卡，用于在开始前固定记录意图、范围、影响、路线、验收、验证和权限边界，详见 [任务场景](docs/TASK_SCENARIOS.md) 和 [任务卡模板](templates/IDC_TASK.md)。
+- 一套 event-first 渐进式任务记录和 `IDC-项目-日期-序号` 身份；场景标签可随认识变化，义务按风险动态推导，详见 [渐进式任务](docs/PROGRESSIVE_TASKS.md)、[任务场景](docs/TASK_SCENARIOS.md) 和 [生成投影](templates/IDC_TASK.md)。
 - 一份记录本项目自身决策、实现里程碑和证据事件的[项目进展](plans/PROJECT_PROGRESS.md)，区别于当前状态快照和未来路线图。
 - 无提示泄漏的宿主验收夹具与部分实测记录；它们用于暴露边界，不代表宿主兼容性保证。
 
@@ -134,7 +136,9 @@ AI 把用户的自然语言需求翻译为工程任务时，还需要区分四�
 
 先阅读 [Minimal Path](docs/MINIMAL.md)，用当前真实任务验证 `Skill -> Squad -> Contract -> Evidence` 四个概念即可。完成一次安全任务后可以停止，不需要安装全部模板、配置自动路由或设计元小队。
 
-对于非平凡任务，再阅读 [Task Scenarios](docs/TASK_SCENARIOS.md)。Agent 应先生成一个 `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>` 任务标识和简短启动卡，列出目标、范围、影响、路线、验收和权限门，再进入实现阶段。
+对于可能进入调查、决策或修改的请求，先用 `idc start` 记录原始意图，再在实质工作开始时 `idc promote` 为 `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`。用 [Task Scenarios](docs/TASK_SCENARIOS.md) 维护可变标签，用 [Progressive Tasks](docs/PROGRESSIVE_TASKS.md) 根据风险与证据处理 dynamic obligations；不要在完成后补造正常任务历史。
+
+探索性请求可使用 `idc start --temporary`，默认 72 小时后自动过期且保留事件历史；项目可在 `.idc/config.json` 设置 `capture_ttl_hours`，命令行 `--ttl-hours` 优先。用 `idc metrics --project <path> --json` 查看仅基于事件日志的渐进式工作统计。
 
 ### 安装（Plugin — 推荐）
 
@@ -384,7 +388,7 @@ The optional bootstrapper creates only missing files by default:
 - `.agent/templates/SQUAD.md`: a contract for designing project-specific squads.
 - `.agent/evals/*.json`: starter routing, handoff, near-miss, and permission cases to adapt.
 - `IDC.md`: the target project's first IDC marker and the assistant's operating pointer.
-- `docs/TASK_SCENARIOS.md` and `templates/IDC_TASK.md`: task classification and task-start card resources.
+- `docs/PROGRESSIVE_TASKS.md`, `docs/TASK_SCENARIOS.md`, and `templates/IDC_TASK.md`: event-first records, mutable labels, and generated task projections.
 
 It does not analyze the target project, select Skills, design squads, or configure a host platform. It refuses to overwrite existing files unless `--force` is explicitly supplied. Start with `--dry-run` and review the plan.
 

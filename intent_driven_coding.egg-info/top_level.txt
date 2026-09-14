@@ -1,0 +1,2 @@
+idc_core
+scripts

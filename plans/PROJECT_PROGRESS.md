@@ -20,16 +20,61 @@ unproven. It is different from `CURRENT_STATE.md` (a snapshot) and
 
 ## Current Focus
 
-- Date: 2026-09-05
-- Focus: establish a task-scenario model and a recognizable IDC task-start card
-  so users can understand the work route before implementation begins.
-- Success condition: the framework distinguishes task intent from impact and
-  uncertainty, gives each non-trivial task an `IDC-...` identity, and records
-  scope, acceptance, verification, and permission boundaries in one place.
-- Not yet proven: that users consistently complete tasks faster or that any host
-  automatically creates or maintains these cards.
+- Date: 2026-09-14
+- Focus: validate event-first progressive records in real LAS work, then make
+  the same core portable through a host-neutral CLI and thin adapters.
+- Success condition: work is captured before substantial action, changes remain
+  append-only, scenario labels can evolve without changing identity, and current
+  risk plus evidence derive the obligations for closure or external effects.
+- Not yet proven: that a supported host automatically maintains the event stream
+  across a full real-work session without explicit CLI calls.
 
 ## Timeline
+
+### 2026-09-14: Progressive task runtime
+
+- **Change:** replaced task-card-first identity with append-only event records,
+  a universal `captured -> shaped -> active -> validating -> closed` lifecycle,
+  mutable scenario labels, and risk-adaptive dynamic obligations.
+- **Change:** added the installable `idc` CLI and `idc_core` package, generated
+  Markdown projections, legacy snapshot import, Codex `.agents/skills`
+  scaffolding, JSON Schema validation, and concurrency-safe task IDs.
+- **Reason:** real work changes during investigation and emergencies; requiring
+  a complete card before work or reconstructing it afterward loses causality.
+- **Boundary:** structural and local CLI tests do not prove automatic host event
+  capture. LAS remains the first real-project pilot.
+- **Evidence:** full `python -m unittest discover -s tests` suite reached 178
+  passing tests, including temporary capture TTL configuration, stable acceptance
+  merging, strict human confirmation, modular obligations, and read-only metrics;
+  repository, contract, offline evaluation, and Skill audits pass.
+
+### 2026-09-12: Self-use layer completed and a validator false positive fixed
+
+- **Change:** completed the untracked `self-use/` layer that ships a
+  lightweight, path-based personal profile: added `self-use/skills/architecture.md`,
+  `self-use/skills/verify.md`, `self-use/templates/task-card-lite.md`, and
+  `self-use/templates/task-card-decision.md`, and rewrote the README
+  "next step" section into a file inventory plus an explicit unverified-status
+  note.
+- **Reason:** `self-use/README.md` promised three Skill files and two task-card
+  templates that did not exist, so the layer was unusable as documented.
+- **Change:** `scripts/validate_repository.py` now skips fenced code blocks when
+  checking local Markdown links (`strip_fenced_code`, `broken_local_links`). The
+  template-token and private-data checks still run on the raw text.
+- **Reason:** the three suite assertions that require a clean repository were
+  failing with `self-use/CLAUDE.md: broken local link` because illustrative
+  example links inside ```markdown fences were treated as navigational links.
+  Repository-wide validation was red, which violates the "evidence before
+  claims" discipline this framework asks other projects to follow.
+- **Evidence:** `python scripts/validate_repository.py` passes (97 required
+  files, 379 Markdown files); `audit_skills.py`, `validate_contracts.py`, and
+  `evaluate_contracts.py` pass with no warnings; `python -m unittest discover -s
+  tests` reports `Ran 124 tests ... OK` (previously 122 with 3 failures); `git
+  diff --check` passes. Two new tests cover the fenced-example link rule and the
+  self-use file inventory.
+- **Boundary:** this is structural evidence only. The self-use layer has no
+  real-project execution record, and the framework still makes no claim about
+  host routing, Skill discovery, or permission behavior.
 
 ### 2026-09-05: Installation identity and product positioning
 
@@ -44,15 +89,16 @@ unproven. It is different from `CURRENT_STATE.md` (a snapshot) and
 - **Evidence:** the bootstrap, target validation, repository validation, and
   full unit-test suite pass after the change.
 
-### 2026-09-05: Task scenarios and task identity
+### 2026-09-05: Task scenarios and task identity (superseded in 1.1)
 
 - **Change:** added `docs/TASK_SCENARIOS.md` with primary scenario codes for
   repair, security, feature, behavior change, refactor, review, operations,
   exploration, and project-system evolution.
 - **Reason:** the existing router described Skills and phases but did not give
   users a stable way to recognize the shape and boundary of the task itself.
-- **Change:** added `templates/IDC_TASK.md` and the identity format
-  `IDC-<PROJECT>-<SCENARIO>-<YYYYMMDD>-<NNN>`.
+- **Change:** added the first generated-card predecessor and a scenario-encoded
+  identity. Version 1.1 superseded that identity with scenario-neutral task IDs;
+  old cards are accepted only as reconstructed legacy snapshots.
 - **Reason:** every non-trivial task needs a durable reference for its intent,
   scope, impact, route, acceptance, evidence, and permission gate.
 - **Evidence:** `python scripts/validate_repository.py` passed; `python -m
@@ -103,5 +149,9 @@ unproven. It is different from `CURRENT_STATE.md` (a snapshot) and
 2. Record whether the fixed fields reduce clarification, scope drift, or false
    completion claims.
 3. Add or remove fields only after those observations and a human decision.
-4. Do not add a task database, web dashboard, or automatic ID service before
+4. Run the `self-use` layer end to end on one real task in another project
+   and record whether its absolute
+   `/d/intent-driven-coding/self-use/skills/...` paths actually block reuse on a
+   different machine or checkout.
+5. Do not add a task database, web dashboard, or automatic ID service before
    local task cards demonstrate a concrete need.

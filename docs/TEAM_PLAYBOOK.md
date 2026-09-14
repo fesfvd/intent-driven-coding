@@ -9,7 +9,7 @@ The router receives ordinary language and selects the smallest registered squad 
 Requirement translation is part of this control plane, not a separate specialist by default. It classifies intent, repository facts, proposed defaults, and open decisions so the router can select the next smallest safe route. Create a project-specific product or requirements Skill only when repeated work requires an independent professional judgment, a concrete downstream artifact, and a boundary that the router must not decide.
 
 ```text
-Intent -> translate -> classify risk -> determine phases -> select squad -> gate transitions -> specialist handoffs -> build -> proof -> external action if authorized
+capture -> shape intent -> derive obligations -> select capability -> record activities and changes -> proof -> external action if authorized -> close
 ```
 
 See `SQUAD_METHOD.md` for composition rules, `SQUAD_WORKSHOP.md` for deriving project-specific formations, `CAPABILITY_TIERS.md` for capability selection, and `SQUAD_CATALOG.md` for reference formations.
@@ -94,7 +94,7 @@ Output:
 
 ## Standard Squads
 
-| Outcome | Squad | Phase path |
+| Outcome | Squad | Typical activities, not a fixed route |
 |---|---|---|
 | Exact low-risk edit | Main agent -> verify | INTAKE → BUILD → VERIFY |
 | Cross-layer feature | architecture -> code-review -> verify when material risk warrants all three | INTAKE → DESIGN → BUILD → VERIFY → REVIEW |
@@ -104,7 +104,7 @@ Output:
 | Production incident | project-specific read-only operations -> debug -> local fix -> release process | INTAKE → DESIGN(debug) → BUILD → VERIFY → SHIP |
 | Skill/team design | meta-skill-designer -> skill-creator | INTAKE → DESIGN(meta) → BUILD(meta) |
 
-The full pipeline phase model, including phase→squad mapping and phase gates, is defined in `skills/team/SKILL.md`. The router determines which phases apply per task type, then gates each transition.
+The universal lifecycle and dynamic obligation model are defined in `skills/team/SKILL.md` and `PROGRESSIVE_TASKS.md`. Scenario labels help discovery; they do not select a mandatory route. The router re-evaluates obligations whenever intent, scope, uncertainty, evidence, or requested effects change.
 
 Do not summon a design, planning, security, testing, review, and deployment specialist for every request. A large team is not evidence of rigor. If one specialist plus proof closes the result, use two. A third member must guard a distinct boundary.
 
@@ -160,26 +160,26 @@ Potential Phase 2 specialists:
 - Permission gates name the external effect.
 - Positive, near-miss, handoff, and safety cases exist.
 
-## State Machine (Pipeline Phases)
+## Universal State Machine
 
-The full pipeline phase model lives in `skills/team/SKILL.md`. This section summarizes the canonical state machine:
+All work uses one small lifecycle:
 
 ```text
-Intake -> Design? -> Plan? -> Build -> Verify -> Review? -> Ship? -> Learn?
+captured -> shaped -> active -> validating -> closed
+               ^         |
+               `---------` requirement or scope change
 ```
 
-Each phase maps to a specific squad activation. Not all tasks go through all phases — the router selects the subset appropriate to the task type and risk.
+Discovery, design, planning, build, verification, review, ship, observation, and
+learning are repeatable activities. Dynamic obligations decide what must happen
+next: unresolved material decisions block ordinary execution; acceptance items
+need mapped passing evidence before closure; risky external effects need exact
+permission and recovery evidence. "Continue" resumes from recorded facts and
+never bypasses an obligation.
 
-**Phase entry conditions:**
-- Enter **Design** when cross-boundary judgment or root-cause investigation is required.
-- Enter **Plan** only when the user requests a plan or safe execution requires one.
-- Enter **Build** only after DESIGN gate is satisfied and open decisions are resolved.
-- Enter **Verify** after every Build (not skippable).
-- Enter **Review** for material regression risk or an explicit review request.
-- Enter **Ship** only on explicit authorization naming the exact side effect.
-- Enter **Learn** after repeated failures or recurring workflow friction.
-
-The word "continue" resumes the latest unfinished safe stage. It never bypasses a permission gate.
+Legacy compatibility: older cards and adapters may use the phrase "pipeline
+phase" and names such as INTAKE or BUILD. Import them as reconstructed activity
+hints, not authoritative lifecycle history.
 
 ## Presentation Preference
 

@@ -4,7 +4,7 @@
 
 const SKILLS_DIR = new URL("../../skills", import.meta.url).pathname;
 const INJECTED_MARKER = "INTENT-DRIVEN-CODING-ACTIVE";
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 
 export function config(config) {
   config.skills = config.skills || {};
@@ -17,24 +17,25 @@ export function config(config) {
 function buildBootstrap() {
   return [
     `<EXTREMELY_IMPORTANT>${INJECTED_MARKER}`,
-    `Intent-Driven Coding v${VERSION} active. Pipeline phase model + Skill execution checklists.`,
+    `Intent-Driven Coding v${VERSION} active. Progressive records + dynamic obligations.`,
     ``,
-    `The \`team\` Skill is your control plane. Core pipeline:`,
-    `  INTAKE (classify intent) → DESIGN? (architecture/debug) → BUILD → VERIFY → REVIEW? → SHIP?`,
+    `The \`team\` Skill is your control plane. Universal lifecycle:`,
+    `  captured → shaped → active → validating → closed`,
     ``,
     `Before any non-trivial task:`,
-    `- Load the \`team\` Skill to classify intent and determine required pipeline phases.`,
-    `- Classify the work with \`docs/TASK_SCENARIOS.md\` and show an \`IDC-...\` task card using \`templates/IDC_TASK.md\`.`,
-    `- Select the smallest squad for the active phase — 2 members default, 3 max.`,
-    `- Do NOT enter BUILD until DESIGN gate is satisfied (if DESIGN is required).`,
-    `- Do NOT enter SHIP without explicit user authorization.`,
+    `- Load the \`team\` Skill and capture the request before investigation or mutation.`,
+    `- Use \`docs/TASK_SCENARIOS.md\` for mutable labels; \`templates/IDC_TASK.md\` documents the generated projection.`,
+    `- Promote only when investigation, a material decision, or a change begins.`,
+    `- Derive dynamic obligations from impact, uncertainty, evidence, and requested effects.`,
+    `- Select the smallest useful specialist chain; direct work is valid for low risk.`,
     ``,
     `Hard rules:`,
-    `- No completion claim without fresh verification evidence.`,
-    `- No commit/push/deploy/production write/paid call without explicit authorization.`,
+    `- No completion claim without fresh evidence mapped to acceptance.`,
+    `- No commit/push/deploy/production write/paid call without explicit authorization for the exact effect.`,
+    `- Requirement and classification changes append events; do not overwrite history.`,
     `- Query volatile repository facts; do not freeze them into Skills.`,
     ``,
-    `Read \`skills/team/SKILL.md\` for the full pipeline phase model.`,
+    `Read \`skills/team/SKILL.md\` for the progressive lifecycle and dynamic obligations.`,
     `</EXTREMELY_IMPORTANT>`
   ].join("\n");
 }

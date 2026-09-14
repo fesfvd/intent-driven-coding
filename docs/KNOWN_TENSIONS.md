@@ -6,7 +6,7 @@ These are structural tensions built into the framework's design. They are not bu
 
 ## T1: Framework complexity vs "no prior study required"
 
-**What it is:** The framework promises "the human does not need to learn the framework first," but comprises 30+ documents, 7 Skills, pipeline phases, 4 information classes, 3 context layers, and a JSON contract schema. The human absorbs these concepts incrementally through collaboration — but the total absorption load is real.
+**What it is:** The framework promises "the human does not need to learn the framework first," but comprises 30+ documents, 7 Skills, a progressive task lifecycle, dynamic obligations, 4 information classes, 3 context layers, and JSON schemas. The human absorbs these concepts incrementally through collaboration, but the total absorption load is real.
 
 **When it bites:** New users facing their first non-trivial task. The Router explains why it selected `debug → verify`, and the user realizes they need to understand what a Skill is, what a Squad is, and why this particular chain was chosen — all while trying to fix a bug.
 

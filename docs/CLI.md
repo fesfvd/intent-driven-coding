@@ -1,6 +1,49 @@
 # 本地 CLI
 
-`scripts/idc.py` 是一个实验性的本地只读查看器。当前实现 `status`、`evidence` 和 `portfolio`，用于汇总用户显式指定项目中的 Intent-Driven Coding metadata；它不是 Agent runtime、项目扫描器、任务管理器或 Git 工具。
+`idc` 现在也是渐进式任务记录的宿主中立入口。典型流程是 `idc init`、
+`idc start`、在实质工作开始时 `idc promote`，然后用 `shape`、`classify`、
+`change`、`condition`、`activity` 和 `add-evidence` 追加事实。生命周期为
+`captured -> shaped -> active -> validating -> closed`；dynamic obligations
+根据风险、未知项、验收证据和外部影响实时推导。
+
+权威记录位于 `.idc/work-items/<record-id>/events.jsonl`。任务身份采用
+`IDC-<PROJECT>-<YYYYMMDD>-<NNN>`，场景代码是 mutable label；
+`.idc/tasks/<task-id>.md` 是自动生成的投影，不应手工编辑。
+
+```powershell
+idc init --project ../my-project --project-key MYPROJECT --platform neutral
+idc start --project ../my-project --summary "Fix blank report" --actor human
+idc promote --project ../my-project --record <record-id>
+idc doctor --project ../my-project
+```
+
+Exploratory requests can stay temporary and expire without deleting their event history:
+
+```powershell
+idc start --project ../my-project --summary "Investigate idea" --temporary
+idc discard --project ../my-project --record <record-id> --reason "Not needed"
+idc metrics --project ../my-project --json
+```
+
+Temporary capture defaults to 72 hours, can be configured with `capture_ttl_hours` in
+`.idc/config.json`, and accepts an explicit `--ttl-hours` override. Acceptance inputs to
+`shape` support free text auto-numbering as well as `id=value` and `id:statement`.
+For a human confirmation, the evidence command must identify a human actor and a
+non-empty confirmation reference:
+
+```powershell
+idc add-evidence --project ../my-project --record <record-id> --kind human-confirmed `
+  --summary "Product owner accepted the wording" --result pass --acceptance a-001 `
+  --actor human --confirmation-ref "meeting-2026-09-14"
+```
+
+下面的 `status`、`evidence` 和 `portfolio` 是保留兼容的只读汇总命令；它们
+与渐进式写入命令共用入口，但不会把旧 controller metadata 伪造成任务事件。
+
+`scripts/idc.py` 是一个兼容性的本地入口：`status`、`evidence` 和 `portfolio`
+继续提供旧 controller metadata 的只读汇总，同时转发 `init`、`start`、
+`promote`、`shape`、`metrics` 等渐进式记录命令。它不是 Agent runtime、项目扫描器、
+任务管理器或 Git 工具；新项目可直接使用安装后的 `idc` 命令。
 
 ## 使用
 
