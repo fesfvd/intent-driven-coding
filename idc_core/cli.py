@@ -12,6 +12,7 @@ from jsonschema import Draft202012Validator
 
 from .events import EventStore
 from .legacy import import_legacy
+from .metrics import build_progressive_metrics
 from .workflow import GateBlocked, Workflow
 
 
@@ -36,6 +37,7 @@ PROGRESSIVE_COMMANDS = {
     "render",
     "import-legacy",
     "doctor",
+    "metrics",
 }
 
 
@@ -179,6 +181,12 @@ def add_progressive_subcommands(subcommands: argparse._SubParsersAction) -> None
     _project(doctor)
     _json(doctor)
 
+    metrics = subcommands.add_parser(
+        "metrics", help="Read-only metrics for progressive event records."
+    )
+    _project(metrics)
+    _json(metrics)
+
 
 def run_progressive(args: argparse.Namespace) -> int:
     project = args.project.expanduser().resolve()
@@ -192,6 +200,8 @@ def run_progressive(args: argparse.Namespace) -> int:
             report = import_legacy(project, args.path)
         elif args.command == "doctor":
             report = doctor(project)
+        elif args.command == "metrics":
+            report = build_progressive_metrics(project)
         else:
             workflow = Workflow(project)
             if args.command == "start":
@@ -219,6 +229,7 @@ def run_progressive(args: argparse.Namespace) -> int:
             elif args.command == "discard":
                 report = state_to_dict(workflow.discard(args.record, reason=args.reason))
             elif args.command == "shape":
+                previous = workflow.state(args.record)
                 state = workflow.shape(
                     args.record,
                     goal=args.goal,
@@ -228,7 +239,7 @@ def run_progressive(args: argparse.Namespace) -> int:
                     open_decisions=args.decision,
                     scope=args.scope,
                     acceptance=(
-                        _pairs(args.acceptance, "acceptance", value_name="statement")
+                        _acceptance_pairs(args.acceptance, previous.acceptance)
                         if args.acceptance is not None
                         else None
                     ),
@@ -412,6 +423,38 @@ def _pairs(values: list[str], label: str, value_name: str) -> list[dict[str, str
         used_ids.add(key)
         next_id += 1
     return parsed
+
+
+def _acceptance_pairs(values: list[str], existing: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Merge CLI acceptance inputs into the current list without renumbering history."""
+    merged = [dict(item) for item in existing]
+    by_id = {item.get("id"): index for index, item in enumerate(merged) if item.get("id")}
+    next_id = 1
+    for value in values:
+        if "=" in value:
+            key, item = _pair_values([value], "acceptance")[0]
+        elif ":" in value:
+            key, item = value.split(":", 1)
+            key, item = key.strip(), item.strip()
+            if not key or not item:
+                raise ValueError(f"acceptance must use non-empty ID:VALUE: {value}")
+        else:
+            item = value.strip()
+            if not item:
+                raise ValueError("acceptance must not be empty")
+            matching = next((entry for entry in merged if entry.get("statement") == item), None)
+            if matching:
+                continue
+            while f"a-{next_id:03d}" in by_id:
+                next_id += 1
+            key = f"a-{next_id:03d}"
+            next_id += 1
+        if key in by_id:
+            merged[by_id[key]] = {"id": key, "statement": item}
+        else:
+            by_id[key] = len(merged)
+            merged.append({"id": key, "statement": item})
+    return merged
 
 
 def _pair_values(values: list[str], label: str) -> list[tuple[str, str]]:
