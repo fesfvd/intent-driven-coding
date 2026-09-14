@@ -1275,13 +1275,14 @@ class RepositoryTests(unittest.TestCase):
                 deadline = time.monotonic() + 3
                 while time.monotonic() < deadline:
                     if os.name == "nt":
+                        # tasklist emits output in the active code page (e.g. GBK),
+                        # so match the ASCII pid against raw bytes instead of decoding.
                         probe = subprocess.run(
                             ["tasklist", "/FI", f"PID eq {child_pid}", "/FO", "CSV", "/NH"],
-                            text=True,
                             capture_output=True,
                             check=False,
                         )
-                        is_running = str(child_pid) in probe.stdout
+                        is_running = str(child_pid).encode("ascii") in (probe.stdout or b"")
                     else:
                         try:
                             os.kill(child_pid, 0)
