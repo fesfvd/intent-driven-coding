@@ -6,7 +6,7 @@ set -euo pipefail
 
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 SKILL_FILE="${PLUGIN_ROOT}/skills/team/SKILL.md"
-VERSION="1.1.0"
+VERSION="1.1.1"
 MARKER="INTENT-DRIVEN-CODING-ACTIVE"
 
 # Fast JSON escape: backslash, double-quote, newline

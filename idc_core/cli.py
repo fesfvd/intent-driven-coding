@@ -17,7 +17,7 @@ from .render import render_card
 from .workflow import GateBlocked, Workflow
 
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 PROGRESSIVE_COMMANDS = {
     "init",
     "start",
