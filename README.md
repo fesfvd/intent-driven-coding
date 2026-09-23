@@ -1,498 +1,174 @@
 # Intent-Driven Coding
 
-> 中文优先说明 | [English details](#english-details)
-
-> **实证状态：自动宿主路由尚未通过验收。** OpenCode 与 Claude Code 的公开宿主运行均为 `partial`、`mismatched` 或 `unobservable`；当前可证明的是方法、模板和结构校验，而不是自动选择项目小队。请先阅读[最小路径](docs/MINIMAL.md)和[宿主验收](docs/HOST_ACCEPTANCE.md)。
+> 中文说明优先。英文摘要见 [English overview](#english-overview)。
+>
+> **实证状态：自动宿主路由尚未通过验收。** OpenCode 与 Claude Code 的现有记录仍为 `partial`、`mismatched` 或 `unobservable`。本仓库提供方法、模板、安装脚手架和结构校验；这些不等于宿主已可靠发现入口、选择 Skill、完成交接或执行权限策略。先看[最小路径](docs/MINIMAL.md)与[宿主验收](docs/HOST_ACCEPTANCE.md)。
 
 ## 这是什么
 
-Intent-Driven Coding 是一套面向真实软件项目的 AI 编程方法论、模板与结构校验工具，用来帮助开发者设计属于自己项目的专业 Skill 小队；它不是已被宿主实证验证的自动编排产品。
+Intent-Driven Coding（IDC）是一套从真实软件工作中设计项目专属 AI 工程方法的工具箱。它帮助开发者把需求、专业判断、任务记录、权限边界和验证证据组织起来，再根据反复出现的工作逐步形成 Skills 和小队（Squads）。
 
-IDC 不是提示词包，不是固定 Agent 团队，也不是自动编排运行时。它提供
-渐进式任务记录、专业判断方法、最小 Squad 组合、权限门和新鲜验证证据之间的
-工作协议，并允许每个项目根据真实重复工作逐步形成自己的工程系统。
+IDC **不是提示词包、不是固定 Agent 团队，也不是自动编排运行时**。它不会替项目决定产品行为，不会因为生成了 Agent 文件就证明宿主会使用它们，也不接管项目任务管理或部署。
 
-它不是一批要求你原样照搬的提示词，也不是一支固定不变的“万能团队”。这个仓库分享的是一套搭建方法：用户可以先用自然语言表达目标，AI 调查仓库、翻译需求、提出最小专业链并完成工程实现与验证；人则提供目标、经验、痛点、质疑和取舍。没有通过宿主验收前，Skill 和 Squad 应按需显式读取，不应假定宿主会自动选择它们。
+推荐的采用方式是 **AI 先学并反哺核心概念**，再由人机在真实任务中协作学习、共同判断、渐进搭建。AI 应解释影响决策的概念、证据和不确定性；人提供目标、领域知识、开发经验、痛点、质疑和取舍。AI-first 是开始工作的方式，不是把人的判断移出工程过程。
 
-采用方式不是“人先读完 30+ 份文档再配置 AI”，也不是“模型足够强就能替人自动搭好一切”，而是 **AI 先学并反哺核心概念，人机在真实任务中协作学习、共同判断、渐进搭建**。AI 应识别宿主、调查项目、执行与验证，并在关键时刻解释概念、证据、不确定性和取舍；人需要独立思考，用自身经验校准 AI，识别真正的痛点，并决定哪些方法值得长期保留。
+作者将这套方法用于真实软件项目，并从中整理出可复用部分。背景与公开原因见[作者自述](AUTHOR.md)。
 
-AI-first 是启动方式，人机协作是工作方式，人的判断是质量上限。模型能力会影响执行质量，使用者的能力、经验和判断也会影响最终体系；框架的目标是让两者互相增强，而不是让一方取代另一方。
+## 从哪里开始
 
-作者：**凸( →_→ )凸**。关于这套方法来自哪里、为什么愿意公开分享，请阅读 [作者自述](AUTHOR.md)。
+如果只想让 AI 参考 IDC 并处理一个真实任务，先把本仓库放在目标项目旁边，然后让当前 Agent 读取 [`AI_START_HERE.md`](AI_START_HERE.md)。这是一种显式引导；**仅克隆仓库不会把 IDC 自动放进 Agent 每次加载的上下文**。
 
-## IDC 的独特点
+若希望 Agent 每次进入项目时都收到 IDC 指引，请安装宿主常驻入口。当前脚手架支持：
 
-IDC 的核心产品不是“更多提示词”，而是把一次 AI 编程任务变成一个可追踪、可审查、可逐步固化的工程过程。它与常见方案的区别如下：
-
-| 常见方案 | IDC 的取舍 |
-|---|---|
-| 提示词包 | 不把项目事实和稳定方法混在一份长提示词里；入口、Skill 和仓库证据分层管理 |
-| Skill / Rules 集合 | 不把所有能力都默认加载；按任务场景和影响边界选择最小专业链 |
-| 固定 Agent 团队 | 不预设永久七人团队；通常由 2-3 个互补判断组成 Squad，并要求明确交接物 |
-| 自动 Agent 编排器 | 不把结构配置伪装成宿主执行证据；区分 Agent 声明、宿主观察、命令结果、产物和人工确认 |
-| 任务管理或聊天工具 | 不接管任务分派和产品决策；只定义当前工程任务的范围、路线、验收和权限边界 |
-| 一次性脚手架 | 不把生成文件当成适配完成；要求真实任务、真实宿主和新鲜验证证据反馈到项目规则 |
-
-IDC 的持久工作单元是 `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`，场景代码只是可变标签，不再写入身份。请求先成为轻量 `captured` 记录，在调查、决策或修改开始时再晋升；`.idc/work-items/<record-id>/events.jsonl` 是权威事实，Markdown 任务卡只是可重新生成的投影。当前风险、未知项、验收和外部影响推导 dynamic obligations，而不是让任务套进固定流程。宿主自动捕获和路由仍必须按 [Host Acceptance](docs/HOST_ACCEPTANCE.md) 单独验证。
-
-迁移说明：旧版把 Markdown 投影称为“任务启动卡”；1.1 仍可只读导入该卡片，但不会把它当成正常任务的权威历史。
-
-## 一个真实例子：修复空白报表
-
-假设你的项目有一个生产 bug：用户保存后报表变空白。
-
-1. 你在 AI 编程工具里输入：**"报表在保存后变空白。找到原因并修复它。"**
-2. Router 识别这是"未知根因 bug"→ 启动 `debug -> verify` 两人小队
-3. `debug` Skill 不猜测、不直接写 patch——它复现症状，遍历层级清单，定位到数据序列化层是第一个断裂点
-4. 主 Agent 基于诊断结果实现最小修复
-5. `verify` Skill 运行原始复现用例 + 回归检查，确认修复有效——然后诚实报告哪些检查跑了、哪些没跑
-6. 你看到新鲜验证证据后，判断可以提交
-
-整个过程你**没有**选择文件、没有指定 Skill 名称、没有回答"是前端还是后端"、没有配置任何东西。你只表达了目标和判断。
-
-这个例子展示的不是"理想情况下会发生什么"，而是这套框架的方法论在任何一个足够理解它的 AI 编程工具中**可以**做到的事——关键不在于哪个宿主、哪个模型，而在于 Router 分类意图、Skill 提供专业判断、小队闭环验证、人在关键时刻判断取舍。
-
-## 核心认识
-
-```text
-Skill = 一项稳定、边界清楚的专业能力
-小队（Squad） = 通常由 2-3 个互补 Skill 组成，围绕一个结果形成闭环
-路由器（Router） = 负责理解意图、选择小队和控制权限，不算小队成员
-```
-
-一个 Skill 往往只覆盖一次专业判断。小队是一个可按需采用的协作假设：有人负责定位或设计，有人负责独立审查风险，有人负责用新鲜证据证明结果；其自动交接尚需宿主验收支持。
-
-典型组合：
-
-| 目标 | 小队 | 闭环结果 |
+| 宿主 | 常驻入口 | 脚手架能力 |
 |---|---|---|
-| 修复根因不明的 Bug | `debug` -> `verify` | 找到根因并证明原问题已经解决 |
-| 完成跨层功能 | `architecture` -> `code-review` -> `verify` | 明确契约、独立审查风险、验证验收结果 |
-| 设计或优化 Skill 团队 | `meta-skill-designer` -> `skill-creator` | 先设计角色和小队，再创建、评测和迭代 Skill |
+| Codex | 项目根目录 `AGENTS.md` | 合并 IDC 标记块，并生成 Codex Skills 布局 |
+| OpenCode | 项目根目录 `AGENTS.md` | 合并 IDC 标记块，并生成 OpenCode Agents 与 Skills |
+| Claude Code | 项目根目录 `CLAUDE.md` | 合并 IDC 标记块，并生成 Claude Code subagents 与 Skills |
+| Cursor、Copilot 等 | 由各自版本和项目配置决定 | 本仓库没有对应的自动安装器；需按该宿主文档手动接入入口 |
 
-两人小队通常是”主要专业判断 + 独立证明”；只有存在另一项不可替代的风险边界时，才增加第三名成员。更多 Skill 不等于更专业，职责清楚、交接明确、能够闭环才是关键。
+现有 `AGENTS.md` 或 `CLAUDE.md` 不会被整份替换。安装器只插入或更新 `<!-- IDC:BEGIN -->` 与 `<!-- IDC:END -->` 之间的内容，其他文本保持原样；dry-run 会显示合并 diff。没有标记的旧 IDC 文本不会被猜测或自动删除。更多边界和步骤见[安装指南](docs/INSTALLATION.md)。
 
-## 三层上下文模型
+入口保持简短：它要求 Agent 读取目标项目根目录的 `IDC.md`，并用 `idc start` 捕获可执行请求。本仓库提供的正文模板是 [`templates/IDC.md`](templates/IDC.md)；安装后才会生成目标项目根目录的 `IDC.md`。完整流程与方法也分布在 [`docs/`](docs/) 和 [`skills/`](skills/) 中，按任务需要加载。旧版所谓“任务启动卡”是可重建投影，不是权威事件历史。
 
-这套框架把 AI 工作时需要的上下文分成三个层面，目的是减少长期提示词里的重复和过时信息，同时不降低专业能力：
+## 安装常驻入口
 
-| 层面 | 放什么 | 如何使用 |
-|---|---|---|
-| 常驻入口层 | 真相源顺序、通用行为边界、权限门、去哪里查资料 | 每次会话都保持很薄 |
-| 按需方法层 | 调试、架构、审查、验证、Skill 设计等稳定专业方法 | 只有该专业判断会改变结果时才加载对应 Skill |
-| 即时证据层（事实层） | 当前源码、配置、测试、Schema、日志、运行结果和 diff | 围绕当前任务实时查询，证据够用后停止扩张 |
-
-一句话概括：
-
-```text
-入口告诉 AI 应该遵守什么边界；
-Skill 告诉 AI 应该怎样专业判断；
-仓库证据告诉 AI 现在真实发生了什么。
-```
-
-因此，API 路径、版本号、服务名、功能数量等容易变化的事实不应该复制进长期 Skill。Skill 保存稳定方法，事实回到仓库实时查询。
-
-## 四类需求信息
-
-AI 把用户的自然语言需求翻译为工程任务时，还需要区分四类信息：
-
-| 类型 | 来源 | 处理方式 |
-|---|---|---|
-| 明确需求 | 用户直接表达的目标 | 转换成可观察、可验证的结果，不改变含义 |
-| 仓库事实 | 源码、配置、测试和运行证据 | AI 自行查询，不让用户代查 |
-| 建议默认 | AI 推荐的最简单有效方案 | 明确标为建议，不能伪装成用户要求 |
-| 开放歧义 | 会改变行为、数据、权限、隐私、成本或不可逆影响的选择 | 展示差异并交给用户决定 |
-
-这两套结构不是一回事：三层模型管理“上下文放在哪里、什么时候加载”，四类信息管理“需求里的每句话是什么性质、谁有权决定”。
-
-## 这套框架解决什么
-
-- 用户不需要先学会 Skill 名称、风险等级、文件结构和测试命令。
-- AI 不把本应自行调查的工程问题重新抛给用户。
-- AI 不把自己的猜测伪装成用户需求。
-- 长期 Skill 保存稳定方法，易变的路径、接口和版本回到仓库实时查询。
-- 小队成员通过明确的交接物协作，而不是每个 Skill 都从头调查一遍。
-- 没有新鲜验证证据，AI 不声称“已经修好”或“可以发布”。
-- 修改本地代码不自动等于允许 commit、push、部署或写入生产数据。
-
-## 你会得到什么
-
-- 需求翻译协议与三层上下文架构。
-- 专业 Skill 和 2-3 人小队的设计方法。
-- `team`、`architecture`、`debug`、`code-review`、`verify` 等基础能力。
-- `meta-skill-designer` 与 `skill-creator` 元小队，用来搭建你自己的角色体系。
-- 基础、条件和特殊能力的分级参考，以及按项目风险和结果组织的小队候选目录；这些用于评估，不是默认安装包。
-- 项目架构、工程流程、Skill 和小队合同模板。
-- 安装引导器、Skill 新鲜度巡检、路由与交接评测样例。
-- 一个实验性的本地 OpenCode 编排控制器：执行显式选定的合同、保存交接与命令证据，但不替代宿主 runtime。
-- 一个实验性的[本地 CLI](docs/CLI.md)：当前汇总、分类或比较显式项目路径下的 `.idc` metadata，不读取项目源码或宿主配置。
-- 一套 event-first 渐进式任务记录和 `IDC-项目-日期-序号` 身份；场景标签可随认识变化，义务按风险动态推导，详见 [渐进式任务](docs/PROGRESSIVE_TASKS.md)、[任务场景](docs/TASK_SCENARIOS.md) 和 [生成投影](templates/IDC_TASK.md)。
-- 一份记录本项目自身决策、实现里程碑和证据事件的[项目进展](plans/PROJECT_PROGRESS.md)，区别于当前状态快照和未来路线图。
-- 无提示泄漏的宿主验收夹具与部分实测记录；它们用于暴露边界，不代表宿主兼容性保证。
-
-## 快速开始
-
-### 最小路径
-
-先阅读 [Minimal Path](docs/MINIMAL.md)，用当前真实任务验证 `Skill -> Squad -> Contract -> Evidence` 四个概念即可。完成一次安全任务后可以停止，不需要安装全部模板、配置自动路由或设计元小队。
-
-对于可能进入调查、决策或修改的请求，先用 `idc start` 记录原始意图，再在实质工作开始时 `idc promote` 为 `IDC-<PROJECT>-<YYYYMMDD>-<NNN>`。用 [Task Scenarios](docs/TASK_SCENARIOS.md) 维护可变标签，用 [Progressive Tasks](docs/PROGRESSIVE_TASKS.md) 根据风险与证据处理 dynamic obligations；不要在完成后补造正常任务历史。
-
-探索性请求可使用 `idc start --temporary`，默认 72 小时后自动过期且保留事件历史；项目可在 `.idc/config.json` 设置 `capture_ttl_hours`，命令行 `--ttl-hours` 优先。用 `idc metrics --project <path> --json` 查看仅基于事件日志的渐进式工作统计。
-
-### 安装（Plugin — 推荐）
-
-**Claude Code**: 注册 marketplace 后一键安装，自动启用 Skills + session-start 引导：
-
-```bash
-/plugin marketplace add fesfvd/intent-driven-coding-marketplace
-/plugin install intent-driven-coding@intent-driven-coding-marketplace
-```
-
-**OpenCode**: 在目标项目的 `opencode.json` 中添加：
-
-```json
-{ "plugin": ["intent-driven-coding@git+https://github.com/fesfvd/intent-driven-coding.git"] }
-```
-
-安装后，每次会话启动时 Agent 会自动接收到 Pipeline 阶段模型和核心规则的引导上下文，无需手动阅读文档。详见 [Claude Code Adapter](docs/CLAUDE_CODE_ADAPTER.md) 和 [OpenCode Adapter](docs/OPENCODE_ADAPTER.md)。
-
-如果用户是从 Git 克隆本仓库开始，完整的“克隆、生成目标项目文件、让助手识别 IDC、验证安装”流程见 [Installation And Use](docs/INSTALLATION.md)。生成到目标项目后，助手的第一入口是根目录的 `IDC.md`，不是要求助手每次重新通读 IDC 源仓库。
-
-### 推荐方式：AI 先学，人机共学共建
-
-把这个仓库克隆到目标项目旁边，在目标项目中启动 Claude Code、OpenCode、Codex 或其他 AI 编程工具，然后让 AI 阅读 [`AI_START_HERE.md`](AI_START_HERE.md) 并直接处理一个真实任务。AI 不需要先完成全套适配，也不应要求你预先学习 Skill 名称或填写模板；它会识别宿主平台、按需读取方法、完成当前工作，并把会影响判断的核心概念、证据和取舍简短解释给你。你再用自己的目标、经验和质疑参与校准，共同决定何时建立可复用能力。
-
-可以直接使用下面这段指令：
-
-```text
-请阅读 ../intent-driven-coding/AI_START_HERE.md，识别你当前所在的 AI 编程平台并读取对应适配说明。
-
-不要把完整框架适配作为前置任务。先处理我接下来提出的真实需求：自行调查相关源码、配置和测试，选择最小安全能力链，完成实现并给出新鲜验证证据。
-
-在工作过程中，记录重复调查、反复修正、风险边界和可复用交接物。在影响工作方式的关键节点，向我简短解释相关核心概念、证据、不确定性和取舍，并主动吸收我提供的开发经验、真实痛点和纠正意见。只有证据足够且经过共同判断时，才增量建立或调整项目入口、架构说明、Skill 和小队。不要要求我预先学完整套框架、选择 Skill、查文件或填写模板，也不要把我降格为只负责授权的人。
-
-只有会改变产品行为、数据、隐私、权限、成本或不可逆结果的开放歧义才询问我。未经明确授权，不要 commit、push、部署或执行生产写操作。
-```
-
-建议目录：
-
-```text
-workspace/
-|-- my-project/
-`-- intent-driven-coding/
-```
-
-AI 应先理解框架，再调查 `my-project`，最后只迁移适合该项目的内容。
-
-### 可选方式：生成文件骨架
-
-如果 AI 已经理解框架和目标项目，只需要减少机械建文件工作，可以使用脚手架。需要 Git、Python 3.9 或更高版本，以及用于合同校验的依赖：
+以下以 Codex 为例。先在运行 Agent 的 Python 环境安装 CLI，再预览目标项目改动：
 
 ```powershell
-git clone <your-repository-url> intent-driven-coding
+git clone https://github.com/fesfvd/intent-driven-coding.git
 cd intent-driven-coding
-python -m pip install -r requirements.txt
-python scripts/bootstrap.py --target ../my-project --project-name "My Project" --dry-run
-python scripts/bootstrap.py --target ../my-project --project-name "My Project" --apply
-python scripts/validate_repository.py
-python scripts/validate_contracts.py
-python scripts/evaluate_contracts.py
-python scripts/audit_skills.py
-python scripts/validate_project.py --target ../my-project
-python -m unittest discover -s tests -v
+python -m pip install -e .
+idc --help
+python scripts/bootstrap.py --target ../my-project --project-name "My Project" --platform codex --dry-run
 ```
 
-For the optional OpenCode-native Agent and Skill layout, add `--platform opencode` to `bootstrap.py` and `validate_project.py`. This creates `.opencode/agents/` and `.opencode/skills/` without replacing the target's `opencode.json`; see [OpenCode Adapter](docs/OPENCODE_ADAPTER.md).
+检查 dry-run 输出中的路径和 `AGENTS.md` 合并 diff 后再应用：
 
-For the optional Claude Code-native layout, use `--platform claude-code`. This creates a thin `.claude/CLAUDE.md`, native subagents, and project Skills without replacing `settings.json`; see [Claude Code Adapter](docs/CLAUDE_CODE_ADAPTER.md).
+```powershell
+python scripts/bootstrap.py --target ../my-project --project-name "My Project" --platform codex --apply
+idc init --project ../my-project --project-key MYPROJECT --platform codex
+python scripts/validate_project.py --target ../my-project --platform codex
+```
 
-`bootstrap.py` 只是可选脚手架，不会理解目标项目、设计小队或完成平台适配。它默认只预览并保护已有文件。生成后仍需由 AI 基于目标项目填写和裁剪，再用 `validate_project.py` 检查占位符、Skill 引用和小队规模。详细步骤见 [QUICKSTART.md](QUICKSTART.md)。
+将 `codex` 改为 `opencode` 或 `claude-code` 可生成对应布局。OpenCode 插件和 Claude Code marketplace 安装方式、权限说明与已知验收记录分别见[平台适配总览](docs/PLATFORM_ADAPTERS.md)、[OpenCode 适配](docs/OPENCODE_ADAPTER.md)和[Claude Code 适配](docs/CLAUDE_CODE_ADAPTER.md)。
 
-### 宿主验收
+`python -m pip install -e .` 会安装当前 checkout 的 `idc` 命令及声明依赖；保留这个 checkout 以便更新。脚手架负责文件和宿主布局，`idc init` 负责建立目标项目的 `.idc/` 记录配置。若只想生成文件，可暂缓 CLI 安装，但此时 `idc start` 不可用。
 
-文件结构通过不代表宿主已正确发现入口、选择路由、执行交接或应用权限。使用 [Host Acceptance](docs/HOST_ACCEPTANCE.md) 中的无提示泄漏夹具和记录格式验证实际行为。当前 OpenCode 与 Claude Code 的公开记录均未通过完整验收，不报告路由准确率或兼容性保证。
+## 第一个任务
 
-这个仓库的目的不是替你决定项目应该有哪些 Skill，而是让你能够从自己的真实工作、风险和重复问题中，搭建出属于自己项目的专业小队。
+初始化记录库后，在目标项目中捕获一个真实请求：
 
----
+```powershell
+idc start --project ../my-project --summary "Fix blank report" --scene debug --actor human
+```
 
-## 人为什么重要
+`start` 先创建轻量捕获；调查、重要决策或实现开始后，再将其提升为持久任务：
 
-AI 可以更快阅读框架、检索代码、归纳模式和执行验证，但它无法仅凭仓库自动知道哪些摩擦最影响你、哪些妥协可以接受、哪些抽象会在长期工作中变成负担。人的开发经验、领域理解和独立判断决定了能否识别真实问题、审查 AI 建议并纠正错误抽象。
+```powershell
+idc promote --project ../my-project --record <record-id>
+```
 
-人的职责不只是在权限门前点确认，还包括：
+权威事件记录位于 `.idc/work-items/<record-id>/events.jsonl`。持久任务使用 `IDC-<PROJECT>-<YYYYMMDD>-<NNN>` 身份；场景只是可调整的分类标签。Markdown 卡片是可重建投影，不是权威历史。生命周期与动态义务根据当前影响、未知项、验收和外部效果处理，不要求每项工作机械走相同流程。完整 CLI 说明见[本地 CLI](docs/CLI.md)，记录模型见[渐进式任务](docs/PROGRESSIVE_TASKS.md)。
 
-- 说明真实目标、历史痛点和隐性约束；
-- 判断问题是偶发现象还是值得治理的重复模式；
-- 质疑 AI 的假设、证据和复杂度；
-- 决定哪些经验应该固化、继续观察、修改或删除；
-- 对产品语义、长期方向和高风险动作承担最终判断。
+低风险的一次性探索可以使用 `idc start --temporary`；默认保留 72 小时，丢弃时保留事件历史。IDC 记录和 CLI 是本地工作辅助，不会自动证明 Agent 已经遵循了流程。
 
-AI 的职责是降低理解和执行成本，而不是隐藏推理或替代判断。它应该在真实任务中按需反哺核心概念，让用户逐步具备审查和演化自身体系的能力。
-
----
-
-<a id="english-details"></a>
-
-## English Details
-
-> **Evidence status: automatic host routing has not passed acceptance.** Recorded OpenCode and Claude Code runs are partial, mismatched, or unobservable. The proven deliverables are methods, templates, and structural checks, not automatic project-Squad selection. Start with [Minimal Path](docs/MINIMAL.md) and [Host Acceptance](docs/HOST_ACCEPTANCE.md).
-
-Intent-Driven Coding is a portable method, template set, and structural-checking toolkit for designing project-specific AI engineering squads. It is not a host-validated automatic orchestration product.
-
-The recommended adoption path is AI-first learning followed by human-AI collaborative adaptation, not blind installation or autonomous system generation. Ask your coding agent to read [`AI_START_HERE.md`](AI_START_HERE.md), inspect the target repository, teach back relevant concepts and tradeoffs, and work with the user to derive the project's own capabilities and squads. `scripts/bootstrap.py` is optional scaffolding only.
-
-The user can begin with a goal in ordinary language. The agent investigates the repository, translates intent into a proposed route or contract, explicitly reads the expertise that changes the result, makes the smallest correct change, and verifies it before claiming success. The human contributes domain knowledge, engineering experience, pain signals, skepticism, and judgment about product meaning, tradeoffs, durable abstractions, and risky external actions.
-
-This repository is not a collection of project-specific prompts or a team that must be copied unchanged. It shares the method for designing distinct Skills and combining two or three of them into outcome-oriented squads for your own project.
-
-Created and shared by **凸( →_→ )凸** from personal practice building the live [LAS literary-analysis system](https://lasystem.cn/). Read [AUTHOR.md](AUTHOR.md) for the experience behind the framework, its non-benchmark adoption stance, and why it is public.
-
-## Why This Exists
-
-AI coding workflows often fail in two opposite ways:
-
-- The agent asks the user to decide files, tests, architecture, and tools that it should discover itself.
-- The agent silently invents product behavior, broadens scope, or performs risky actions without meaningful confirmation.
-
-This framework separates mechanical responsibility without separating learning or judgment:
+如果暂时不安装脚手架，可以采用 AI 先学、人机共建的路径：
 
 ```text
-Human: intent, lived pain, experience, product meaning, tradeoffs, correction, final judgment
-Agent: framework learning, repository research, proposals, implementation, verification, concept feedback
-Together: learn from real work and decide what becomes durable project practice
+请阅读 ../intent-driven-coding/AI_START_HERE.md，识别你正在使用的宿主并阅读对应平台说明。
+先处理我提出的真实任务，只调查相关代码，按需读取方法并提供实际验证证据。
+在影响产品行为、数据、隐私、权限、成本或不可逆结果的选择上说明取舍并询问我。
+未经明确授权，不要 commit、push、部署或写入生产数据。
 ```
 
-## Core Ideas
+AI 应从当前任务交付开始；只有反复出现的工作和证据说明有价值时，才逐步增加入口规则、架构说明、Skill、小队或合同。无需先安装全部模板或通读全部文档。关于什么信息放在哪里，见[上下文架构](docs/CONTEXT_ARCHITECTURE.md)；关于怎样从项目真实工作中形成能力，见[适配指南](docs/ADAPTATION_GUIDE.md)。
 
-1. **Requirement translation**: distinguish explicit intent, repository facts, proposed defaults, and open decisions.
-2. **Progressive context**: keep the permanent entry small; load architecture and specialist methods only when needed.
-3. **Professional squads**: a Skill is one capability; a squad is usually two or three complementary Skills that close one outcome.
-4. **Evidence before claims**: fresh verification is required before saying work is complete, fixed, or passing.
-5. **Human permission gates**: commit, push, deployment, production writes, paid calls, and destructive actions are not implied by a request to edit code.
-6. **Skills store methods, repositories store facts**: changing endpoints, paths, versions, and service names should be queried, not frozen into long-lived Skills.
-7. **Meta design is part of the system**: use one meta Skill to derive roles and squads, and another to draft, evaluate, and improve each Skill.
-8. **Collaborative learning**: AI learns first and teaches back relevant concepts; the human contributes experience, correction, and final judgment about durable practice.
+## 工作模型
 
-## The Central Model
+| 概念 | IDC 中的职责 |
+|---|---|
+| 常驻入口 | 给每次会话稳定、简短的项目边界和资料入口 |
+| Skill | 封装一种边界明确、可重复使用的专业判断 |
+| Squad | 围绕一个结果组合通常两到三个互补判断，并约定交接物 |
+| Contract | 描述成员、顺序、交付物、验证和权限边界 |
+| Evidence | 区分 Agent 声称、宿主观察、命令结果、产物和人工确认；完成声明需要新鲜验证证据 |
+| 当前仓库 | 提供当前实现事实；源码、配置、测试和命令结果须按任务实时检查 |
 
-```text
-Skill = one stable professional judgment
-Squad = 2-3 complementary Skills closing one outcome
-Router = control plane selecting the squad; not a squad member
-```
+例如，根因未知的 bug 可以由 `debug` 调查，再由 `verify` 针对原始症状和回归路径取证。是否真的由指定 Skill 或 Agent 执行，取决于宿主；未验收时，Agent 应显式读取相关 `SKILL.md` 并顺序执行，而不是声称自动路由已经发生。
 
-Typical formations:
+## 能力与边界
 
-| Outcome | Squad | Closure |
-|---|---|---|
-| Unknown bug | `debug` -> `verify` | Root cause plus fresh proof |
-| Cross-layer feature | `architecture` -> `code-review` -> `verify` | Contract, independent risk check, proof |
-| Skill/team evolution | `meta-skill-designer` -> `skill-creator` | Role/squad design plus evaluated Skill artifacts |
+仓库包含：
 
-See [docs/SQUAD_METHOD.md](docs/SQUAD_METHOD.md) and [docs/SQUAD_WORKSHOP.md](docs/SQUAD_WORKSHOP.md) to derive formations from your own work.
+- `team`、`architecture`、`debug`、`code-review`、`verify`、`meta-skill-designer`、`skill-creator` 等方法 Skills。
+- 中性、Codex、OpenCode 和 Claude Code 的脚手架模板，以及结构、Skill 和合同校验工具。
+- 用 JSON Schema 描述 Squad 合同与离线评测记录的示例。
+- 本地 `idc` CLI：渐进式任务记录、生命周期、动态义务、事件投影、诊断和只读指标。
+- 实验性的显式 OpenCode 合同控制器；它不是宿主 Agent runtime。
+- 不含路由答案的宿主验收夹具和版本化观测记录。
 
-Use [docs/CAPABILITY_TIERS.md](docs/CAPABILITY_TIERS.md) to distinguish universal candidates, conditional specialists, and exceptional specialists. [docs/PROJECT_ARCHETYPES.md](docs/PROJECT_ARCHETYPES.md) and [docs/SQUAD_CATALOG.md](docs/SQUAD_CATALOG.md) provide investigation prompts and candidate formations, not a default team to install.
+当前宿主记录没有证明自动路由准确率、通用兼容率或权限策略可靠性。结构校验只说明生成的文件符合预期形态；CLI 运行只说明本地命令执行了相应操作。两者都不证明 Agent 发现了入口、选择了声明成员、读取并消费交接物，或遵循宿主权限。测试具体版本的流程请按[宿主验收指南](docs/HOST_ACCEPTANCE.md)执行；不要将部分观察描述为支持保证。
 
-## Repository Contents
+IDC 的目标是评估工程内容与方法，不为项目正确性、安全性、法律合规或发布质量背书。公开版本不包含源项目的凭据、私有端点或业务数据。
+
+## Repository Contents / 仓库内容
 
 ```text
 intent-driven-coding/
+|-- AI_START_HERE.md          # 给 coding agent 的采用入口
 |-- README.md
-|-- AUTHOR.md
-|-- AI_START_HERE.md
-|-- LICENSE
 |-- QUICKSTART.md
-|-- DESIGN.md
-|-- pyproject.toml
-|-- requirements.txt
-|-- .claude-plugin/
-|   |-- plugin.json
-|   `-- marketplace.json
-|-- .opencode/
-|   |-- INSTALL.md
-|   `-- plugins/
-|-- hooks/
-|   |-- hooks.json
-|   `-- session-start
+|-- AUTHOR.md
 |-- docs/
 |   |-- MINIMAL.md
 |   |-- PROGRESSIVE_TASKS.md
 |   |-- CLI.md
-|   |-- INSTALLATION.md
 |   |-- HOST_ACCEPTANCE.md
+|   |-- INSTALLATION.md
 |   |-- PLATFORM_ADAPTERS.md
-|   |-- PROTOCOL.md
-|   |-- TASK_SCENARIOS.md
-|   |-- CONTEXT_ARCHITECTURE.md
-|   |-- TEAM_PLAYBOOK.md
-|   |-- SQUAD_METHOD.md
-|   |-- SQUAD_WORKSHOP.md
-|   |-- CAPABILITY_TIERS.md
-|   |-- PROJECT_ARCHETYPES.md
-|   |-- SQUAD_CATALOG.md
-|   |-- EVALUATION.md
-|   |-- OPENCODE_ADAPTER.md
-|   |-- CLAUDE_CODE_ADAPTER.md
-|   |-- CONTRACTS.md
-|   |-- PERMISSIONS.md
-|   |-- ORCHESTRATION.md
-|   |-- KNOWN_TENSIONS.md
-|   `-- ADAPTATION_GUIDE.md
+|   `-- TASK_SCENARIOS.md
 |-- templates/
-|   |-- AGENT_ENTRY.md
-|   |-- AGENTS.md
-|   |-- AI_ENGINEERING_PLAYBOOK.md
-|   |-- IDC_TASK.md
-|   |-- SQUADS.md
-|   |-- SQUAD.md
-|   |-- claude/
-|   `-- opencode/
-|-- skills/
-|   |-- team/SKILL.md
-|   |-- architecture/SKILL.md
-|   |-- debug/SKILL.md
-|   |-- code-review/SKILL.md
-|   |-- verify/SKILL.md
-|   |-- meta-skill-designer/SKILL.md
-|   `-- skill-creator/SKILL.md
-|-- evals/
-|   |-- squad-routing.json
-|   `-- skill-design.json
+|   |-- IDC.md                # 安装到目标项目时生成根目录 IDC.md
+|   |-- IDC_ENTRY.md
+|   `-- IDC_TASK.md
+|-- idc_core/                 # CLI、事件、工作流和投影实现
+|-- skills/                   # 可按任务显式读取的专业方法
+|-- scripts/                  # 安装、结构检查、合同检查和实验控制器
+|-- contracts/                # 合同示例
 |-- schemas/
-|   |-- intent-driven-coding-contract-v1.schema.json
 |   `-- idc-task-event-v1.schema.json
-|-- contracts/
-|   `-- examples/
-|-- examples/
-|   `-- requirement-translations.md
-|-- references/
-|   |-- README.md
-|   |-- external-review-*.md
-|   `-- host-acceptance/
-|-- plans/
-|   |-- CURRENT_STATE.md
-|   |-- PROJECT_PROGRESS.md
-|   `-- ROADMAP.md
-|-- scripts/
-|   |-- idc.py
-|   |-- bootstrap.py
-|   |-- prepare_host_acceptance_fixture.py
-|   |-- orchestrate_squad.py
-|   |-- audit_skills.py
-|   |-- validate_project.py
-|   |-- validate_contracts.py
-|   |-- evaluate_contracts.py
-|   `-- validate_repository.py
-|-- idc_core/
-|   |-- cli.py
-|   |-- events.py
-|   |-- workflow.py
-|   |-- obligations.py
-|   |-- legacy.py
-|   |-- projector.py
-|   |-- render.py
-|   |-- metrics.py
-|   `-- resources/
-|-- self-use/
-|   |-- README.md
-|   |-- CLAUDE.md
-|   |-- skills/
-|   `-- templates/
-`-- tests/
-    |-- test_repository.py
-    `-- test_progressive_*.py
+|-- evals/                    # 离线评测样例
+|-- fixtures/                 # 宿主验收目标夹具
+|-- references/               # 版本化验收和来源材料
+|-- plans/                    # 当前状态、项目进展与路线
+|-- self-use/                 # 本仓库自用的轻量个人配置
+|-- .claude-plugin/           # Claude Code 插件清单
+|-- .opencode/                # OpenCode 插件与配置
+|-- hooks/                    # Claude Code 会话入口
+`-- tests/                    # CLI、工作流、分发和仓库测试
 ```
 
 ## Optional Scaffold Quick Start
 
-The recommended path is to ask a coding agent to read `AI_START_HERE.md`, inspect the target project, and perform a deliberate platform-aware adaptation. The commands below only create a neutral skeleton after that understanding exists. Requirements: Git, Python 3.9 or newer, and the contract validation dependency.
+The scaffold creates a neutral project layout by default. To install a persistent host entry, select `codex`, `opencode`, or `claude-code` as shown above. Install the CLI with `python -m pip install -e .`; use the steps in [docs/INSTALLATION.md](docs/INSTALLATION.md) for cloning, initialization, validation, and first-task capture.
+
+For repository checks, run:
 
 ```powershell
-git clone <your-repository-url> intent-driven-coding
-cd intent-driven-coding
-python -m pip install -r requirements.txt
-python scripts/bootstrap.py --target ../my-project --project-name "My Project" --dry-run
-python scripts/bootstrap.py --target ../my-project --project-name "My Project" --apply
 python scripts/validate_repository.py
 python scripts/validate_contracts.py
+python scripts/evaluate_contracts.py
 python scripts/audit_skills.py
 python -m unittest discover -s tests -v
 ```
 
-The optional bootstrapper creates only missing files by default:
+## English Overview
 
-- `AGENTS.md`: human-maintained architecture semantics and cross-file impact map.
-- `AI_ENGINEERING_PLAYBOOK.md`: requirement translation, workflow, verification, and completion rules.
-- `SQUADS.md`: registered two- or three-Skill formations for recurring project outcomes.
-- `.agent/AGENT_ENTRY.md`: a thin tool-neutral entry file.
-- `.agent/skills/*/SKILL.md`: the starter capability roster used to form small squads.
-- `.agent/templates/SQUAD.md`: a contract for designing project-specific squads.
-- `.agent/evals/*.json`: starter routing, handoff, near-miss, and permission cases to adapt.
-- `IDC.md`: the target project's first IDC marker and the assistant's operating pointer.
-- `docs/PROGRESSIVE_TASKS.md`, `docs/TASK_SCENARIOS.md`, and `templates/IDC_TASK.md`: event-first records, mutable labels, and generated task projections.
+Intent-Driven Coding (IDC) is a method, template set, and local toolkit for deriving project-specific AI engineering practices from real work. It supports progressive task records, reusable professional Skills, small outcome-oriented Squads, explicit handoffs, permission boundaries, and fresh verification evidence.
 
-It does not analyze the target project, select Skills, design squads, or configure a host platform. It refuses to overwrite existing files unless `--force` is explicitly supplied. Start with `--dry-run` and review the plan.
+IDC is not a prompt pack, a fixed Agent team, or a host orchestration runtime. Cloning the repository does not install guidance into an always-loaded host context. Use `scripts/bootstrap.py --platform codex|opencode|claude-code` to preview a persistent project entry. It merges only the marked IDC block into `AGENTS.md` or `CLAUDE.md`, preserving surrounding text. Install the local CLI with `python -m pip install -e .`, then initialize the target with `idc init`.
 
-See [QUICKSTART.md](QUICKSTART.md) for the 15-minute setup path and [docs/ADAPTATION_GUIDE.md](docs/ADAPTATION_GUIDE.md) for a thorough repository adaptation.
+Current OpenCode and Claude Code evidence is partial or inconclusive. Generated files and passing structural checks do not prove host discovery, routing, handoff consumption, verification, or permission behavior. See [Host Acceptance](docs/HOST_ACCEPTANCE.md) before making compatibility claims. Start with the [Minimal Path](docs/MINIMAL.md), or read [AI_START_HERE.md](AI_START_HERE.md) to work from a real task without installing the full scaffold.
 
-## The Starter Capability Roster
-
-| Role | Responsibility | Typical route |
-|---|---|---|
-| `team` | Translate natural language, classify risk, and select the smallest specialist chain | Every non-trivial request |
-| `architecture` | Trace interfaces, data flow, persistence, consumers, and cross-file impact | Cross-layer features and contract changes |
-| `debug` | Reproduce symptoms, form falsifiable hypotheses, and locate the first broken layer | Unknown-root-cause bugs |
-| `code-review` | Find correctness, regression, security, and data consistency risks in a diff | Medium/high-risk changes and pre-release review |
-| `verify` | Run fresh checks and block unsupported completion claims | Before completion, commit, PR, or release claims |
-| `meta-skill-designer` | Derive distinct roles, squad contracts, handoffs, and evaluation plans from repeated work | Designing or restructuring the professional system |
-| `skill-creator` | Draft and iteratively evaluate one Skill after its role is clear | Creating, improving, and trigger-testing Skills |
-
-These are capabilities, not a permanent seven-member squad. The router should assemble only the two or three needed for an outcome. Add specialists only when repeated work requires a distinct judgment. See [docs/TEAM_PLAYBOOK.md](docs/TEAM_PLAYBOOK.md).
-
-## Build Your Own Squads
-
-The recommended construction loop is itself a two-Skill meta squad:
-
-```text
-meta-skill-designer
-  -> role map, boundaries, squad contracts, trigger hypotheses
-skill-creator
-  -> SKILL.md, resources, positive/near-miss cases, handoff evaluation, iterations
-```
-
-Use [templates/SQUAD.md](templates/SQUAD.md) to define each formation and register accepted formations in the generated `SQUADS.md`. The included examples are starting points, not mandatory architecture.
-
-## What You Must Customize
-
-The generated framework is intentionally incomplete until you replace the repository placeholders:
-
-- Production entry points and runtime data flow.
-- Source, generated artifact, and deployment relationships.
-- Test, lint, type-check, and build commands.
-- Persisted data, authentication, billing, privacy, and external integration boundaries.
-- Project-specific design systems and deployment rules.
-- Structural changes that require generated maps or documentation updates.
-- Repeated outcomes that deserve project-specific two- or three-Skill squads.
-
-Do not paste your entire repository manual into the permanent entry. Keep stable cross-task rules at the entry, architecture meaning in `AGENTS.md`, deterministic constraints in tests/scripts, and specialist methods in Skills.
-
-## Quality And Safety
-
-- Bootstrap defaults to dry-run behavior unless `--apply` is provided.
-- Existing project files are not overwritten without `--force`.
-- The repository validator checks required files, Skill frontmatter, evaluation JSON, local Markdown links, unresolved template tokens, and common secret/private-path patterns.
-- `scripts/audit_skills.py` checks Skill structure, volatile fact snapshots, and evaluation references.
-- Scripts do not commit, push, deploy, or change production data. The experimental controller only invokes a configured local OpenCode command after explicit `--execute`; that invocation may use the host's model provider and remains subject to the target's host policy.
-- The project is released under the [MIT License](LICENSE).
-
-## Origin
-
-This framework was extracted from operating a multi-specialist AI engineering workflow in a production software project. The public version preserves the reusable methods while removing project-specific endpoints, infrastructure, credentials, business rules, and private operational details.
-
-## Status
-
-The portable foundation, structural validators, offline contract checks, and an experimental explicit-contract OpenCode controller are implemented. The controller's local records do not prove that a real coding host discovered the intended entry, used a named project Agent, semantically consumed a handoff, or applied a permission policy correctly. Read [Orchestration Controller](docs/ORCHESTRATION.md), then use the current empirical gate in [Current state](plans/CURRENT_STATE.md) and the evidence gates in the [Roadmap](plans/ROADMAP.md).
-
-Host acceptance records use the [manual evidence template](references/host-acceptance/README.md). The [experimental design constitution](DESIGN.md) describes a future read-only Observatory only after local indexing and report experiments demonstrate a need; no web Observatory is implemented or implied by this repository.
+The framework grew from practice on the LAS literary-analysis system. See [AUTHOR.md](AUTHOR.md) for its origin, [Current state](plans/CURRENT_STATE.md) and [Roadmap](plans/ROADMAP.md) for implementation status, and the [experimental design constitution](DESIGN.md) for a future direction that is not implemented. The project is distributed under the [MIT License](LICENSE).

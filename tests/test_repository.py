@@ -182,14 +182,15 @@ class RepositoryTests(unittest.TestCase):
             "|   |-- PROGRESSIVE_TASKS.md",
             "|   |-- CLI.md",
             "|   |-- HOST_ACCEPTANCE.md",
+            "|   `-- TASK_SCENARIOS.md",
+            "|   |-- IDC.md",
             "|   `-- idc-task-event-v1.schema.json",
             "|-- idc_core/",
             "|-- self-use/",
             "|-- .claude-plugin/",
             "|-- .opencode/",
             "|-- hooks/",
-            "|   |-- legacy.py",
-            "|   `-- resources/",
+            "`-- tests/",
         )
         tree_start = readme.index("## Repository Contents")
         tree_end = readme.index("## Optional Scaffold Quick Start", tree_start)
@@ -1704,9 +1705,9 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("jsonschema", contracts)
         self.assertIn("evaluate_contracts.py", contracts)
 
-    def test_english_quickstart_installs_contract_validation_dependency(self) -> None:
+    def test_english_quickstart_installs_the_idc_cli(self) -> None:
         english = (ROOT / "README.md").read_text(encoding="utf-8").split("## Optional Scaffold Quick Start", 1)[1]
-        self.assertIn("python -m pip install -r requirements.txt", english)
+        self.assertIn("python -m pip install -e .", english)
 
     def test_contract_guide_validates_the_idc_parent_directory(self) -> None:
         contracts = (ROOT / "docs" / "CONTRACTS.md").read_text(encoding="utf-8")
@@ -1931,6 +1932,77 @@ class RepositoryTests(unittest.TestCase):
             self.assertEqual((target / "AGENTS.md").read_text(encoding="utf-8"), "user-owned\n")
             self.assertIn("SKIP existing", second.stdout)
 
+    def test_bootstrap_previews_and_idempotently_integrates_codex_entry(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir)
+            entry = target / "AGENTS.md"
+            original = "# Existing project rules\n\nKeep this content unchanged.\n"
+            entry.write_text(original, encoding="utf-8")
+
+            preview = self.run_script(
+                BOOTSTRAP,
+                "--target", str(target),
+                "--project-name", "Example Project",
+                "--platform", "codex",
+                "--dry-run",
+            )
+            self.assertEqual(preview.returncode, 0, preview.stdout + preview.stderr)
+            self.assertEqual(entry.read_text(encoding="utf-8"), original)
+            self.assertIn("IDC:BEGIN", preview.stdout)
+
+            first = self.run_script(
+                BOOTSTRAP,
+                "--target", str(target),
+                "--project-name", "Example Project",
+                "--platform", "codex",
+                "--apply",
+            )
+            self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+            installed = entry.read_text(encoding="utf-8")
+            self.assertTrue(installed.startswith("<!-- IDC:BEGIN -->"))
+            self.assertTrue(installed.endswith(original))
+
+            second = self.run_script(
+                BOOTSTRAP,
+                "--target", str(target),
+                "--project-name", "Example Project",
+                "--platform", "codex",
+                "--apply",
+            )
+            self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
+            self.assertEqual(entry.read_text(encoding="utf-8"), installed)
+            self.assertEqual(installed.count("<!-- IDC:BEGIN -->"), 1)
+
+    def test_codex_scaffold_puts_idc_entry_before_architecture_template(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir)
+            result = self.run_script(
+                BOOTSTRAP,
+                "--target", str(target),
+                "--project-name", "Example Project",
+                "--platform", "codex",
+                "--apply",
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            entry = (target / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertLess(entry.index("<!-- IDC:BEGIN -->"), entry.index("# Example Project Architecture Guide"))
+            self.assertIn("read the project-root `IDC.md`", entry)
+
+    def test_claude_code_scaffold_uses_root_persistent_entry(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir)
+            result = self.run_script(
+                BOOTSTRAP,
+                "--target", str(target),
+                "--project-name", "Example Project",
+                "--platform", "claude-code",
+                "--apply",
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            entry = (target / "CLAUDE.md").read_text(encoding="utf-8")
+            self.assertTrue(entry.startswith("<!-- IDC:BEGIN -->"))
+            self.assertIn("read the project-root `IDC.md`", entry)
+
     def test_bootstrap_opencode_applies_native_layout(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             target = Path(temp_dir)
@@ -1977,7 +2049,7 @@ class RepositoryTests(unittest.TestCase):
                 "--apply",
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertTrue((target / ".claude" / "CLAUDE.md").is_file())
+            self.assertTrue((target / "CLAUDE.md").is_file())
             self.assertTrue((target / ".claude" / "agents" / "architecture.md").is_file())
             self.assertTrue((target / ".claude" / "skills" / "team" / "SKILL.md").is_file())
             self.assertTrue((target / ".claude" / "templates" / "SQUAD.md").is_file())
@@ -1987,8 +2059,9 @@ class RepositoryTests(unittest.TestCase):
             self.assertTrue((target / "templates" / "IDC_TASK.md").is_file())
             self.assertFalse((target / ".agent").exists())
 
-            entry = (target / ".claude" / "CLAUDE.md").read_text(encoding="utf-8")
-            self.assertIn("# Example Project Claude Code Entry", entry)
+            entry = (target / "CLAUDE.md").read_text(encoding="utf-8")
+            self.assertIn("<!-- IDC:BEGIN -->", entry)
+            self.assertIn("read the project-root `IDC.md`", entry)
             architecture_agent = (target / ".claude" / "agents" / "architecture.md").read_text(encoding="utf-8")
             self.assertIn("tools: Read, Grep, Glob", architecture_agent)
             for name in ("debug", "verify", "skill-creator"):
@@ -2850,7 +2923,9 @@ class RepositoryTests(unittest.TestCase):
 
     def test_claude_entry_references_pipeline_phases(self) -> None:
         text = (ROOT / "templates" / "claude" / "CLAUDE.md").read_text(encoding="utf-8")
-        self.assertIn("pipeline phase", text.lower())
+        self.assertIn("IDC:BEGIN", text)
+        self.assertIn("idc start", text)
+        self.assertNotIn("captured -> shaped -> active", text)
 
     def test_opencode_team_references_pipeline_phases(self) -> None:
         text = (ROOT / "templates" / "opencode" / "agents" / "team.md").read_text(encoding="utf-8")
@@ -2914,11 +2989,13 @@ class RepositoryTests(unittest.TestCase):
         for path in (
             ROOT / "templates" / "AGENT_ENTRY.md",
             ROOT / "templates" / "opencode" / "agents" / "team.md",
-            ROOT / "templates" / "claude" / "CLAUDE.md",
         ):
             text = path.read_text(encoding="utf-8")
             self.assertIn("TASK_SCENARIOS.md", text)
             self.assertIn("IDC_TASK.md", text)
+        claude_entry = (ROOT / "templates" / "claude" / "CLAUDE.md").read_text(encoding="utf-8")
+        self.assertIn("IDC.md", claude_entry)
+        self.assertIn("idc start", claude_entry)
 
     def test_plugin_manifest_and_marketplace_versions_match(self) -> None:
         import json

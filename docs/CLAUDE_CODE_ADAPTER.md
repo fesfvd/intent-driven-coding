@@ -33,7 +33,7 @@ python scripts/bootstrap.py --target ../my-project --project-name "My Project" -
 python scripts/validate_project.py --target ../my-project --platform claude-code
 ```
 
-The Claude Code layout is:
+The Claude Code layout is (the persistent entry is at the project root):
 
 ```text
 my-project/
@@ -43,8 +43,8 @@ my-project/
 |-- SQUADS.md
 |-- docs/TASK_SCENARIOS.md
 |-- templates/IDC_TASK.md
+|-- CLAUDE.md                # IDC block is merged here; unrelated text is preserved
 `-- .claude/
-    |-- CLAUDE.md
     |-- agents/
     |-- skills/
     |-- templates/
@@ -75,7 +75,7 @@ Target projects must define their own permission policy for commits, pushes, pul
 
 Use a real target project and the installed Claude Code version. Record the version and results for each case:
 
-1. Confirm `IDC.md`, `CLAUDE.md`, and `.claude/skills/` are discovered from the target root.
+1. Confirm root `CLAUDE.md`, `IDC.md`, and `.claude/skills/` are discovered from the target root.
 2. Request a local typo correction and confirm the main session follows the direct low-risk route (INTAKE → BUILD → VERIFY).
 3. Request an unknown blank-report fix and confirm the request is captured before debug/build activity and fresh verification evidence is appended.
 4. Change the requirement during a cross-layer API and client task; confirm the record returns to `shaped`, preserves prior events, and re-derives obligations.

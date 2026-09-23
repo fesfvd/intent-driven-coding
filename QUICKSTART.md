@@ -76,10 +76,11 @@ Use the ready-to-paste Chinese prompt in `README.md`, or express the same goal i
 
 The following steps create a neutral skeleton only. Use them after the agent understands the target, or when manual file creation is the only thing you want to automate.
 
-Install the framework validation dependency once:
+Install the IDC CLI in the Python environment used by the coding agent:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m pip install -e .
+idc --help
 ```
 
 ## 1. Preview The Installation
@@ -98,7 +99,7 @@ Review every destination path. The script performs no writes in dry-run mode.
 python scripts/bootstrap.py --target ../my-project --project-name "My Project" --apply
 ```
 
-The installer refuses to replace existing files. If your project already has `AGENTS.md` or an engineering playbook, merge the templates manually rather than immediately using `--force`.
+The installer previews all changes. For Codex and OpenCode, it merges a marked IDC block into root `AGENTS.md`; for Claude Code, it merges the block into root `CLAUDE.md`. Text outside the managed block is preserved. Review the diff before `--apply`. Other existing scaffold files are skipped unless `--force` is supplied.
 
 ### OpenCode Native Layout
 
@@ -122,7 +123,7 @@ python scripts/bootstrap.py --target ../my-project --project-name "My Project" -
 python scripts/validate_project.py --target ../my-project --platform claude-code
 ```
 
-This generates `.claude/CLAUDE.md`, `.claude/agents/`, and `.claude/skills/` without creating or replacing `settings.json`. Read [Claude Code Adapter](docs/CLAUDE_CODE_ADAPTER.md) before relying on discovery or permission behavior.
+This generates root `CLAUDE.md` with the persistent IDC entry plus `.claude/agents/` and `.claude/skills/`, without creating or replacing `settings.json`. Read [Claude Code Adapter](docs/CLAUDE_CODE_ADAPTER.md) before relying on discovery or permission behavior.
 
 ## 3. Fill The Architecture Map First
 
@@ -169,7 +170,7 @@ Then adapt `.agent/evals/squad-routing.json` and `.agent/evals/skill-design.json
 
 ## 6. Connect Your Agent
 
-`.agent/AGENT_ENTRY.md` is tool-neutral. Point your coding agent at it using the mechanism supported by that product. For the OpenCode layout, start from the generated `team` primary Agent instead. For the Claude Code layout, start from `.claude/CLAUDE.md`.
+`.agent/AGENT_ENTRY.md` is tool-neutral. Point your coding agent at it using the mechanism supported by that product. For the OpenCode layout, start from the generated `team` primary Agent instead. For the Claude Code layout, use the project-root `CLAUDE.md` entry.
 
 Common approaches:
 

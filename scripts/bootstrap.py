@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import difflib
 import re
 import shutil
 import sys
@@ -53,6 +54,13 @@ SKILL_NAMES = (
     "meta-skill-designer",
     "skill-creator",
 )
+ENTRY_PATHS = {
+    "codex": Path("AGENTS.md"),
+    "opencode": Path("AGENTS.md"),
+    "claude-code": Path("CLAUDE.md"),
+}
+ENTRY_BEGIN = "<!-- IDC:BEGIN -->"
+ENTRY_END = "<!-- IDC:END -->"
 OPENCODE_COMPATIBLE_SKILL_ROOTS = (
     Path(".claude") / "skills",
     Path(".agents") / "skills",
@@ -137,9 +145,7 @@ def planned_files(platform: str) -> list[tuple[Path, Path, bool]]:
             for source, destination in RESOURCE_FILES.items()
         )
         files.extend((source, destination, False) for source, destination in CLAUDE_AGENT_FILES.items())
-        files.append(
-            (ROOT / "templates" / "claude" / "CLAUDE.md", Path(".claude") / "CLAUDE.md", True)
-        )
+        files.append((ROOT / "templates" / "claude" / "CLAUDE.md", Path("CLAUDE.md"), False))
         files = [
             (source, Path(".claude") / "templates" / destination.name, is_template)
             if destination == Path(".agent") / "templates" / "SQUAD.md"
@@ -153,6 +159,26 @@ def planned_files(platform: str) -> list[tuple[Path, Path, bool]]:
         destination = skill_root / name / "SKILL.md"
         files.append((source, destination, False))
     return files
+
+
+def integrate_entry(existing: str, template: str) -> str:
+    """Insert or update the managed IDC block while preserving surrounding text."""
+    starts = [match.start() for match in re.finditer(re.escape(ENTRY_BEGIN), existing)]
+    ends = [match.start() for match in re.finditer(re.escape(ENTRY_END), existing)]
+    if len(starts) != len(ends) or len(starts) > 1:
+        raise ValueError("existing IDC entry markers are incomplete or duplicated")
+
+    newline = "\r\n" if "\r\n" in existing else "\n"
+    block = template.replace("\r\n", "\n").replace("\n", newline).rstrip("\r\n")
+    if starts:
+        end = ends[0] + len(ENTRY_END)
+        if starts[0] > ends[0]:
+            raise ValueError("existing IDC entry markers are out of order")
+        return existing[:starts[0]] + block + existing[end:]
+
+    if existing.startswith("\ufeff"):
+        return "\ufeff" + block + newline + newline + existing[1:]
+    return block + newline + newline + existing
 
 
 def is_inside_target(target: Path, destination: Path) -> bool:
@@ -208,13 +234,41 @@ def main() -> int:
                 print(f"- {path}", file=sys.stderr)
             return 1
 
+    entry_destination = ENTRY_PATHS.get(args.platform)
+    entry_template_path = (
+        ROOT / "templates" / "claude" / "CLAUDE.md"
+        if args.platform == "claude-code"
+        else ROOT / "templates" / "IDC_ENTRY.md"
+    )
+    try:
+        entry_template = entry_template_path.read_text(encoding="utf-8") if entry_destination else ""
+        if entry_destination and (ENTRY_BEGIN not in entry_template or ENTRY_END not in entry_template):
+            raise ValueError(f"entry template must contain {ENTRY_BEGIN} and {ENTRY_END}")
+    except (OSError, UnicodeError, ValueError) as exc:
+        print(f"ERROR: unable to load host entry template: {exc}", file=sys.stderr)
+        return 1
+
     actions: list[tuple[Path, Path, bool, str]] = []
+    entry_previews: dict[Path, tuple[str, str]] = {}
     blocked = False
     for source, relative_destination, is_template in planned_files(args.platform):
         destination = target / relative_destination
         if not is_inside_target(target, destination):
             status = "ERROR destination escapes target"
             blocked = True
+        elif relative_destination == entry_destination and destination.exists():
+            try:
+                existing = destination.read_bytes().decode("utf-8")
+                updated = integrate_entry(existing, entry_template)
+                if updated == existing:
+                    status = "IDC ENTRY CURRENT"
+                else:
+                    status = "INTEGRATE IDC ENTRY"
+                    entry_previews[destination] = (existing, updated)
+            except (OSError, UnicodeError, ValueError) as exc:
+                status = "ERROR unable to integrate IDC entry"
+                print(f"ERROR: {destination}: {exc}", file=sys.stderr)
+                blocked = True
         elif destination.exists() and not args.force:
             status = "SKIP existing"
         elif destination.exists():
@@ -231,6 +285,15 @@ def main() -> int:
     print(f"Target: {target}")
     for _, destination, _, status in actions:
         print(f"[{status}] {destination}")
+        if not apply_changes and destination in entry_previews:
+            original, updated = entry_previews[destination]
+            for line in difflib.unified_diff(
+                original.splitlines(keepends=True),
+                updated.splitlines(keepends=True),
+                fromfile=str(destination),
+                tofile=f"{destination} (IDC entry)",
+            ):
+                print(line, end="" if line.endswith(("\n", "\r")) else "\n")
 
     if blocked:
         return 1
@@ -240,10 +303,19 @@ def main() -> int:
 
     written = 0
     for source, destination, is_template, status in actions:
-        if status == "SKIP existing":
+        relative_destination = destination.relative_to(target)
+        if status in {"SKIP existing", "IDC ENTRY CURRENT"}:
             continue
         destination.parent.mkdir(parents=True, exist_ok=True)
-        if is_template:
+        if relative_destination == entry_destination:
+            if status == "INTEGRATE IDC ENTRY":
+                existing = destination.read_bytes().decode("utf-8")
+            elif is_template:
+                existing = render_template(source, args.project_name)
+            else:
+                existing = source.read_bytes().decode("utf-8")
+            destination.write_bytes(integrate_entry(existing, entry_template).encode("utf-8"))
+        elif is_template:
             destination.write_text(render_template(source, args.project_name), encoding="utf-8")
         elif args.platform in {"codex", "opencode", "claude-code"} and source.parent.parent == ROOT / "skills":
             destination.write_text(render_platform_skill(source), encoding="utf-8")

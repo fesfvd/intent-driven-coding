@@ -2,6 +2,31 @@
 
 You are reading a method and template set for designing a project-specific AI engineering system. Do not copy this repository unchanged into another project.
 
+## Installation Reality
+
+Cloning this source repository beside a project does not install its
+instructions into the host's always-loaded context. Persistent context requires
+a short entry in the host's recognized project instruction file. The provided
+installer supports Codex/OpenCode through root `AGENTS.md` and Claude Code
+through root `CLAUDE.md`; it previews a marked IDC block and preserves existing
+text outside that block. Other hosts need their documented entry mechanism
+configured manually. The full method remains in the generated project-root
+`IDC.md`.
+
+From this repository, install and check the CLI, then preview the host entry:
+
+```powershell
+python -m pip install -e .
+idc --help
+python scripts/bootstrap.py --target ../my-project --project-name "My Project" --platform codex --dry-run
+```
+
+Review the diff before repeating with `--apply`. Choose `opencode` or
+`claude-code` for those hosts. Then initialize the target's record store with
+`idc init --project ../my-project --project-key MYPROJECT --platform codex`.
+Generated files and a working CLI do not prove that the host loaded or followed
+the entry; see `docs/INSTALLATION.md` and `docs/HOST_ACCEPTANCE.md`.
+
 ## Host Evidence Boundary
 
 Automatic project-Skill discovery, named subagent dispatch, and handoff consumption have not passed host acceptance in the recorded OpenCode and Claude Code runs. Read relevant `SKILL.md` files on demand and treat a declared Squad as guidance until the installed host version has its own acceptance evidence. Start with `docs/MINIMAL.md`; do not require automatic routing for the first useful task.

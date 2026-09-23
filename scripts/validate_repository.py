@@ -64,6 +64,7 @@ REQUIRED_FILES = (
     "fixtures/host-acceptance/opencode.json",
     "templates/AGENT_ENTRY.md",
     "templates/AGENTS.md",
+    "templates/IDC_ENTRY.md",
     "templates/AI_ENGINEERING_PLAYBOOK.md",
     "templates/IDC.md",
     "templates/IDC_TASK.md",
@@ -130,6 +131,7 @@ REQUIRED_FILES = (
 ALLOWED_TEMPLATE_FILES = {
     Path("templates/AGENT_ENTRY.md"),
     Path("templates/AGENTS.md"),
+    Path("templates/IDC_ENTRY.md"),
     Path("templates/AI_ENGINEERING_PLAYBOOK.md"),
     Path("templates/SQUADS.md"),
     Path("templates/SQUAD.md"),

@@ -21,7 +21,7 @@ PLATFORM_REQUIRED_FILES = {
     "neutral": (Path(".agent/AGENT_ENTRY.md"),),
     "codex": (Path(".agents/templates/SQUAD.md"),),
     "opencode": (Path(".opencode/templates/SQUAD.md"),),
-    "claude-code": (Path(".claude/CLAUDE.md"), Path(".claude/templates/SQUAD.md")),
+    "claude-code": (Path("CLAUDE.md"), Path(".claude/templates/SQUAD.md")),
 }
 PLATFORM_SKILL_ROOTS = {
     "neutral": Path(".agent/skills"),
@@ -85,6 +85,12 @@ PLATFORM_REQUIRED_SKILLS = {
     "codex": ("team",),
     "opencode": ("team",),
     "claude-code": ("team",),
+}
+PLATFORM_ENTRY_FILES = {
+    "neutral": None,
+    "codex": Path("AGENTS.md"),
+    "opencode": Path("AGENTS.md"),
+    "claude-code": Path("CLAUDE.md"),
 }
 PLACEHOLDER = re.compile(r"\{\{[^{}]+\}\}")
 SQUAD_MEMBERS = re.compile(r"\|\s*Members\s*\|\s*([^|]+)\|", re.IGNORECASE)
@@ -299,6 +305,23 @@ def validate_squads(target: Path, skills: set[str]) -> tuple[list[str], list[str
     return errors, warnings
 
 
+def validate_host_entry(target: Path, platform: str) -> list[str]:
+    relative = PLATFORM_ENTRY_FILES[platform]
+    if relative is None:
+        return []
+    path = target / relative
+    if not path.is_file():
+        return [f"缺少宿主常驻 IDC 入口: {relative}"]
+    text = path.read_text(encoding="utf-8")
+    if text.count("<!-- IDC:BEGIN -->") != 1 or text.count("<!-- IDC:END -->") != 1:
+        return [f"{relative} 缺少唯一且完整的 IDC 入口块；请运行 bootstrap.py --platform {platform} --apply"]
+    start = text.index("<!-- IDC:BEGIN -->")
+    end = text.index("<!-- IDC:END -->")
+    if end < start or "IDC.md" not in text[start:end] or "idc start" not in text[start:end]:
+        return [f"{relative} 的 IDC 入口块未指向 IDC.md 和 idc start"]
+    return []
+
+
 def validate_evals(target: Path, skills: set[str], eval_root: Path) -> list[str]:
     errors: list[str] = []
     for path in sorted((target / eval_root).glob("*.json")):
@@ -341,6 +364,7 @@ def validate(target: Path, platform: str) -> tuple[list[str], list[str]]:
         errors.extend(validate_opencode_skill_collisions(target, skills))
     elif platform == "claude-code":
         errors.extend(validate_claude_agents(target, skills))
+    errors.extend(validate_host_entry(target, platform))
 
     framework_markdown = [
         target / "AGENTS.md",

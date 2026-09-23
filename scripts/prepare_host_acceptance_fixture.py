@@ -70,6 +70,19 @@ def copy_fixture_files(target: Path, platform: str) -> None:
     # Acceptance prompts remain outside the target so the model cannot route by reading answers.
     shutil.rmtree(target / (".opencode" if platform == "opencode" else ".claude") / "evals")
 
+    entry_relative = bootstrap.ENTRY_PATHS[platform]
+    entry_destination = target / entry_relative
+    entry_template = (
+        ROOT / "templates" / "claude" / "CLAUDE.md"
+        if platform == "claude-code"
+        else ROOT / "templates" / "IDC_ENTRY.md"
+    )
+    existing = entry_destination.read_text(encoding="utf-8") if entry_destination.exists() else ""
+    entry_destination.write_text(
+        bootstrap.integrate_entry(existing, entry_template.read_text(encoding="utf-8")),
+        encoding="utf-8",
+    )
+
 
 def main() -> int:
     args = parse_args()

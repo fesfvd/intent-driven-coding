@@ -34,31 +34,63 @@ validation.
 
    | Assistant | Installation |
    |---|---|
-   | Claude Code | Install the plugin through the marketplace, or generate the Claude Code project layout with `bootstrap.py --platform claude-code`. |
-   | OpenCode | Add the IDC plugin to the target `opencode.json`, or generate `.opencode/agents/` and `.opencode/skills/` with `bootstrap.py --platform opencode`. |
-   | Codex CLI | Generate `.agents/skills/` with `bootstrap.py --platform codex`; keep `AGENTS.md` as the project entry. |
-   | Cursor, Copilot, and other assistants | Generate the neutral layout, then merge `IDC.md` and `AGENT_ENTRY.md` into the platform's project instruction mechanism. |
+   | Claude Code | Install the plugin through the marketplace, or use `bootstrap.py --platform claude-code` to add a root `CLAUDE.md` entry and project-local resources. |
+   | OpenCode | Add the IDC plugin to the target `opencode.json`, or use `bootstrap.py --platform opencode` to add an IDC block to root `AGENTS.md` and generate native resources. |
+   | Codex CLI | Use `bootstrap.py --platform codex` to add an IDC block to root `AGENTS.md` and generate project Skills. |
+   | Cursor, Copilot, and other assistants | Their native persistent entry is not installer-verified here; use their documented project instruction file and add the short IDC entry block after reviewing that file. |
 
-4. Preview the generated files before writing:
+   The bootstrapper preserves text outside `<!-- IDC:BEGIN -->` and
+   `<!-- IDC:END -->` in existing `AGENTS.md` or `CLAUDE.md`. Dry-run shows
+   the actual merged diff. It does not merge an unmarked IDC block into an
+   existing file, and it does not configure third-party hosts automatically.
+
+4. Install the CLI in the environment that will run `idc`:
+
+   ```powershell
+   cd intent-driven-coding
+   python -m pip install -e .
+   idc --help
+   ```
+
+   This installs the `idc` command from this checkout. Keep the IDC checkout
+   available for updates. If you only need the file scaffold and do not intend
+   to use task capture yet, the CLI install can be deferred; the persistent
+   entry will then report that capture is unavailable.
+
+5. Preview the generated files before writing:
 
    ```powershell
    cd intent-driven-coding
    python scripts/bootstrap.py --target ../my-project --project-name "My Project" --dry-run
    ```
 
-5. Apply only after reviewing the plan:
+6. Apply only after reviewing the plan:
 
    ```powershell
    python scripts/bootstrap.py --target ../my-project --project-name "My Project" --apply
    ```
 
-   Add `--platform codex`, `--platform opencode`, or `--platform claude-code` when a native layout
-   is wanted. The script creates `IDC.md`, `docs/TASK_SCENARIOS.md`, and
-   `templates/IDC_TASK.md` in the target project, plus the selected root and
-   platform files. Existing files are preserved unless `--force` is explicitly
-   used with `--apply`.
+   Add `--platform codex`, `--platform opencode`, or `--platform claude-code`
+   to install the matching persistent entry. Review the dry-run diff before
+   apply, especially when the root instruction file already contains project
+   rules. Outside the managed IDC block those rules remain unchanged. Other
+   existing scaffold files are skipped by default; avoid `--force` unless you
+   intend to replace those files.
 
-6. Start the assistant at the target project root and tell it:
+7. Start the assistant at the target project root. Initialize the record store
+   once before expecting `idc start` to capture tasks:
+
+   ```powershell
+   idc init --project ../my-project --project-key MYPROJECT --platform codex
+   ```
+
+   Use `--platform claude-code` or `--platform opencode` as appropriate.
+   Then run `idc start --project ../my-project --summary "..."` to confirm the
+   CLI can write a capture. The host entry instructs the agent to perform this
+   capture; host acceptance is a separate check of whether the host actually
+   loads and follows that entry.
+
+8. Start the assistant at the target project root and tell it:
 
    ```text
    Read IDC.md first. Identify your host platform, then read the matching
@@ -73,11 +105,11 @@ validation.
    completion.
    ```
 
-7. Fill the generated `AGENTS.md`, `AI_ENGINEERING_PLAYBOOK.md`, and `SQUADS.md`
+9. Fill the generated `AGENTS.md`, `AI_ENGINEERING_PLAYBOOK.md`, and `SQUADS.md`
    with target-project facts. `IDC.md` explains how to use the framework;
    `AGENTS.md` explains how this project works. Do not mix those responsibilities.
 
-8. Validate the installation from the IDC repository:
+10. Validate the installation from the IDC repository:
 
    ```powershell
    python scripts/validate_project.py --target ../my-project
@@ -85,17 +117,11 @@ validation.
 
    Use `--platform codex`, `--platform opencode`, or `--platform claude-code` when applicable.
 
-9. Initialize the progressive record store with the installed CLI:
-
-   ```powershell
-   idc init --project ../my-project --project-key MYPROJECT --platform codex
-   ```
-
    `bootstrap.py` owns guidance and host layout only. `idc init` exclusively
    owns initial `.idc/config.json` creation, so the two tools cannot silently
    overwrite each other's configuration.
 
-   For the first real request, keep the record lightweight and append-only:
+   For real requests, keep the record lightweight and append-only:
 
    ```powershell
    idc start --project ../my-project --summary "Describe the request" --scene <initial-scene> --actor human
