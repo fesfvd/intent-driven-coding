@@ -59,11 +59,16 @@ and routing hints. The obligation engine, not the label, controls hard gates.
 |-- work-items/<record-id>/events.jsonl   # authoritative append-only facts
 |-- work-items/<record-id>/CARD.md        # provisional card for unpromoted captures
 |-- task-ids/<task-id>                    # atomic identity reservation
-`-- tasks/<task-id>.md                    # generated human-readable projection
+|-- tasks/<task-id>.md                    # generated human-readable projection
+|-- index/tasks.json                      # rebuildable task summary cache
+`-- learning-state.json                   # atomic learning cadence projection
 ```
 
 An event states who recorded what, when, and with which provenance. The Markdown
-card is always rebuilt from events and must not be edited directly.
+card is always rebuilt from events and must not be edited directly. The task
+index and learning state are projections: they may be rebuilt or replaced and
+must never override the event stream when their contents disagree with task
+history.
 
 Evidence provenance uses `claimed`, `host-observed`, `command-evidence`,
 `artifact-evidence`, `human-confirmed`, or `reconstructed`. A label describes the

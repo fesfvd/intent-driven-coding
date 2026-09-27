@@ -49,10 +49,20 @@ my-project/
 |-- docs/TASK_SCENARIOS.md
 |-- templates/IDC_TASK.md
 `-- .opencode/
-    |-- agents/
-    |-- skills/
-    |-- templates/
+    |-- agents/              # 8 native Agents, including team and learning-curator
+    |   |-- team.md
+    |   |-- architecture.md
+    |   |-- debug.md
+    |   |-- code-review.md
+    |   |-- verify.md
+    |   |-- meta-skill-designer.md
+    |   |-- skill-creator.md
+    |   `-- learning-curator.md
+    |-- skills/              # same 8 portable Skills
+    |-- templates/SQUAD.md
     `-- evals/
+        |-- squad-routing.json
+        `-- skill-design.json
 ```
 
 OpenCode discovers project Skills from `.opencode/skills/<name>/SKILL.md` and native Agents from `.opencode/agents/*.md`.
@@ -68,6 +78,7 @@ OpenCode discovers project Skills from `.opencode/skills/<name>/SKILL.md` and na
 | `verify` | subagent | VERIFY | Collect fresh evidence for completion claims. |
 | `meta-skill-designer` | subagent | DESIGN (meta) / LEARN | Design a project-specific roster and squad contracts from evidence. |
 | `skill-creator` | subagent | BUILD (meta) | Draft or improve an approved individual Skill and its evaluations. |
+| `learning-curator` | subagent | LEARN | Review bounded completed-task evidence for durable project knowledge and human disposition. |
 
 Available Agents are a capability pool, not a permanent team. The `team` Agent should select the smallest capability set required by current dynamic obligations. See `skills/team/SKILL.md` for the universal lifecycle. Legacy compatibility note: an imported contract may call an activity a "pipeline phase"; that term does not control current state.
 

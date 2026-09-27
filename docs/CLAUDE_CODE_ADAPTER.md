@@ -15,7 +15,7 @@ The framework ships as a Claude Code plugin. Install via marketplace:
 /plugin install intent-driven-coding@intent-driven-coding-marketplace
 ```
 
-After install, Claude Code auto-discovers the seven `skills/` and runs the SessionStart hook that injects progressive-record guidance plus the core dynamic-obligation HARD-GATEs. Skills activate via Claude Code's progressive disclosure: only the `name` and `description` load at session start; full `SKILL.md` loads when a task matches.
+After install, Claude Code auto-discovers the eight `skills/` and runs the SessionStart hook that injects progressive-record guidance plus the core dynamic-obligation HARD-GATEs. Skills activate via Claude Code's progressive disclosure: only the `name` and `description` load at session start; full `SKILL.md` loads when a task matches.
 
 The optional scaffold (`scripts/bootstrap.py`) remains available for projects that need project-local subagents or `.idc/` contracts, but it is **not required** for plugin-based adoption.
 
@@ -45,11 +45,25 @@ my-project/
 |-- templates/IDC_TASK.md
 |-- CLAUDE.md                # IDC block is merged here; unrelated text is preserved
 `-- .claude/
-    |-- agents/
-    |-- skills/
-    |-- templates/
+    |-- agents/              # 7 specialist subagents; team is the main session + Skill
+    |   |-- architecture.md
+    |   |-- debug.md
+    |   |-- code-review.md
+    |   |-- verify.md
+    |   |-- meta-skill-designer.md
+    |   |-- skill-creator.md
+    |   `-- learning-curator.md
+    |-- skills/              # 8 Skills, including team and learning-curator
+    |-- templates/SQUAD.md
     `-- evals/
+        |-- squad-routing.json
+        `-- skill-design.json
 ```
+
+The scaffold does not create Claude Code `settings.json`, hooks, MCP
+configuration, or user-level files. Plugin installation and project-local
+scaffolding are separate distribution paths; check discovery precedence before
+installing duplicate Skills.
 
 ## Agent Mapping
 
@@ -62,6 +76,7 @@ my-project/
 | `verify` subagent | VERIFY | Gather fresh evidence before a completion claim. |
 | `meta-skill-designer` subagent | DESIGN (meta) / LEARN | Design a project-specific roster and squad contracts from evidence. |
 | `skill-creator` subagent | BUILD (meta) | Draft or revise one approved Skill and its evaluations. |
+| `learning-curator` subagent | LEARN | Review bounded completed-task evidence for durable project knowledge and human disposition. |
 
 Subagents are a capability pool, not a permanent team. The main session must select only the members required by current dynamic obligations. See `skills/team/SKILL.md` for the universal lifecycle and activity model. Legacy compatibility note: an imported contract may call an activity a "pipeline phase"; that term does not control current state.
 

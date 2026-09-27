@@ -18,6 +18,55 @@ The target project receives only the selected adapter layout and the project
 guidance it needs. The framework repository remains the source for updates and
 validation.
 
+`bootstrap.py` installs framework guidance and one selected host layout. It
+does not install the Python CLI package or initialize `.idc/` task data; those
+are separate steps below.
+
+### Files Installed By The Bootstrapper
+
+Every layout receives these shared files and the same eight Skills:
+
+```text
+<target>/
+├── AGENTS.md
+├── AI_ENGINEERING_PLAYBOOK.md
+├── IDC.md
+├── SQUADS.md
+├── docs/TASK_SCENARIOS.md
+├── templates/IDC_TASK.md
+└── <host-skill-root>/
+    ├── team/SKILL.md
+    ├── architecture/SKILL.md
+    ├── debug/SKILL.md
+    ├── code-review/SKILL.md
+    ├── verify/SKILL.md
+    ├── meta-skill-designer/SKILL.md
+    ├── skill-creator/SKILL.md
+    └── learning-curator/SKILL.md
+```
+
+The selected host adds:
+
+| `--platform` | Skill root | Additional generated files |
+|---|---|---|
+| `neutral` (default) | `.agent/skills/` | `.agent/AGENT_ENTRY.md`, `.agent/templates/SQUAD.md`, `.agent/evals/squad-routing.json`, `.agent/evals/skill-design.json` |
+| `codex` | `.agents/skills/` | IDC entry merged into root `AGENTS.md`, `.agents/templates/SQUAD.md`, `.agents/evals/{squad-routing,skill-design}.json` |
+| `opencode` | `.opencode/skills/` | IDC entry merged into root `AGENTS.md`, eight `.opencode/agents/*.md`, `.opencode/templates/SQUAD.md`, `.opencode/evals/{squad-routing,skill-design}.json` |
+| `claude-code` | `.claude/skills/` | Root `CLAUDE.md` IDC entry, seven `.claude/agents/*.md`, `.claude/templates/SQUAD.md`, `.claude/evals/{squad-routing,skill-design}.json` |
+
+OpenCode Agents are `team`, `architecture`, `debug`, `code-review`, `verify`,
+`meta-skill-designer`, `skill-creator`, and `learning-curator`. Claude Code has
+seven specialist subagents (`architecture`, `debug`, `code-review`, `verify`,
+`meta-skill-designer`, `skill-creator`, and `learning-curator`); the main session
+uses the `team` Skill. Codex receives Skills and eval fixtures but no native
+Agent definitions. The neutral layout is tool-neutral and does not claim
+automatic host discovery.
+
+Install the CLI separately with `python -m pip install -e .`. Running `idc
+init` creates `.idc/config.json`; task events, Markdown projections, the
+rebuildable index, and learning state are runtime data created as the project
+is used.
+
 ## Recommended Clone And Install
 
 1. Clone IDC beside the target project:
@@ -34,9 +83,9 @@ validation.
 
    | Assistant | Installation |
    |---|---|
-   | Claude Code | Install the plugin through the marketplace, or use `bootstrap.py --platform claude-code` to add a root `CLAUDE.md` entry and project-local resources. |
-   | OpenCode | Add the IDC plugin to the target `opencode.json`, or use `bootstrap.py --platform opencode` to add an IDC block to root `AGENTS.md` and generate native resources. |
-   | Codex CLI | Use `bootstrap.py --platform codex` to add an IDC block to root `AGENTS.md` and generate project Skills. |
+   | Claude Code | Install the plugin through the marketplace, or use `bootstrap.py --platform claude-code` to add a root `CLAUDE.md` entry, eight Skills, seven subagents, templates, and eval fixtures. |
+   | OpenCode | Add the IDC plugin to the target `opencode.json`, or use `bootstrap.py --platform opencode` to add an IDC block to root `AGENTS.md` and generate eight Skills, eight Agents, templates, and eval fixtures. |
+   | Codex CLI | Use `bootstrap.py --platform codex` to add an IDC block to root `AGENTS.md` and generate eight project Skills, a squad template, and eval fixtures. |
    | Cursor, Copilot, and other assistants | Their native persistent entry is not installer-verified here; use their documented project instruction file and add the short IDC entry block after reviewing that file. |
 
    The bootstrapper preserves text outside `<!-- IDC:BEGIN -->` and

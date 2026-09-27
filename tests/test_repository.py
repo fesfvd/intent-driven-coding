@@ -80,6 +80,28 @@ class RepositoryTests(unittest.TestCase):
         ):
             self.assertTrue((ROOT / relative).is_file(), relative)
 
+    def test_bootstrap_platform_manifests_include_all_skills_and_expected_host_files(self) -> None:
+        import bootstrap
+
+        manifests = {
+            platform: {destination.as_posix() for _, destination, _ in bootstrap.planned_files(platform)}
+            for platform in ("neutral", "codex", "opencode", "claude-code")
+        }
+        skill_names = {
+            "team", "architecture", "debug", "code-review", "verify",
+            "meta-skill-designer", "skill-creator", "learning-curator",
+        }
+        for platform, manifest in manifests.items():
+            skill_root = {"neutral": ".agent", "codex": ".agents", "opencode": ".opencode", "claude-code": ".claude"}[platform]
+            for name in skill_names:
+                self.assertIn(f"{skill_root}/skills/{name}/SKILL.md", manifest)
+
+        self.assertEqual(sum(path.startswith(".opencode/agents/") for path in manifests["opencode"]), 8)
+        self.assertEqual(sum(path.startswith(".claude/agents/") for path in manifests["claude-code"]), 7)
+        for platform, root in (("neutral", ".agent"), ("codex", ".agents"), ("opencode", ".opencode"), ("claude-code", ".claude")):
+            self.assertIn(f"{root}/evals/squad-routing.json", manifests[platform])
+            self.assertIn(f"{root}/evals/skill-design.json", manifests[platform])
+
     def test_phase_one_routing_fixture_supports_manual_host_acceptance(self) -> None:
         routing_fixture = json.loads(
             (ROOT / "evals" / "squad-routing.json").read_text(encoding="utf-8")
@@ -186,6 +208,7 @@ class RepositoryTests(unittest.TestCase):
             "|   |-- IDC.md",
             "|   `-- idc-task-event-v1.schema.json",
             "|-- idc_core/",
+            "|-- AGENTS.md",
             "|-- self-use/",
             "|-- .claude-plugin/",
             "|-- .opencode/",

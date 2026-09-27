@@ -22,9 +22,9 @@ IDC **不是提示词包、不是固定 Agent 团队，也不是自动编排运�
 
 | 宿主 | 常驻入口 | 脚手架能力 |
 |---|---|---|
-| Codex | 项目根目录 `AGENTS.md` | 合并 IDC 标记块，并生成 Codex Skills 布局 |
-| OpenCode | 项目根目录 `AGENTS.md` | 合并 IDC 标记块，并生成 OpenCode Agents 与 Skills |
-| Claude Code | 项目根目录 `CLAUDE.md` | 合并 IDC 标记块，并生成 Claude Code subagents 与 Skills |
+| Codex | 项目根目录 `AGENTS.md` | 合并 IDC 标记块，并生成 8 个 Skills、Squad 模板和评测样例；不生成原生 Agent 定义 |
+| OpenCode | 项目根目录 `AGENTS.md` | 合并 IDC 标记块，并生成 8 个 Agents、8 个 Skills、Squad 模板和评测样例 |
+| Claude Code | 项目根目录 `CLAUDE.md` | 合并 IDC 标记块，并生成 7 个 subagents、8 个 Skills、Squad 模板和评测样例 |
 | Cursor、Copilot 等 | 由各自版本和项目配置决定 | 本仓库没有对应的自动安装器；需按该宿主文档手动接入入口 |
 
 现有 `AGENTS.md` 或 `CLAUDE.md` 不会被整份替换。安装器只插入或更新 `<!-- IDC:BEGIN -->` 与 `<!-- IDC:END -->` 之间的内容，其他文本保持原样；dry-run 会显示合并 diff。没有标记的旧 IDC 文本不会被猜测或自动删除。更多边界和步骤见[安装指南](docs/INSTALLATION.md)。
@@ -53,7 +53,9 @@ python scripts/validate_project.py --target ../my-project --platform codex
 
 将 `codex` 改为 `opencode` 或 `claude-code` 可生成对应布局。OpenCode 插件和 Claude Code marketplace 安装方式、权限说明与已知验收记录分别见[平台适配总览](docs/PLATFORM_ADAPTERS.md)、[OpenCode 适配](docs/OPENCODE_ADAPTER.md)和[Claude Code 适配](docs/CLAUDE_CODE_ADAPTER.md)。
 
-`python -m pip install -e .` 会安装当前 checkout 的 `idc` 命令及声明依赖；保留这个 checkout 以便更新。脚手架负责文件和宿主布局，`idc init` 负责建立目标项目的 `.idc/` 记录配置。若只想生成文件，可暂缓 CLI 安装，但此时 `idc start` 不可用。
+所有 bootstrap 布局都会安装同一组 8 个 Skills：`team`、`architecture`、`debug`、`code-review`、`verify`、`meta-skill-designer`、`skill-creator` 和 `learning-curator`。各宿主的文件明细见[安装指南](docs/INSTALLATION.md)。
+
+`python -m pip install -e .` 会单独安装当前 checkout 的 `idc` 命令及声明依赖；保留这个 checkout 以便更新。脚手架负责框架文件和宿主布局，`idc init` 负责建立目标项目的 `.idc/config.json`。事件、Markdown 投影、可重建索引和学习状态属于运行时数据，会在使用过程中生成。若只生成框架文件而不安装 CLI，`idc start` 不可用。
 
 ## 第一个任务
 
@@ -101,10 +103,10 @@ AI 应从当前任务交付开始；只有反复出现的工作和证据说明�
 
 仓库包含：
 
-- `team`、`architecture`、`debug`、`code-review`、`verify`、`meta-skill-designer`、`skill-creator` 等方法 Skills。
+- `team`、`architecture`、`debug`、`code-review`、`verify`、`meta-skill-designer`、`skill-creator`、`learning-curator` 等方法 Skills。
 - 中性、Codex、OpenCode 和 Claude Code 的脚手架模板，以及结构、Skill 和合同校验工具。
 - 用 JSON Schema 描述 Squad 合同与离线评测记录的示例。
-- 本地 `idc` CLI：渐进式任务记录、生命周期、动态义务、事件投影、诊断和只读指标。
+- 本地 `idc` CLI：渐进式任务记录、生命周期、动态义务、事件投影、诊断、学习 cadence 和只读指标；`.idc/index/tasks.json` 是可重建缓存，事件流仍是事实源。
 - 实验性的显式 OpenCode 合同控制器；它不是宿主 Agent runtime。
 - 不含路由答案的宿主验收夹具和版本化观测记录。
 
@@ -117,6 +119,7 @@ IDC 的目标是评估工程内容与方法，不为项目正确性、安全性�
 ```text
 intent-driven-coding/
 |-- AI_START_HERE.md          # 给 coding agent 的采用入口
+|-- AGENTS.md                 # 本仓库自用的架构与验证指引
 |-- README.md
 |-- QUICKSTART.md
 |-- AUTHOR.md
@@ -133,10 +136,10 @@ intent-driven-coding/
 |   |-- IDC_ENTRY.md
 |   `-- IDC_TASK.md
 |-- idc_core/                 # CLI、事件、工作流和投影实现
-|-- skills/                   # 可按任务显式读取的专业方法
+|-- skills/                   # 8 个可按任务显式读取的专业方法
 |-- scripts/                  # 安装、结构检查、合同检查和实验控制器
 |-- contracts/                # 合同示例
-|-- schemas/
+|-- schemas/                  # 合同与事件 schema
 |   `-- idc-task-event-v1.schema.json
 |-- evals/                    # 离线评测样例
 |-- fixtures/                 # 宿主验收目标夹具
@@ -145,7 +148,7 @@ intent-driven-coding/
 |-- self-use/                 # 本仓库自用的轻量个人配置
 |-- .claude-plugin/           # Claude Code 插件清单
 |-- .opencode/                # OpenCode 插件与配置
-|-- hooks/                    # Claude Code 会话入口
+|-- hooks/                    # Claude Code SessionStart 入口
 `-- tests/                    # CLI、工作流、分发和仓库测试
 ```
 

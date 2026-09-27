@@ -1,6 +1,7 @@
 # 本地 CLI
 
-`idc` 现在也是渐进式任务记录的宿主中立入口。典型流程是 `idc init`、
+`idc` 现在也是渐进式任务记录的宿主中立入口。已安装环境使用 `idc`；源码 checkout
+可以使用 `python scripts/idc.py`。典型流程是 `idc init`、
 `idc start`、在实质工作开始时 `idc promote`，然后用 `shape`、`classify`、
 `change`、`condition`、`activity` 和 `add-evidence` 追加事实。生命周期为
 `captured -> shaped -> active -> validating -> closed`；dynamic obligations
@@ -11,13 +12,16 @@
 未 promote 的捕获在 `.idc/work-items/<record-id>/CARD.md` 生成带 `(capture)`
 表头的临时卡，`start --scene <label>` 把开局场景初判写入首个分类事件，
 `start` 的输出即第一份工作报告。`.idc/tasks/<task-id>.md` 是自动生成的投影，
-不应手工编辑。
+不应手工编辑。`.idc/index/tasks.json` 是可重建的指标/学习缓存，
+`learning-state.json` 是原子替换的 cadence 状态；两者都不能取代事件流。
 
 ```powershell
 idc init --project ../my-project --project-key MYPROJECT --platform neutral
 idc start --project ../my-project --summary "Fix blank report" --scene debug --actor human
 idc promote --project ../my-project --record <record-id>
 idc doctor --project ../my-project
+idc learn-check --project ../my-project --json
+idc learn-session --project ../my-project --summary "Review completed work"
 ```
 
 Exploratory requests can stay temporary and expire without deleting their event history:
@@ -27,6 +31,9 @@ idc start --project ../my-project --summary "Investigate idea" --temporary
 idc discard --project ../my-project --record <record-id> --reason "Not needed"
 idc metrics --project ../my-project --json
 ```
+
+`learn-check` 的 `status` 表达 `quiet` 或 `due` 业务状态；即使状态为
+`due`，命令也会返回退出码 `0`。配置或执行错误才返回非零退出码。
 
 Temporary capture defaults to 72 hours, can be configured with `capture_ttl_hours` in
 `.idc/config.json`, and accepts an explicit `--ttl-hours` override. Acceptance inputs to

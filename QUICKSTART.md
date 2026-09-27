@@ -21,7 +21,7 @@ After plugin install, the agent receives progressive-record guidance and dynamic
 
 ### First Useful Task
 
-Place this repository beside the target project:
+For a target project, place this repository beside the target project:
 
 ```text
 workspace/
@@ -57,6 +57,10 @@ During ordinary work the agent should:
 5. Combine observed friction and risks with the user's experience, corrections, and priorities.
 6. Add a thin entry, architecture note, Skill, squad, or evaluation only when shared evidence and judgment show it will help future work.
 7. Keep the authoritative event stream under `.idc/work-items/`; render `.idc/tasks/` projections for meaningful durable work.
+
+When working on the IDC repository itself, read the repository-root `AGENTS.md`
+first. It is the self-use architecture and verification guide; it does not
+replace this adoption guide for target projects.
 
 ## Human And AI Learn Together
 
@@ -100,6 +104,34 @@ python scripts/bootstrap.py --target ../my-project --project-name "My Project" -
 ```
 
 The installer previews all changes. For Codex and OpenCode, it merges a marked IDC block into root `AGENTS.md`; for Claude Code, it merges the block into root `CLAUDE.md`. Text outside the managed block is preserved. Review the diff before `--apply`. Other existing scaffold files are skipped unless `--force` is supplied.
+
+All layouts include the shared project guides and eight Skills (`team`,
+`architecture`, `debug`, `code-review`, `verify`, `meta-skill-designer`,
+`skill-creator`, `learning-curator`). Codex receives Skills, eval fixtures, and a squad template;
+OpenCode also receives eight native Agents; Claude Code receives seven
+subagents because the main session uses the `team` Skill. The neutral layout
+uses `.agent/` and does not claim automatic host discovery. See
+[Installation](docs/INSTALLATION.md) for the complete per-platform file list.
+
+The scaffold does not install the `idc` executable. Install it separately with
+`python -m pip install -e .`, then run `idc init` to create `.idc/config.json`.
+Event logs, generated task views, the rebuildable task index, and learning state
+are runtime data created as IDC is used.
+
+### Codex Native Layout
+
+For Codex, use the Codex platform flag to create `.agents/skills/`, eval
+fixtures, a squad template, and a managed entry in root `AGENTS.md`:
+
+```powershell
+python scripts/bootstrap.py --target ../my-project --project-name "My Project" --platform codex --dry-run
+python scripts/bootstrap.py --target ../my-project --project-name "My Project" --platform codex --apply
+python scripts/validate_project.py --target ../my-project --platform codex
+```
+
+The bootstrapper does not generate native Codex Agent definitions. Confirm the
+installed Codex version's Skill discovery behavior before
+relying on automatic Skill loading.
 
 ### OpenCode Native Layout
 
@@ -166,7 +198,13 @@ Use `.agent/templates/SQUAD.md` for the neutral layout, `.opencode/templates/SQU
 
 For a deeper workshop, follow `docs/SQUAD_WORKSHOP.md` in this source repository.
 
-Then adapt `.agent/evals/squad-routing.json` and `.agent/evals/skill-design.json` for the neutral layout, `.opencode/evals/squad-routing.json` and `.opencode/evals/skill-design.json` for the OpenCode layout, or `.claude/evals/squad-routing.json` and `.claude/evals/skill-design.json` for the Claude Code layout, to your real user language and project boundaries.
+Then adapt the generated eval files under the selected host root:
+`.agent/evals/`, `.agents/evals/`, `.opencode/evals/`, or `.claude/evals/`.
+For example, the Claude Code files are
+`.claude/evals/squad-routing.json` and `.claude/evals/skill-design.json`;
+OpenCode uses the corresponding `.opencode/evals/` paths and Codex uses
+`.agents/evals/`. They must describe the target project's real user language
+and boundaries.
 
 ## 6. Connect Your Agent
 
@@ -197,6 +235,12 @@ For the OpenCode layout, replace the project validation command with:
 
 ```powershell
 python scripts/validate_project.py --target ../my-project --platform opencode
+```
+
+For the Codex layout, use:
+
+```powershell
+python scripts/validate_project.py --target ../my-project --platform codex
 ```
 
 For the Claude Code layout, replace the project validation command with:
@@ -255,3 +299,13 @@ Your first setup is usable when:
 - Skill design requests route through the meta-design squad rather than immediately creating more prompts.
 - The target platform actually discovers the intended entry and Skills, or the project documents an on-demand reading fallback.
 - The result reflects the target repository rather than unchanged examples from this framework.
+
+## When Working On IDC Itself
+
+The IDC repository uses its own method incrementally. Read `AGENTS.md`, capture
+the request with `idc start --project .`, promote it when investigation or edits
+begin, and keep the event record aligned with the change. For documentation,
+installation, or host claims, inspect current source and acceptance evidence
+before editing public text. Run focused checks first, then the repository
+validator and full test suite. A green structural check does not prove live host
+routing.

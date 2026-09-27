@@ -25,7 +25,7 @@ Across every host, AI-first describes who takes the initial learning burden, not
 
 1. For Codex, use `bootstrap.py --platform codex` to preview and merge the managed IDC block into root `AGENTS.md`. Existing text outside the block is preserved. Other platforms need their documented project instruction entry; this repository does not claim an automated installer for them.
 2. Keep root `IDC.md` as the full framework guide. The short managed entry tells the assistant to read it and capture actionable work with `idc start`.
-3. Install or reference `.agent/skills/*/SKILL.md` using the platform's project-local or user-level Skill mechanism.
+3. The neutral bootstrap places eight bundled Skills under `.agent/skills/`; install or reference only the selected Skills using the platform's project-local or user-level Skill mechanism.
 4. Keep `AGENTS.md`, `AI_ENGINEERING_PLAYBOOK.md`, `SQUADS.md`, `docs/TASK_SCENARIOS.md`, and `templates/IDC_TASK.md` at the project root unless your platform requires another path.
 5. Map `allowed-tools` names to the platform's actual tools.
 6. Test one direct task, one squad task, one ambiguity, and one permission gate.
@@ -42,7 +42,7 @@ Recommended adaptation:
 
 1. Read [Claude Code Adapter](CLAUDE_CODE_ADAPTER.md) for the project-local generated layout and acceptance check.
 2. Use `bootstrap.py --platform claude-code` to preview and merge the managed IDC block into root `CLAUDE.md`. Existing text outside the block is preserved; the entry points to root `IDC.md` and `idc start`.
-3. Install only the selected project Skills under the project-local Skill location recognized by that Claude Code version.
+3. The Claude Code bootstrap generates eight Skills under `.claude/skills/` and seven specialist subagents under `.claude/agents/`; the main session uses the `team` Skill. Confirm discovery with the installed version.
 4. Preserve Skill frontmatter and map `allowed-tools` to tools actually available in the environment.
 5. Verify that the project entry loads and realistic prompts trigger or explicitly read the expected Skills.
 6. If subagents are available, they may execute distinct squad roles. Otherwise the main agent can apply Skills sequentially; the squad model does not require separate processes.
@@ -61,7 +61,7 @@ Recommended adaptation:
 
 1. Read [OpenCode Adapter](OPENCODE_ADAPTER.md) for the project-local generated layout and acceptance check.
 2. Keep architecture semantics in root `AGENTS.md`.
-3. Install selected Skills in the project-local location recognized by the current OpenCode setup, or configure agents to read them on demand.
+3. The OpenCode bootstrap generates eight Skills under `.opencode/skills/` and eight native Agents under `.opencode/agents/`. Confirm discovery with the installed version, or configure Agents to read selected Skills on demand.
 4. Translate project-specific permission gates into actual OpenCode policy rules without overriding the user's global configuration.
 5. Test automatic routing, direct Skill loading, and confirmation behavior rather than assuming compatibility from file shape alone.
 
@@ -79,7 +79,7 @@ Recommended adaptation:
 
 1. Use `AGENTS.md` as the architecture and repository-guidance anchor.
 2. Reference `AI_ENGINEERING_PLAYBOOK.md` and `SQUADS.md` from the platform-recognized instruction entry.
-3. If the installed Codex environment supports project Skills, place selected Skills in its documented location. Otherwise have the main agent read the relevant `SKILL.md` explicitly when a squad is selected.
+3. The Codex bootstrap places eight Skills under `.agents/skills/`, eval fixtures under `.agents/evals/`, and a Squad template under `.agents/templates/`, but does not generate native Agent definitions. Confirm project Skill discovery in the installed Codex version; otherwise have the main agent read the relevant `SKILL.md` explicitly when a squad is selected.
 4. Verify tool permissions and external-action confirmation behavior.
 5. Do not claim automatic Skill triggering until it has been tested in that environment.
 

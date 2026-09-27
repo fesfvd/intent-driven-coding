@@ -2,6 +2,10 @@
 
 You are reading a method and template set for designing a project-specific AI engineering system. Do not copy this repository unchanged into another project.
 
+If your current working directory is the IDC repository itself, read the root
+`AGENTS.md` before this document. That file is IDC's own architecture and
+verification guide; this document remains the adoption entry for target projects.
+
 ## Installation Reality
 
 Cloning this source repository beside a project does not install its
@@ -37,6 +41,10 @@ Adapt the framework to a target repository so that users can express goals in or
 
 Every handoff should have an artifact, every completion claim should have fresh evidence, and product meaning plus risky external actions should remain human decisions. The quality of the resulting system depends on both model capability and the human's experience, attention, and judgment.
 
+The same rule applies to IDC itself: repository changes should be captured in
+IDC's local `.idc/` record, grounded in current source and tests, and verified
+before the public method or host claims are updated.
+
 ## Learn While Delivering
 
 The human does not need to master this framework before benefiting from it. You, the coding agent, should learn the framework first, investigate the repository, identify the host platform, and reduce the mechanical cost of adaptation.
@@ -70,6 +78,9 @@ Read only as far as needed for the next adaptation decision:
 6. `skills/meta-skill-designer/SKILL.md` only when repeated evidence justifies system design.
 7. `skills/skill-creator/SKILL.md` only after a Skill contract is ready.
 8. Capability, archetype, squad, template, and evaluation references only when the current adoption decision needs them.
+
+For IDC repository work, also consult the root `AGENTS.md` for module ownership,
+schema synchronization, bootstrap manifest rules, and verification commands.
 
 Do not load every document and Skill by default. Follow the framework's progressive context model.
 
@@ -169,6 +180,10 @@ At minimum:
 - test one permission gate;
 - run the target project's real checks;
 - run `scripts/validate_project.py --target <target>` from this framework repository when available.
+
+For IDC repository changes, additionally run `python scripts/validate_repository.py`,
+the relevant contract and Skill checks, `ruff check idc_core scripts tests`, and
+the full unittest suite when the change crosses shared behavior or public contracts.
 
 ## Do Not
 

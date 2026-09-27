@@ -1,0 +1,8 @@
+{
+  "schema_version": 2,
+  "idc_version": "1.2.0",
+  "project_key": "IDC",
+  "record_policy": "local-private",
+  "adapter": "codex",
+  "capture_ttl_hours": 72
+}
