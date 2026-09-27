@@ -19,7 +19,11 @@ an AI coding assistant should read after entering this repository.
 6. Require fresh verification evidence before claiming completion.
 7. Ask only for decisions that change behavior, data, privacy, permissions,
    cost, or irreversible effects. Never infer authorization for commit, push,
-   deployment, production writes, paid calls, or destructive actions.
+    deployment, production writes, paid calls, or destructive actions.
+8. At project checkpoints, run `idc learn-check --project . --json`. Keep the
+   interaction quiet when it returns `quiet`; only route the low-frequency
+   `learning-curator` squad when it returns `due`. Accept, merge, defer, reject,
+   or retire candidates explicitly before changing durable project guidance.
 
 ## IDC Sources
 

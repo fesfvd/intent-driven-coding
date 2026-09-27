@@ -357,6 +357,11 @@ class ProgressiveCliTests(unittest.TestCase):
             )
             record_id = json.loads(started.stdout)["record_id"]
             self.run_idc("promote", "--project", str(project), "--record", record_id)
+            self.run_idc(
+                "shape", "--project", str(project), "--record", record_id,
+                "--goal", "Deploy report update", "--scope", "report",
+                "--acceptance", "health=Service is healthy",
+            )
             self.run_idc("transition", "--project", str(project), "--record", record_id, "--to", "active")
 
             changed = self.run_idc(
@@ -681,6 +686,51 @@ class ProgressiveCliTests(unittest.TestCase):
                 project / ".idc" / "work-items" / record_id / "events.jsonl"
             ).read_text(encoding="utf-8")
             self.assertIn('"capture.discarded"', events)
+
+    def test_learning_check_is_quiet_after_init_and_session_can_reset_cadence(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            project.mkdir()
+            initialized = self.run_idc(
+                "init", "--project", str(project), "--project-key", "LAS", "--json"
+            )
+            self.assertEqual(initialized.returncode, 0, initialized.stderr)
+
+            checked = self.run_idc("learn-check", "--project", str(project), "--json")
+            self.assertEqual(checked.returncode, 0, checked.stderr)
+            self.assertEqual(json.loads(checked.stdout)["status"], "quiet")
+
+            session = self.run_idc(
+                "learn-session", "--project", str(project),
+                "--summary", "No durable candidates; existing guidance remains concise", "--json"
+            )
+            self.assertEqual(session.returncode, 0, session.stderr)
+            self.assertTrue((project / ".idc" / "learning-state.json").is_file())
+
+    def test_learning_check_due_is_a_successful_business_result(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir) / "project"
+            project.mkdir()
+            self.run_idc("init", "--project", str(project), "--project-key", "LAS")
+            config_path = project / ".idc" / "config.json"
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+            config["learning"] = {"completed_task_threshold": 1, "max_days": 30}
+            config_path.write_text(json.dumps(config), encoding="utf-8")
+            work_item = project / ".idc" / "work-items" / "work-completed"
+            work_item.mkdir(parents=True)
+            (work_item / "events.jsonl").write_text(
+                json.dumps({
+                    "record_id": "work-completed", "seq": 0, "type": "task.closed",
+                    "payload": {"outcome": "completed"},
+                    "timestamp": "2026-09-20T00:00:00+00:00",
+                }) + "\n",
+                encoding="utf-8",
+            )
+
+            checked = self.run_idc("learn-check", "--project", str(project), "--json")
+
+            self.assertEqual(checked.returncode, 0, checked.stderr)
+            self.assertEqual(json.loads(checked.stdout)["status"], "due")
 
 
 if __name__ == "__main__":

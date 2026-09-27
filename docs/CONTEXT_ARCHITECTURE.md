@@ -92,3 +92,17 @@ Deterministic constraint -> test/script/lint
 ```
 
 Avoid maintaining the same fact in multiple Skills. Duplication creates stale confidence.
+
+## Periodic Knowledge Curation
+
+Task evidence is collected continuously, but durable knowledge is curated in a
+low-frequency project squad. Hosts may run `idc learn-check --project <path>
+--json` at a session or milestone checkpoint. A `quiet` result must not load a
+learning Skill or ask the user for a review. A `due` result loads the project's
+`learning-curator` route and gives it a bounded batch of completed work.
+
+The curator must compare candidates with existing guidance before proposing new
+text. Human disposition is required for every candidate: accept, merge, defer,
+reject, or retire. Accepted knowledge must include a removal or review test.
+`learning-state.json` stores only the cadence checkpoint and session summary;
+the task event stream remains the authority for evidence and decisions.

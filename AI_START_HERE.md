@@ -100,7 +100,8 @@ current user goal
   -> AI explains the relevant concept, evidence, and uncertainty
   -> human contributes pain, experience, correction, and priorities
   -> jointly identify repeated friction, risk, and reusable handoffs
-  -> add or revise project guidance only after evidence and human judgment pass the creation gate
+   -> periodically invoke the learning-curator squad when the cadence check is due
+   -> add, merge, or retire project guidance only after evidence and human judgment pass the creation gate
 ```
 
 The first successful task may produce no new framework files. That is acceptable. Build project infrastructure only when it will reduce future work or control a real risk.

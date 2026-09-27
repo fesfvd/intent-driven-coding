@@ -181,6 +181,17 @@ Legacy compatibility: older cards and adapters may use the phrase "pipeline
 phase" and names such as INTAKE or BUILD. Import them as reconstructed activity
 hints, not authoritative lifecycle history.
 
+### Learning cadence
+
+Learning curation is a low-frequency project squad, not a mandatory close step.
+The host or agent may run `idc learn-check --project <path> --json` at a
+checkpoint. A quiet result should end the interaction. When the result is
+`due`, route to `learning-curator`, review completed work in bulk, merge
+duplicates, retire stale guidance, and ask the human to accept, defer, reject,
+or merge each candidate. Run `idc learn-session --project <path> --summary ...`
+only after that session is complete. Defaults are five completed tasks or
+fourteen days; projects may tune them in `.idc/config.json`.
+
 ## Presentation Preference
 
 The router carries the user's resolved language preference through user-facing artifacts and final reports. Explicit preference wins; otherwise use the current user language, then an explicitly established audience language. This localizes presentation, not code, commands, identifiers, APIs, or maintainer-only documentation. A specialist must preserve the preference when its artifact is intended for the user.

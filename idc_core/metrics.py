@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .projector import fold_events
+from .task_index import get_index, record_metrics
 
 
 _GATE_BLOCK_TYPES = {
@@ -29,6 +30,18 @@ def build_progressive_metrics(project: Path) -> dict[str, Any]:
     total_requirement_changes = 0
     total_gate_blocks = 0
     gate_blocks_available = False
+
+    indexed = get_index(project)
+    if indexed is not None and indexed.get("records"):
+        for indexed_record in indexed["records"].values():
+            item = record_metrics(indexed_record)
+            records.append(item)
+            event_counts.update(item["event_types"])
+            total_requirement_changes += item["requirement_changes"]
+            total_gate_blocks += item["gate_blocks"]
+            gate_blocks_available = gate_blocks_available or bool(item["gate_blocks"])
+        records.sort(key=lambda item: item["record_id"])
+        return _build_report(project, records, [], event_counts, total_requirement_changes, total_gate_blocks, gate_blocks_available)
 
     if records_root.is_dir():
         paths = sorted(records_root.glob("*/events.jsonl"))
@@ -92,6 +105,18 @@ def build_progressive_metrics(project: Path) -> dict[str, Any]:
         )
 
     records.sort(key=lambda item: item["record_id"])
+    return _build_report(project, records, errors, event_counts, total_requirement_changes, total_gate_blocks, gate_blocks_available)
+
+
+def _build_report(
+    project: Path,
+    records: list[dict[str, Any]],
+    errors: list[dict[str, str]],
+    event_counts: Counter[str],
+    total_requirement_changes: int,
+    total_gate_blocks: int,
+    gate_blocks_available: bool,
+) -> dict[str, Any]:
     temporary = sum(item["capture_mode"] == "temporary" for item in records)
     durable = sum(item["capture_mode"] == "durable" for item in records)
     promoted = sum(item["task_id"] is not None for item in records)

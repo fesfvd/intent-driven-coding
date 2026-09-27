@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://intent-driven-coding.dev/schemas/idc-task-event-v1.schema.json",
-  "title": "Intent-Driven Coding Progressive Task Event v1",
+  "$id": "https://intent-driven-coding.dev/schemas/idc-task-event-v2.schema.json",
+  "title": "Intent-Driven Coding Progressive Task Event v2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -15,7 +15,7 @@
     "payload"
   ],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {"const": 2},
     "record_id": {"type": "string", "pattern": "^work-[a-z0-9-]+$"},
     "seq": {"type": "integer", "minimum": 0},
     "timestamp": {"type": "string", "format": "date-time"},
@@ -52,9 +52,12 @@
             "permission.rejected",
             "permission.executed",
             "recovery.recorded",
-            "task.closed",
-            "learn.candidate",
-            "legacy.snapshot-imported"
+             "task.closed",
+             "learn.candidate",
+             "learn.reviewed",
+             "learn.disposed",
+             "legacy.snapshot-imported"
+             ,"requirement.changed"
             ,"capture.discarded"
             ,"capture.expired"
           ]
@@ -85,6 +88,11 @@
         "scope": {"type": ["string", "null"]},
         "independence": {"type": ["string", "null"]},
         "supersedes": {"type": ["string", "null"]}
+        ,"status": {"type": "string"}
+        ,"candidate": {"type": ["string", "null"]}
+        ,"reason": {"type": "string"}
+        ,"evidence_refs": {"type": "array", "items": {"type": "string"}}
+        ,"destination": {"type": ["string", "null"]}
       }
     }
   }

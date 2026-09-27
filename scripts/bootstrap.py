@@ -29,6 +29,7 @@ OPENCODE_AGENT_FILES = {
     ROOT / "templates" / "opencode" / "agents" / "verify.md": Path(".opencode") / "agents" / "verify.md",
     ROOT / "templates" / "opencode" / "agents" / "meta-skill-designer.md": Path(".opencode") / "agents" / "meta-skill-designer.md",
     ROOT / "templates" / "opencode" / "agents" / "skill-creator.md": Path(".opencode") / "agents" / "skill-creator.md",
+    ROOT / "templates" / "opencode" / "agents" / "learning-curator.md": Path(".opencode") / "agents" / "learning-curator.md",
 }
 CLAUDE_AGENT_FILES = {
     ROOT / "templates" / "claude" / "agents" / "architecture.md": Path(".claude") / "agents" / "architecture.md",
@@ -37,6 +38,7 @@ CLAUDE_AGENT_FILES = {
     ROOT / "templates" / "claude" / "agents" / "verify.md": Path(".claude") / "agents" / "verify.md",
     ROOT / "templates" / "claude" / "agents" / "meta-skill-designer.md": Path(".claude") / "agents" / "meta-skill-designer.md",
     ROOT / "templates" / "claude" / "agents" / "skill-creator.md": Path(".claude") / "agents" / "skill-creator.md",
+    ROOT / "templates" / "claude" / "agents" / "learning-curator.md": Path(".claude") / "agents" / "learning-curator.md",
 }
 RESOURCE_FILES = {
     ROOT / "evals" / "squad-routing.json": Path(".agent") / "evals" / "squad-routing.json",
@@ -53,6 +55,7 @@ SKILL_NAMES = (
     "verify",
     "meta-skill-designer",
     "skill-creator",
+    "learning-curator",
 )
 ENTRY_PATHS = {
     "codex": Path("AGENTS.md"),

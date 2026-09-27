@@ -13,11 +13,15 @@ from jsonschema import Draft202012Validator
 from .events import EventStore
 from .legacy import import_legacy
 from .metrics import build_progressive_metrics
-from .render import render_card
+from .context_health import inspect_context
+from .commands import run_record_command
+from .learning import check_learning_cadence, record_learning_session
 from .workflow import GateBlocked, Workflow
 
 
-VERSION = "1.1.1"
+VERSION = "1.2.0"
+CONFIG_SCHEMA_VERSION = 2
+EVENT_SCHEMA_VERSION = 2
 PROGRESSIVE_COMMANDS = {
     "init",
     "start",
@@ -39,6 +43,12 @@ PROGRESSIVE_COMMANDS = {
     "import-legacy",
     "doctor",
     "metrics",
+    "migrate",
+    "learn-review",
+    "learn-dispose",
+    "context-check",
+    "learn-check",
+    "learn-session",
 }
 
 
@@ -139,6 +149,10 @@ def add_progressive_subcommands(subcommands: argparse._SubParsersAction) -> None
     evidence.add_argument("--acceptance", action="append", default=[])
     evidence.add_argument("--reference")
     evidence.add_argument("--confirmation-ref")
+    evidence.add_argument(
+        "--failure-attribution",
+        choices=("code-regression", "pre-existing", "environment-tool", "encoding-presentation", "inconclusive"),
+    )
     evidence.add_argument("--actor", choices=("human", "agent", "system"), default="agent")
     _json(evidence)
 
@@ -183,11 +197,47 @@ def add_progressive_subcommands(subcommands: argparse._SubParsersAction) -> None
     _project(doctor)
     _json(doctor)
 
+    context = subcommands.add_parser("context-check", help="Check the project's three IDC context layers.")
+    _project(context)
+    _json(context)
+
     metrics = subcommands.add_parser(
         "metrics", help="Read-only metrics for progressive event records."
     )
     _project(metrics)
     _json(metrics)
+
+    migrate = subcommands.add_parser("migrate", help="Check or explicitly migrate an IDC project.")
+    _project(migrate)
+    migrate.add_argument("--check", action="store_true", help="Only inspect; never write files.")
+    migrate.add_argument("--confirm", action="store_true", help="Write the reviewed migration.")
+    _json(migrate)
+
+    learning = subcommands.add_parser("learn-review", help="Review whether a closed task produced durable project knowledge.")
+    _record(learning)
+    learning.add_argument("--outcome", required=True, choices=("candidate", "none"))
+    learning.add_argument("--candidate")
+    learning.add_argument("--evidence-ref", action="append", default=[])
+    learning.add_argument("--destination", choices=("architecture", "playbook", "skill", "squad", "test", "script"))
+    learning.add_argument("--reason")
+    learning.add_argument("--actor", choices=("human",), default="human")
+    _json(learning)
+
+    disposal = subcommands.add_parser("learn-dispose", help="Accept, reject, defer, or merge a learning candidate.")
+    _record(disposal)
+    disposal.add_argument("--disposition", required=True, choices=("accepted", "rejected", "deferred", "merged"))
+    disposal.add_argument("--reason", required=True)
+    disposal.add_argument("--actor", choices=("human",), default="human")
+    _json(disposal)
+
+    learning_check = subcommands.add_parser("learn-check", help="Check whether the project learning squad is due.")
+    _project(learning_check)
+    _json(learning_check)
+
+    learning_session = subcommands.add_parser("learn-session", help="Record a completed project learning squad session.")
+    _project(learning_session)
+    learning_session.add_argument("--summary", required=True)
+    _json(learning_session)
 
 
 def run_progressive(args: argparse.Namespace) -> int:
@@ -197,140 +247,36 @@ def run_progressive(args: argparse.Namespace) -> int:
     try:
         if args.command == "init":
             report = initialize(project, args.project_key, adapter=args.platform)
+        elif args.command == "migrate":
+            report = migrate_project(project, check_only=not args.confirm)
+            if report.get("status") == "blocked":
+                return _emit(args, {"error": "migration blocked", **report}, 3)
         elif args.command == "import-legacy":
             load_config(project)
             report = import_legacy(project, args.path)
         elif args.command == "doctor":
             report = doctor(project)
+        elif args.command == "context-check":
+            report = inspect_context(project)
+            if not report["ready"]:
+                return _emit(args, report, 1)
+        elif args.command == "learn-check":
+            report = check_learning_cadence(project)
+        elif args.command == "learn-session":
+            load_config(project)
+            report = record_learning_session(project, summary=args.summary)
         elif args.command == "metrics":
             if not getattr(args, "json", False):
                 return _emit(args, {"error": "metrics requires --json"}, 2)
             report = build_progressive_metrics(project)
         else:
+            # Every mutating command must fail before opening the event store when
+            # the project is on an incompatible protocol version.
+            if args.command not in {"show", "render"}:
+                assert_write_compatible(project)
             workflow = Workflow(project)
-            if args.command == "start":
-                # Temporary captures inherit the project TTL unless the CLI
-                # caller explicitly overrides it. Durable captures do not
-                # need configuration, preserving the lightweight start path.
-                ttl_hours = args.ttl_hours
-                if args.temporary and ttl_hours is None:
-                    ttl_hours = load_config(project)["capture_ttl_hours"]
-                if args.temporary and (ttl_hours is None or ttl_hours <= 0):
-                    raise ValueError("ttl-hours must be a positive integer")
-                record_id = workflow.start(
-                    args.summary,
-                    actor=args.actor,
-                    temporary=args.temporary,
-                    ttl_hours=ttl_hours if ttl_hours is not None else 72,
-                    scenes=args.scenes,
-                )
-                report = {
-                    "record_id": record_id,
-                    "lifecycle": "captured",
-                    "card": render_card(workflow.state(record_id)),
-                }
-                if args.scenes:
-                    report["scenes"] = args.scenes
-            elif args.command == "promote":
-                config = load_config(project)
-                task_id = workflow.promote(args.record, project_key=config["project_key"])
-                report = {"record_id": args.record, "task_id": task_id}
-            elif args.command == "discard":
-                report = state_to_dict(workflow.discard(args.record, reason=args.reason))
-            elif args.command == "shape":
-                previous = workflow.state(args.record)
-                state = workflow.shape(
-                    args.record,
-                    goal=args.goal,
-                    explicit=args.explicit,
-                    repository_facts=args.fact,
-                    proposed_defaults=args.default,
-                    open_decisions=args.decision,
-                    scope=args.scope,
-                    acceptance=(
-                        _acceptance_pairs(args.acceptance, previous.acceptance)
-                        if args.acceptance is not None
-                        else None
-                    ),
-                    classifications=args.classifications,
-                    uncertainty=args.uncertainty,
-                    impacts=(dict(_pair_values(args.impact, "impact")) if args.impact is not None else None),
-                )
-                report = state_to_dict(state)
-            elif args.command == "classify":
-                report = state_to_dict(
-                    workflow.classify(
-                        args.record,
-                        args.classifications,
-                        reason=args.reason,
-                    )
-                )
-            elif args.command == "change":
-                state = workflow.change_requirement(
-                    args.record,
-                    before=args.before,
-                    after=args.after,
-                    reason=args.reason,
-                    actor=args.actor,
-                )
-                report = state_to_dict(state)
-            elif args.command == "resolve-decision":
-                report = state_to_dict(
-                    workflow.resolve_decision(
-                        args.record,
-                        decision=args.decision,
-                        resolution=args.resolution,
-                        actor=args.actor,
-                    )
-                )
-            elif args.command == "condition":
-                report = state_to_dict(
-                    workflow.set_condition(
-                        args.record,
-                        args.name,
-                        args.state == "active",
-                        reason=args.reason,
-                    )
-                )
-            elif args.command == "transition":
-                result = workflow.transition(args.record, args.to)
-                report = state_to_dict(result.state)
-                report["warnings"] = result.warnings
-            elif args.command == "activity":
-                report = state_to_dict(workflow.record_activity(args.record, args.name))
-            elif args.command == "add-evidence":
-                state = workflow.add_evidence(
-                    args.record,
-                    kind=args.kind,
-                    summary=args.summary,
-                    result=args.result,
-                    acceptance_ids=args.acceptance,
-                    reference=args.reference,
-                    actor=args.actor,
-                    confirmation_ref=args.confirmation_ref,
-                )
-                report = state_to_dict(state)
-            elif args.command == "permission":
-                report = state_to_dict(
-                    workflow.permission(
-                        args.record,
-                        effect=args.effect,
-                        state=args.state,
-                        actor=args.actor,
-                    )
-                )
-            elif args.command == "recovery":
-                report = state_to_dict(workflow.record_recovery(args.record, args.summary))
-            elif args.command == "close":
-                result = workflow.close(args.record, outcome=args.outcome, summary=args.summary)
-                report = state_to_dict(result.state)
-                report["warnings"] = result.warnings
-            elif args.command in {"show", "render"}:
-                if args.command == "render":
-                    workflow._render(args.record)
-                report = state_to_dict(workflow.state(args.record))
-            else:
-                raise ValueError(f"unsupported command: {args.command}")
+            if args.command in {"start", "promote", "discard", "shape", "classify", "change", "resolve-decision", "condition", "transition", "activity", "add-evidence", "permission", "recovery", "close", "learn-review", "learn-dispose", "show", "render"}:
+                report = run_record_command(args, workflow, load_config, _acceptance_pairs, _pair_values)
     except GateBlocked as exc:
         return _emit(
             args,
@@ -352,7 +298,7 @@ def initialize(project: Path, project_key: str, adapter: str = "neutral") -> dic
     if config_path.exists():
         raise FileExistsError(f"IDC project is already initialized: {config_path}")
     config = {
-        "schema_version": 1,
+        "schema_version": CONFIG_SCHEMA_VERSION,
         "idc_version": VERSION,
         "project_key": key,
         "record_policy": "local-private",
@@ -369,13 +315,73 @@ def load_config(project: Path) -> dict[str, Any]:
     if not path.is_file():
         raise FileNotFoundError(f"IDC is not initialized: {path}")
     config = json.loads(path.read_text(encoding="utf-8"))
-    if config.get("schema_version") != 1 or not config.get("project_key"):
+    if config.get("schema_version") not in {1, CONFIG_SCHEMA_VERSION} or not config.get("project_key"):
         raise ValueError(f"invalid IDC config: {path}")
     ttl = config.get("capture_ttl_hours", 72)
     if not isinstance(ttl, int) or isinstance(ttl, bool) or ttl <= 0:
         raise ValueError(f"invalid capture_ttl_hours in IDC config: {path}")
     config["capture_ttl_hours"] = ttl
     return config
+
+
+def assert_write_compatible(project: Path) -> dict[str, Any]:
+    config = load_config(project)
+    if config.get("schema_version") != CONFIG_SCHEMA_VERSION or config.get("idc_version") != VERSION:
+        raise ValueError(
+            "IDC protocol mismatch: project uses "
+            f"schema {config.get('schema_version')} / IDC {config.get('idc_version')}; "
+            f"this CLI writes schema {CONFIG_SCHEMA_VERSION} / IDC {VERSION}. "
+            "Run `idc migrate --project <path> --check`, review the report, then use --confirm."
+        )
+    return config
+
+
+def migrate_project(project: Path, *, check_only: bool = True) -> dict[str, Any]:
+    config = load_config(project)
+    if config.get("schema_version") == CONFIG_SCHEMA_VERSION and config.get("idc_version") == VERSION:
+        return {"status": "current", "writes": [], "schema_version": CONFIG_SCHEMA_VERSION, "idc_version": VERSION}
+    if config.get("schema_version") != 1:
+        raise ValueError("unsupported config schema; migration report cannot infer a safe mapping")
+    records_root = project / ".idc" / "work-items"
+    historical_records = []
+    for events_path in sorted(records_root.glob("*/events.jsonl")) if records_root.is_dir() else ():
+        events = EventStore(project).read(events_path.parent.name)
+        historical_records.append(
+            {
+                "record_id": events_path.parent.name,
+                "event_schema": sorted({event.get("schema_version") for event in events}),
+                "status": "read-only; no event rewrite",
+            }
+        )
+    if not check_only and historical_records:
+        return {
+            "status": "blocked",
+            "from": {"schema_version": config.get("schema_version"), "idc_version": config.get("idc_version")},
+            "to": {"schema_version": CONFIG_SCHEMA_VERSION, "idc_version": VERSION},
+            "writes": [],
+            "historical_records": historical_records,
+            "unresolved": ["historical schema 1 events require explicit record-by-record migration"],
+        }
+    report = {
+        "status": "ready" if check_only else "migrated",
+        "from": {"schema_version": config.get("schema_version"), "idc_version": config.get("idc_version")},
+        "to": {"schema_version": CONFIG_SCHEMA_VERSION, "idc_version": VERSION},
+        "writes": [] if check_only else [".idc/config.json"],
+        "historical_records": historical_records or "read-only compatibility; review and migrate in batches",
+        "unresolved": [
+            "primary type/activity mappings are not inferred automatically",
+            "schema 1 event streams are not mixed with schema 2 writes",
+        ],
+    }
+    if not check_only:
+        upgraded = dict(config)
+        upgraded["schema_version"] = CONFIG_SCHEMA_VERSION
+        upgraded["idc_version"] = VERSION
+        path = project / ".idc" / "config.json"
+        temporary = path.with_suffix(".json.migrating")
+        temporary.write_text(json.dumps(upgraded, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        temporary.replace(path)
+    return report
 
 
 def doctor(project: Path) -> dict[str, Any]:
@@ -398,6 +404,7 @@ def doctor(project: Path) -> dict[str, Any]:
         "status": "pass",
         "project_key": config["project_key"],
         "idc_version": config["idc_version"],
+        "supported": {"config_schema": CONFIG_SCHEMA_VERSION, "event_schema": EVENT_SCHEMA_VERSION},
         "checks": {
             "config": True,
             "event_schema": True,
@@ -490,9 +497,22 @@ def _emit(args: argparse.Namespace, report: dict[str, Any], code: int) -> int:
         for block in report.get("hard_blocks", []):
             print(f"- {block}")
     else:
-        for key in ("record_id", "task_id", "lifecycle", "outcome"):
+        for key in (
+            "record_id", "task_id", "lifecycle", "scenario", "outcome",
+            "next_allowed_activity", "current_blockers",
+        ):
             if report.get(key) is not None:
-                print(f"{key}: {report[key]}")
+                value = report[key]
+                if isinstance(value, list):
+                    print(f"{key}:")
+                    for item in value:
+                        print(f"- {item}")
+                else:
+                    print(f"{key}: {value}")
+        if report.get("outstanding_obligations"):
+            print("outstanding_obligations:")
+            for item in report["outstanding_obligations"]:
+                print(f"- {item}")
         for scene in report.get("scenes", []):
             print(f"scene: {scene}")
         for warning in report.get("warnings", []):

@@ -18,6 +18,7 @@ def render_card(state: TaskState) -> str:
         f"- Classifications: {', '.join(state.classifications) or 'unclassified'}",
         f"- Conditions: {', '.join(sorted(state.conditions)) or 'none'}",
         f"- Activities: {', '.join(state.activities) or 'none'}",
+        f"- Learning: `{state.learning_status}`",
     ]
     if not state.task_id:
         capture_note = f"- Capture: `{state.capture_mode}`"
@@ -66,6 +67,17 @@ def render_card(state: TaskState) -> str:
         )
     if not state.evidence:
         lines.append("- None")
+    lines.extend(("", "## Learning Review", ""))
+    if state.learning_status == "candidate":
+        for candidate in state.learning_candidates:
+            lines.append(
+                f"- `{candidate.get('status', 'pending')}` -> `{candidate.get('destination', 'unknown')}`: "
+                f"{candidate.get('candidate', '')}"
+            )
+    elif state.learning_status == "pending":
+        lines.append("- [ ] Review whether this task produced a reusable project lesson")
+    else:
+        lines.append(f"- `{state.learning_status}`")
     lines.extend(("", "## Outstanding Obligations", ""))
     for item in obligations.hard_blocks:
         lines.append(f"- [ ] {item}")

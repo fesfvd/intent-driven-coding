@@ -15,6 +15,17 @@ Read `AGENTS.md` for current architecture and `AI_ENGINEERING_PLAYBOOK.md` for r
 
 ## Registered Squads
 
+### Learning Curation
+
+| Field | Definition |
+|---|---|
+| Outcome | Periodically extract evidence-backed project rules and remove stale or duplicate guidance |
+| Activity hints | observe -> learn -> review |
+| Members | `learning-curator` -> `verify` |
+| Handoff | Cadence report, completed-task evidence, candidate table, duplicate/supersession links |
+| Exit | Every candidate has a human disposition, the proof check passes, and the review window is reset |
+| Permission | Updating project guidance, Skills, tests, or squads requires explicit human acceptance |
+
 ### Bug Resolution
 
 | Field | Definition |

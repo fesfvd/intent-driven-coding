@@ -22,11 +22,16 @@ class ProgressiveWorkflowTests(unittest.TestCase):
         self.temp_dir.cleanup()
 
     def test_low_risk_work_can_start_with_progressive_warnings(self) -> None:
+        self.workflow.shape(
+            self.record,
+            goal="Deliver the requested change",
+            scope=["local task"],
+            acceptance=[{"id": "done", "statement": "The requested change is verified"}],
+        )
         result = self.workflow.transition(self.record, "active")
 
         self.assertEqual(result.state.lifecycle, "active")
-        self.assertIn("intent:goal", result.warnings)
-        self.assertIn("acceptance", result.warnings)
+        self.assertIn("impact", result.warnings)
 
     def test_temporary_capture_expires_without_creating_a_task_card(self) -> None:
         current = [NOW]
@@ -212,6 +217,12 @@ class ProgressiveWorkflowTests(unittest.TestCase):
         self.assertIn("- None\n\n## Event Log", card)
 
     def test_requirement_change_is_an_event_and_returns_work_to_shaping(self) -> None:
+        self.workflow.shape(
+            self.record,
+            goal="Export PDF",
+            scope=["report export"],
+            acceptance=[{"id": "pdf", "statement": "PDF downloads"}],
+        )
         self.workflow.transition(self.record, "active")
 
         state = self.workflow.change_requirement(
@@ -283,9 +294,12 @@ class ProgressiveWorkflowTests(unittest.TestCase):
         self.assertEqual(state.impacts, {"behavior": "medium"})
 
     def test_lifecycle_allows_rework_but_rejects_meaningless_jumps(self) -> None:
-        with self.assertRaisesRegex(GateBlocked, "lifecycle:captured->validating"):
-            self.workflow.transition(self.record, "validating")
-
+        self.workflow.shape(
+            self.record,
+            goal="Verify the task",
+            scope=["local task"],
+            acceptance=[{"id": "done", "statement": "The task is verified"}],
+        )
         self.workflow.transition(self.record, "active")
         self.workflow.transition(self.record, "validating")
         result = self.workflow.transition(self.record, "shaped")
@@ -334,6 +348,88 @@ class ProgressiveWorkflowTests(unittest.TestCase):
         self.workflow.record_activity(self.record, "review")
         result = self.workflow.close(self.record, outcome="completed", summary="Access fixed")
         self.assertEqual(result.state.outcome, "completed")
+
+    def test_closing_a_task_does_not_start_a_learning_session(self) -> None:
+        self.workflow.shape(
+            self.record,
+            goal="Answer feasibility question",
+            scope=["local experiment"],
+            acceptance=[{"id": "answer", "statement": "Question is answered"}],
+        )
+        self.workflow.add_evidence(
+            self.record,
+            kind="artifact-evidence",
+            summary="Experiment report",
+            result="pass",
+            acceptance_ids=["answer"],
+        )
+
+        result = self.workflow.close(self.record, outcome="completed", summary="Answered")
+
+        self.assertEqual(result.state.learning_status, "not-required")
+        self.assertEqual(result.state.learning_candidates, [])
+        self.assertNotIn("learning:review", result.warnings)
+
+    def test_learning_review_must_explicitly_retain_or_discard_the_lesson(self) -> None:
+        self.workflow.shape(
+            self.record,
+            goal="Answer feasibility question",
+            scope=["local experiment"],
+            acceptance=[{"id": "answer", "statement": "Question is answered"}],
+        )
+        self.workflow.add_evidence(
+            self.record,
+            kind="artifact-evidence",
+            summary="Experiment report",
+            result="pass",
+            acceptance_ids=["answer"],
+        )
+        self.workflow.close(self.record, outcome="completed", summary="Answered")
+
+        state = self.workflow.review_learning(
+            self.record,
+            outcome="candidate",
+            candidate="Keep the export contract in the project playbook",
+            evidence_refs=["answer"],
+            destination="playbook",
+            actor="human",
+        )
+
+        self.assertEqual(state.learning_status, "candidate")
+        self.assertEqual(state.learning_candidates[0]["destination"], "playbook")
+        accepted = self.workflow.dispose_learning(
+            self.record,
+            disposition="accepted",
+            reason="It will prevent the same clarification next time",
+            actor="human",
+        )
+        self.assertEqual(accepted.learning_status, "accepted")
+
+    def test_learning_can_record_a_deliberate_no_retention_decision(self) -> None:
+        self.workflow.shape(
+            self.record,
+            goal="Answer feasibility question",
+            scope=["local experiment"],
+            acceptance=[{"id": "answer", "statement": "Question is answered"}],
+        )
+        self.workflow.add_evidence(
+            self.record,
+            kind="artifact-evidence",
+            summary="Experiment report",
+            result="pass",
+            acceptance_ids=["answer"],
+        )
+        self.workflow.close(self.record, outcome="completed", summary="Answered")
+
+        state = self.workflow.review_learning(
+            self.record,
+            outcome="none",
+            reason="One-off experiment with no reusable project rule",
+            actor="human",
+        )
+
+        self.assertEqual(state.learning_status, "none")
+        self.assertEqual(state.learning_candidates, [])
 
 
 if __name__ == "__main__":

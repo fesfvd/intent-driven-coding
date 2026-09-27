@@ -26,9 +26,11 @@ class Obligation:
 
 
 def _lifecycle(state: TaskState, target: str, result: ObligationResult) -> None:
-    allowed = {"captured": {"shaped", "active"}, "shaped": {"active", "validating"}, "active": {"shaped", "validating"}, "validating": {"shaped", "active"}, "closed": set()}
+    allowed = {"captured": {"shaped"}, "promoted": {"shaped"}, "shaped": {"active", "validating"}, "active": {"shaped", "validating"}, "validating": {"shaped", "active"}, "closed": set()}
     if target in {"shaped", "active", "validating"} and target not in allowed.get(state.lifecycle, set()):
         result.add_block(f"lifecycle:{state.lifecycle}->{target}", "Move through a permitted lifecycle transition first.")
+    if target in {"active", "validating"} and state.lifecycle in {"captured", "promoted"}:
+        result.add_block("shape:required", "Promote and shape the task before implementation or validation.")
     if state.lifecycle == "closed" and target not in {"closed", "completed", "cancelled", "superseded", "unresolved"}:
         result.add_block("lifecycle:closed", "A closed task cannot resume; create a new task or reopen explicitly.")
 

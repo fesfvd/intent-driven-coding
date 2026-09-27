@@ -35,6 +35,8 @@ class TaskState:
     capture_mode: str = "durable"
     expires_at: str | None = None
     capture_disposition: str = "open"
+    learning_status: str = "not-required"
+    learning_candidates: list[dict[str, Any]] = field(default_factory=list)
 
 
 def fold_events(events: Iterable[dict[str, Any]], *, now: datetime | None = None) -> TaskState:
@@ -60,6 +62,7 @@ def fold_events(events: Iterable[dict[str, Any]], *, now: datetime | None = None
         elif event_type == "task.promoted":
             state.task_id = str(payload["task_id"])
             state.capture_disposition = "promoted"
+            state.lifecycle = "promoted"
         elif event_type == "capture.discarded":
             state.capture_disposition = "discarded"
         elif event_type == "capture.expired":
@@ -114,6 +117,25 @@ def fold_events(events: Iterable[dict[str, Any]], *, now: datetime | None = None
         elif event_type == "task.closed":
             state.lifecycle = "closed"
             state.outcome = str(payload["outcome"])
+        elif event_type == "learn.reviewed":
+            state.learning_status = str(payload["status"])
+            if state.learning_status == "candidate":
+                state.learning_candidates = [
+                    {
+                        "candidate": str(payload["candidate"]),
+                        "evidence_refs": list(payload.get("evidence_refs") or []),
+                        "destination": str(payload["destination"]),
+                        "reason": str(payload.get("reason") or ""),
+                        "status": "pending",
+                    }
+                ]
+            else:
+                state.learning_candidates = []
+        elif event_type == "learn.disposed":
+            state.learning_status = str(payload["status"])
+            for candidate in state.learning_candidates:
+                candidate["status"] = state.learning_status
+                candidate["disposition_reason"] = str(payload["reason"])
         elif event_type == "legacy.snapshot-imported":
             state.legacy_snapshot = dict(payload)
             state.summary = str(payload.get("title", "Legacy task snapshot"))

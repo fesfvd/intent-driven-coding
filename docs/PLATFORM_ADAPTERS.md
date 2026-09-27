@@ -97,6 +97,16 @@ For IDE assistants and other coding agents:
 4. Map selected Skill content into the closest supported mechanism.
 5. Test discovery, context loading, tool permissions, and external-action confirmation.
 
+### Periodic learning squad
+
+The learning squad is host-assisted, not an always-loaded Agent. At a natural
+checkpoint, the host may run `idc learn-check --project <path> --json`. Do not
+load `learning-curator` when the result is `quiet`. When it is `due`, load the
+project's learning squad, pass the bounded completed-task evidence, require the
+human disposition for candidates, and record the completed session with
+`idc learn-session`. Host discovery and subagent handoff still require separate
+acceptance evidence; a CLI result alone does not prove the host routed the squad.
+
 When no reusable Skill mechanism exists, use `SQUADS.md` as the routing contract and read the required `SKILL.md` files explicitly.
 
 ## Compatibility Claim

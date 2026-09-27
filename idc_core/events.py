@@ -37,6 +37,8 @@ CORE_EVENT_TYPES = {
     "recovery.recorded",
     "task.closed",
     "learn.candidate",
+    "learn.reviewed",
+    "learn.disposed",
     "legacy.snapshot-imported",
     "capture.discarded",
     "capture.expired",
@@ -49,6 +51,7 @@ PROVENANCE_TYPES = {
     "human-confirmed",
     "reconstructed",
 }
+EVENT_SCHEMA_VERSION = 2
 _THREAD_LOCKS: dict[str, threading.Lock] = {}
 _THREAD_LOCKS_GUARD = threading.Lock()
 
@@ -153,6 +156,7 @@ class EventStore:
         actor: str = "agent",
         provenance: str = "claimed",
     ) -> dict:
+        self._assert_write_compatible()
         if not re.fullmatch(r"work-[a-z0-9-]+", record_id):
             raise ValueError("invalid record_id")
         if event_type not in CORE_EVENT_TYPES and not re.fullmatch(r"x\.[a-z0-9][a-z0-9.-]*", event_type):
@@ -164,8 +168,13 @@ class EventStore:
             raise FileNotFoundError(f"work record does not exist: {record_id}")
         with _record_lock(record_path):
             events = self._read_unlocked(record_id)
+            if any(event.get("schema_version") != EVENT_SCHEMA_VERSION for event in events):
+                raise ValueError(
+                    "cannot append schema 2 events to a schema 1 record; "
+                    "migrate the historical record explicitly first"
+                )
             event = {
-                "schema_version": 1,
+                "schema_version": EVENT_SCHEMA_VERSION,
                 "record_id": record_id,
                 "seq": len(events),
                 "timestamp": self._now().isoformat(),
@@ -178,7 +187,28 @@ class EventStore:
                 stream.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
                 stream.flush()
                 os.fsync(stream.fileno())
+        try:
+            from .task_index import update_index
+
+            update_index(self.project, event)
+        except OSError:
+            # The event log remains authoritative when the optional cache cannot update.
+            pass
         return event
+
+    def _assert_write_compatible(self) -> None:
+        config_path = self.project / ".idc" / "config.json"
+        if not config_path.is_file():
+            return
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(f"cannot validate IDC protocol config: {config_path}") from exc
+        if config.get("schema_version") != 2 or config.get("idc_version") != "1.2.0":
+            raise ValueError(
+                "IDC protocol mismatch; writes are disabled. Run `idc migrate --check`, "
+                "review the report, then confirm migration."
+            )
 
     def read(self, record_id: str) -> list[dict]:
         record_path = self.records_root / record_id

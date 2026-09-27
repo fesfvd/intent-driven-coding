@@ -110,6 +110,13 @@ class Workflow:
             },
             actor=actor,
         )
+        if previous.lifecycle in {"captured", "promoted"}:
+            self._append(
+                record_id,
+                "lifecycle.changed",
+                {"from": previous.lifecycle, "to": "shaped"},
+                actor=actor,
+            )
         if scope is not None:
             self._append(record_id, "scope.changed", {"from": previous.scope, "to": scope}, actor=actor)
         if acceptance is not None:
@@ -273,7 +280,13 @@ class Workflow:
         reference: str | None = None,
         actor: str = "agent",
         confirmation_ref: str | None = None,
+        failure_attribution: str | None = None,
     ) -> TaskState:
+        allowed_attributions = {"code-regression", "pre-existing", "environment-tool", "encoding-presentation", "inconclusive"}
+        if result == "fail" and failure_attribution not in allowed_attributions:
+            raise ValueError("failed evidence requires a failure attribution")
+        if result != "fail" and failure_attribution is not None:
+            raise ValueError("failure attribution is only valid for failed evidence")
         if kind == "human-confirmed":
             if actor != "human":
                 raise ValueError("human-confirmed evidence requires human actor")
@@ -289,6 +302,7 @@ class Workflow:
                 "acceptance_ids": acceptance_ids or [],
                 "reference": reference,
                 "confirmation_ref": confirmation_ref,
+                "failure_attribution": failure_attribution,
             },
             actor=actor,
             provenance=kind,
@@ -299,6 +313,11 @@ class Workflow:
         self, record_id: str, *, outcome: str, summary: str, actor: str = "agent"
     ) -> WorkflowResult:
         state = self.state(record_id)
+        if outcome == "completed" and any(
+            evidence.get("result") == "fail" and not evidence.get("failure_attribution")
+            for evidence in state.evidence
+        ):
+            raise GateBlocked(["evidence:failure-attribution"], {"evidence:failure-attribution": "Classify every failed verification before completion."})
         evaluation = evaluate_obligations(state, target=outcome)
         self._raise_if_blocked(evaluation)
         self._append(
@@ -308,6 +327,73 @@ class Workflow:
             actor=actor,
         )
         return WorkflowResult(state=self.state(record_id), warnings=evaluation.warnings)
+
+    def review_learning(
+        self,
+        record_id: str,
+        *,
+        outcome: str,
+        candidate: str | None = None,
+        evidence_refs: list[str] | None = None,
+        destination: str | None = None,
+        reason: str | None = None,
+        actor: str = "human",
+    ) -> TaskState:
+        if actor != "human":
+            raise ValueError("learning review requires human actor")
+        if self.state(record_id).lifecycle != "closed":
+            raise GateBlocked(["lifecycle:closed"], {"lifecycle:closed": "Review learning after task closure."})
+        if outcome not in {"candidate", "none"}:
+            raise ValueError("learning review outcome must be candidate or none")
+        if outcome == "candidate":
+            if not candidate or not candidate.strip():
+                raise ValueError("candidate learning requires a non-empty candidate")
+            if not evidence_refs:
+                raise ValueError("candidate learning requires evidence references")
+            if destination not in {"architecture", "playbook", "skill", "squad", "test", "script"}:
+                raise ValueError("candidate learning requires a valid destination")
+        elif not reason or not reason.strip():
+            raise ValueError("a no-retention learning decision requires a reason")
+        self._append(
+            record_id,
+            "learn.reviewed",
+            {
+                "status": outcome,
+                "candidate": candidate,
+                "evidence_refs": evidence_refs or [],
+                "destination": destination,
+                "reason": reason or "",
+            },
+            actor=actor,
+            provenance="human-confirmed",
+        )
+        return self.state(record_id)
+
+    def dispose_learning(
+        self,
+        record_id: str,
+        *,
+        disposition: str,
+        reason: str,
+        actor: str = "human",
+    ) -> TaskState:
+        if actor != "human":
+            raise ValueError("learning disposition requires human actor")
+        state = self.state(record_id)
+        if state.learning_status != "candidate":
+            raise GateBlocked(["learning:candidate"], {"learning:candidate": "Review a learning candidate before disposition."})
+        if disposition not in {"accepted", "rejected", "deferred", "merged"}:
+            raise ValueError("invalid learning disposition")
+        if not reason.strip():
+            raise ValueError("learning disposition requires a reason")
+        self._append(
+            record_id,
+            "learn.disposed",
+            {"status": disposition, "reason": reason},
+            actor=actor,
+            provenance="human-confirmed",
+        )
+        return self.state(record_id)
 
     def state(self, record_id: str) -> TaskState:
         events = self.store.read(record_id)
