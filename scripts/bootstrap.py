@@ -5,9 +5,12 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import json
+import os
 import re
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -61,6 +64,7 @@ ENTRY_PATHS = {
     "codex": Path("AGENTS.md"),
     "opencode": Path("AGENTS.md"),
     "claude-code": Path("CLAUDE.md"),
+    "dsh": Path("AGENTS.md"),
 }
 ENTRY_BEGIN = "<!-- IDC:BEGIN -->"
 ENTRY_END = "<!-- IDC:END -->"
@@ -79,9 +83,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project-name", required=True, help="Name used in generated headings")
     parser.add_argument(
         "--platform",
-        choices=("neutral", "codex", "opencode", "claude-code"),
+        choices=("neutral", "codex", "opencode", "claude-code", "dsh"),
         default="neutral",
-        help="Generated layout: neutral (default), Codex, OpenCode, or Claude Code",
+        help="Generated layout: neutral (default), Codex, OpenCode, Claude Code, or DeepSeek Harness",
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--apply", action="store_true", help="Write the planned files")
@@ -91,6 +95,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Overwrite existing destination files; valid only with --apply",
     )
+    parser.add_argument("--report-json", type=Path, help="Write planned and actual per-file outcomes to JSON")
     return parser.parse_args()
 
 
@@ -142,6 +147,19 @@ def planned_files(platform: str) -> list[tuple[Path, Path, bool]]:
             if destination != Path(".agent") / "AGENT_ENTRY.md"
         ]
         skill_root = Path(".opencode") / "skills"
+    elif platform == "dsh":
+        files.extend(
+            (source, Path(".dsh") / "evals" / destination.name, False)
+            for source, destination in RESOURCE_FILES.items()
+        )
+        files = [
+            (source, Path(".dsh") / "templates" / destination.name, is_template)
+            if destination == Path(".agent") / "templates" / "SQUAD.md"
+            else (source, destination, is_template)
+            for source, destination, is_template in files
+            if destination != Path(".agent") / "AGENT_ENTRY.md"
+        ]
+        skill_root = Path(".dsh") / "skills"
     else:
         files.extend(
             (source, Path(".claude") / "evals" / destination.name, False)
@@ -218,6 +236,78 @@ def opencode_skill_collisions(target: Path) -> list[Path]:
     return collisions
 
 
+def _report_destination(args: argparse.Namespace, target: Path) -> Path | None:
+    if args.report_json is None:
+        return None
+    path = args.report_json.expanduser().resolve()
+    files = planned_files(args.platform)
+    sources = {source.resolve() for source, _, _ in files}
+    sources.add((ROOT / "templates" / "IDC_ENTRY.md").resolve())
+    sources.add((ROOT / "templates" / "claude" / "CLAUDE.md").resolve())
+    destinations = {(target / destination).resolve() for _, destination, _ in files}
+    if (path in sources or path == target or path.is_dir()
+            or any(path == destination or path in destination.parents for destination in destinations)):
+        raise ValueError(f"report path overlaps a scaffold file, source, or directory: {path}")
+    return path
+
+
+def _write_report(path: Path, report: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix="bootstrap-report-", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as stream:
+            json.dump(report, stream, ensure_ascii=False, indent=2)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def _publish_report(path: Path | None, report: dict) -> bool:
+    if path is None:
+        return True
+    try:
+        _write_report(path, report)
+    except OSError as exc:
+        print(f"ERROR: unable to write bootstrap report: {exc}", file=sys.stderr)
+        return False
+    return True
+
+
+def _report_action(target: Path, destination: Path, status: str) -> dict:
+    planned = {
+        "CREATE": "create",
+        "OVERWRITE": "overwrite",
+        "INTEGRATE IDC ENTRY": "integrate-entry",
+        "SKIP existing": "skip",
+        "IDC ENTRY CURRENT": "unchanged",
+    }.get(status, "blocked")
+    reason = {
+        "SKIP existing": "destination already exists; --force not set",
+        "IDC ENTRY CURRENT": "IDC entry block is current",
+        "ERROR missing source": "source file is missing",
+        "ERROR destination escapes target": "destination resolves outside target",
+        "ERROR unable to integrate IDC entry": "entry cannot be integrated",
+    }.get(status)
+    return {
+        "destination": destination.relative_to(target).as_posix(),
+        "planned": planned,
+        "outcome": "planned",
+        "reason": reason,
+    }
+
+
+def _write_outcome(status: str) -> str:
+    return {
+        "CREATE": "created",
+        "OVERWRITE": "overwritten",
+        "INTEGRATE IDC ENTRY": "entry-integrated",
+    }[status]
+
+
 def main() -> int:
     args = parse_args()
     target = args.target.expanduser().resolve()
@@ -228,6 +318,11 @@ def main() -> int:
         return 2
     if not target.exists() or not target.is_dir():
         print(f"ERROR: target directory does not exist: {target}", file=sys.stderr)
+        return 2
+    try:
+        report_path = _report_destination(args, target)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
         return 2
     if args.platform == "opencode":
         collisions = opencode_skill_collisions(target)
@@ -241,6 +336,8 @@ def main() -> int:
     entry_template_path = (
         ROOT / "templates" / "claude" / "CLAUDE.md"
         if args.platform == "claude-code"
+        else ROOT / "templates" / "dsh" / "IDC_ENTRY.md"
+        if args.platform == "dsh"
         else ROOT / "templates" / "IDC_ENTRY.md"
     )
     try:
@@ -252,6 +349,7 @@ def main() -> int:
         return 1
 
     actions: list[tuple[Path, Path, bool, str]] = []
+    report_actions: list[dict] = []
     entry_previews: dict[Path, tuple[str, str]] = {}
     blocked = False
     for source, relative_destination, is_template in planned_files(args.platform):
@@ -282,6 +380,8 @@ def main() -> int:
             status = "ERROR missing source"
             blocked = True
         actions.append((source, destination, is_template, status))
+        if report_path is not None:
+            report_actions.append(_report_action(target, destination, status))
 
     mode = "APPLY" if apply_changes else "DRY RUN"
     print(f"Intent-Driven Coding 可选脚手架: {mode}")
@@ -299,32 +399,62 @@ def main() -> int:
                 print(line, end="" if line.endswith(("\n", "\r")) else "\n")
 
     if blocked:
+        if report_path is not None:
+            for action in report_actions:
+                action["outcome"] = "blocked" if action["planned"] == "blocked" else "not-applied"
+            if not _publish_report(report_path, {"schema_version": 1, "mode": "apply" if apply_changes else "dry-run", "platform": args.platform, "ok": False, "written": 0, "error": "preflight blocked", "actions": report_actions}):
+                return 1
         return 1
     if not apply_changes:
+        if report_path is not None:
+            if not _publish_report(report_path, {"schema_version": 1, "mode": "dry-run", "platform": args.platform, "ok": True, "written": 0, "error": None, "actions": report_actions}):
+                return 1
         print("未写入任何文件。确认目标项目和生成计划后，可使用 --apply 创建骨架。")
         return 0
 
     written = 0
-    for source, destination, is_template, status in actions:
+    apply_error = None
+    for index, (source, destination, is_template, status) in enumerate(actions):
         relative_destination = destination.relative_to(target)
         if status in {"SKIP existing", "IDC ENTRY CURRENT"}:
+            if report_path is not None:
+                report_actions[index]["outcome"] = "skipped" if status == "SKIP existing" else "unchanged"
             continue
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        if relative_destination == entry_destination:
-            if status == "INTEGRATE IDC ENTRY":
-                existing = destination.read_bytes().decode("utf-8")
+        try:
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if relative_destination == entry_destination:
+                if status == "INTEGRATE IDC ENTRY":
+                    existing = destination.read_bytes().decode("utf-8")
+                elif is_template:
+                    existing = render_template(source, args.project_name)
+                else:
+                    existing = source.read_bytes().decode("utf-8")
+                destination.write_bytes(integrate_entry(existing, entry_template).encode("utf-8"))
             elif is_template:
-                existing = render_template(source, args.project_name)
+                destination.write_text(render_template(source, args.project_name), encoding="utf-8")
+            elif args.platform in {"codex", "opencode", "claude-code", "dsh"} and source.parent.parent == ROOT / "skills":
+                destination.write_text(render_platform_skill(source), encoding="utf-8")
             else:
-                existing = source.read_bytes().decode("utf-8")
-            destination.write_bytes(integrate_entry(existing, entry_template).encode("utf-8"))
-        elif is_template:
-            destination.write_text(render_template(source, args.project_name), encoding="utf-8")
-        elif args.platform in {"codex", "opencode", "claude-code"} and source.parent.parent == ROOT / "skills":
-            destination.write_text(render_platform_skill(source), encoding="utf-8")
-        else:
-            shutil.copyfile(source, destination)
+                shutil.copyfile(source, destination)
+        except (OSError, UnicodeError, ValueError) as exc:
+            apply_error = str(exc)
+            if report_path is not None:
+                report_actions[index]["outcome"] = "failed"
+                report_actions[index]["reason"] = apply_error
+                report_actions[index]["possibly_modified"] = True
+                for remaining in report_actions[index + 1 :]:
+                    remaining["outcome"] = "not-applied"
+            break
         written += 1
+        if report_path is not None:
+            report_actions[index]["outcome"] = _write_outcome(status)
+
+    if report_path is not None:
+        if not _publish_report(report_path, {"schema_version": 1, "mode": "apply", "platform": args.platform, "ok": apply_error is None, "written": written, "error": apply_error, "actions": report_actions}):
+            return 1
+    if apply_error is not None:
+        print(f"ERROR: apply failed after {written} files: {apply_error}", file=sys.stderr)
+        return 1
 
     print(f"已写入 {written} 个文件。脚手架不等于适配完成，请基于目标项目裁剪内容并替换所有 {{{{...}}}} 占位符。")
     return 0

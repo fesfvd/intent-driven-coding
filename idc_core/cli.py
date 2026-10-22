@@ -58,7 +58,7 @@ def add_progressive_subcommands(subcommands: argparse._SubParsersAction) -> None
     init.add_argument("--project-key", required=True)
     init.add_argument(
         "--platform",
-        choices=("neutral", "codex", "opencode", "claude-code"),
+        choices=("neutral", "codex", "opencode", "claude-code", "dsh"),
         default="neutral",
     )
     _json(init)

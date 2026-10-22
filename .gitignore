@@ -8,3 +8,6 @@ build/
 Thumbs.db
 .dsh-acceptance/
 .codegraph/
+.venv/
+node_modules/
+hermes-agent-main/

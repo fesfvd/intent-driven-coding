@@ -4,11 +4,12 @@
 
 Intent-Driven Coding uses JSON contracts only when a project needs a reusable squad, handoff, verification, authorization, or evaluation boundary that scripts must inspect. Markdown remains the human explanation; contracts make the operational boundary machine-checkable.
 
-The v1 Schema is `schemas/intent-driven-coding-contract-v1.schema.json`. It defines three document kinds:
+The v1 Schema is `schemas/intent-driven-coding-contract-v1.schema.json`. It defines four document kinds:
 
-- `squad-contract`: routing, two or three members, handoffs, verification claims, and authorization state.
+- `squad-contract`: routing, two or three members, handoffs, verification claims, acceptance policy, and authorization state.
 - `evaluation-case`: an ordinary-language request, expected route, required artifacts, verification claims, and authorization expectation.
 - `evaluation-record`: an Agent-produced record evaluated offline against a case and squad contract.
+- `capability-skip-catalog`: the machine form of the "Do not over-route when" column in [Capability Tiers](CAPABILITY_TIERS.md). Each entry keeps the source cell verbatim and lists the predicates that must hold before routing that capability is over-routing.
 
 ## Validate Framework Examples
 
@@ -27,7 +28,9 @@ python scripts/validate_contracts.py --contracts ../my-project/.idc
 python scripts/validate_contracts.py --contracts ../my-project/.idc/contracts/cross-layer-feature.squad.json
 ```
 
-The validator is offline. It checks JSON structure against draft 2020-12, squad member and handoff consistency, and evaluation references to contracts, routes, artifacts, verification claims, and authorization requirements. It does not load a model, invoke an Agent, access a network service, or write files.
+The validator is offline. It checks JSON structure against draft 2020-12, squad member and handoff consistency, and evaluation references to contracts, routes, artifacts, verification claims, and authorization requirements. For `capability-skip-catalog` it additionally checks the closed predicate vocabulary, that every referenced Skill exists, and that the schema's predicate enum still matches the evaluator's. It does not load a model, invoke an Agent, access a network service, or write files.
+
+`scripts/validate_repository.py` binds each catalog entry's `over_route_when_prose` to the [Capability Tiers](CAPABILITY_TIERS.md) table verbatim and requires one entry per Tier 1 row, so the prose and its machine form cannot drift apart. `python scripts/check_skip_preconditions.py --project <path>` evaluates the catalog against one IDC record and reports `skip`, `keep`, or `unknown` per capability.
 
 `scripts/evaluate_contracts.py` is also offline. It compares an Agent-produced `evaluation-record` with the corresponding contract and evaluation case. It checks route selection, declared artifacts, verification claims, authorization state, and forbidden behavior without executing the Agent that produced the record.
 
@@ -36,6 +39,22 @@ The validator is offline. It checks JSON structure against draft 2020-12, squad 
 The optional `verification.commands` property declares local commands for the experimental [Orchestration Controller](ORCHESTRATION.md). Each command needs a unique `id`, a non-empty `argv` list, and a `cwd` string. The schema accepts these declarations; the controller validates workspace containment and only executes its bounded test-runner allowlist before it runs them. Execution is also bounded by the controller's `--verification-timeout-seconds` limit.
 
 `verification.commands` is optional for offline contracts and evaluations. It is required only when `scripts/orchestrate_squad.py --execute` runs a contract, because an Agent-declared verification artifact alone is not command evidence.
+
+## Acceptance Policy
+
+`verification.acceptance` declares the basis on which a run may be accepted. The schema fixes all three values as constants, so a contract cannot declare a weaker basis:
+
+```json
+{
+  "acceptance": {
+    "artifact_envelope": "strict",
+    "prose_report": "advisory",
+    "conflict_resolution": "command-evidence-wins"
+  }
+}
+```
+
+Omitting the block means the same thing, because v1 defines no second policy; the [Orchestration Controller](ORCHESTRATION.md) rejects a deviating declaration as a policy block before dispatch. That document states what each value obliges.
 
 ## Project Layout
 

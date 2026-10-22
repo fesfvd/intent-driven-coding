@@ -14,6 +14,7 @@ Across every host, AI-first describes who takes the initial learning burden, not
 |---|---|---|---|---|---|---|
 | **Claude Code** | Structural adapter | Plugin marketplace or `bootstrap.py --platform claude-code` | [Claude Code Adapter](CLAUDE_CODE_ADAPTER.md) | `templates/claude/` | Bootstrap installs root `CLAUDE.md` IDC entry; host routing remains acceptance-gated |
 | **OpenCode** | Structural adapter | `opencode.json` plugin reference or `bootstrap.py --platform opencode` | [OpenCode Adapter](OPENCODE_ADAPTER.md) | `templates/opencode/` | Bootstrap merges IDC entry into root `AGENTS.md`; host routing remains acceptance-gated |
+| **DeepSeek Harness** | Structural adapter + optional native plugin | `bootstrap.py --platform dsh` and/or `dsh plugin add link:<repo>/dsh-plugin` | Generic Setup below | `templates/dsh/` | Bootstrap merges IDC entry into root `AGENTS.md` and Skills under `.dsh/skills/`; the plugin adds `idc_*` tools; host routing remains acceptance-gated |
 | Codex CLI | Community | `bootstrap.py --platform codex` | Generic Setup below | `templates/IDC_ENTRY.md` | Bootstrap merges IDC entry into root `AGENTS.md`; host behavior has not been acceptance-tested here |
 | Cursor | ⚡ Community | Manual clone only | Generic Setup below | None | Use project-instruction mechanism; read Skills explicitly |
 | GitHub Copilot | ⚡ Community | Manual clone only | Generic Setup below | None | Use project-instruction mechanism; Skill reuse limited |
@@ -66,6 +67,20 @@ Recommended adaptation:
 5. Test automatic routing, direct Skill loading, and confirmation behavior rather than assuming compatibility from file shape alone.
 
 Do not copy personal global OpenCode configuration into a shared project.
+
+## DeepSeek Harness
+
+### If You Are DeepSeek Harness
+
+Treat this section as instructions to you. Inspect the project's `AGENTS.md`, `.dsh/`, and the installed `idc_*` tools before acting. DeepSeek Harness injects project `AGENTS.md`/`CLAUDE.md` and discovers project Skills under `.dsh/skills/<name>/SKILL.md` (ranked above `.agents/skills/`). The optional `dsh-idc` bundle adds native tools; without it, fall back to the `idc` CLI and explicit Skill reads.
+
+Recommended adaptation:
+
+1. Use `bootstrap.py --platform dsh` to merge the managed IDC block into root `AGENTS.md`, place the eight Skills under `.dsh/skills/`, and copy the eval and Squad templates under `.dsh/`.
+2. Install the optional plugin from this repository: `dsh plugin add link:<repo>/dsh-plugin`. It provides `idc_status`, `idc_start`, `idc_promote`, `idc_shape`, `idc_record`, `idc_transition`, `idc_close`, `idc_learning`, `idc_init`, and `idc_discard`.
+3. Keep `.idc/events.jsonl` as the only state authority. The plugin and CLI must not write simultaneously; a record with schema-1 events stays read-only.
+4. Treat tool results as advisory gates. DSH has no verified tool-blocking boundary, so a refused `idc_*` write records nothing and the agent must not bypass it by editing `.idc/` directly.
+5. Test one direct task, one gate refusal, one Skill selection, and one closed record before claiming host acceptance.
 
 ## Codex CLI And Codex-Based Agents
 

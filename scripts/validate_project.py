@@ -22,24 +22,28 @@ PLATFORM_REQUIRED_FILES = {
     "codex": (Path(".agents/templates/SQUAD.md"),),
     "opencode": (Path(".opencode/templates/SQUAD.md"),),
     "claude-code": (Path("CLAUDE.md"), Path(".claude/templates/SQUAD.md")),
+    "dsh": (Path(".dsh/templates/SQUAD.md"),),
 }
 PLATFORM_SKILL_ROOTS = {
     "neutral": Path(".agent/skills"),
     "codex": Path(".agents/skills"),
     "opencode": Path(".opencode/skills"),
     "claude-code": Path(".claude/skills"),
+    "dsh": Path(".dsh/skills"),
 }
 PLATFORM_EVAL_ROOTS = {
     "neutral": Path(".agent/evals"),
     "codex": Path(".agents/evals"),
     "opencode": Path(".opencode/evals"),
     "claude-code": Path(".claude/evals"),
+    "dsh": Path(".dsh/evals"),
 }
 PLATFORM_FRAMEWORK_ROOTS = {
     "neutral": Path(".agent"),
     "codex": Path(".agents"),
     "opencode": Path(".opencode"),
     "claude-code": Path(".claude"),
+    "dsh": Path(".dsh"),
 }
 OPENCODE_AGENT_MODES = {
     "team": "primary",
@@ -85,12 +89,14 @@ PLATFORM_REQUIRED_SKILLS = {
     "codex": ("team",),
     "opencode": ("team",),
     "claude-code": ("team",),
+    "dsh": ("team",),
 }
 PLATFORM_ENTRY_FILES = {
     "neutral": None,
     "codex": Path("AGENTS.md"),
     "opencode": Path("AGENTS.md"),
     "claude-code": Path("CLAUDE.md"),
+    "dsh": Path("AGENTS.md"),
 }
 PLACEHOLDER = re.compile(r"\{\{[^{}]+\}\}")
 SQUAD_MEMBERS = re.compile(r"\|\s*Members\s*\|\s*([^|]+)\|", re.IGNORECASE)
@@ -106,7 +112,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--target", required=True, type=Path, help="目标项目目录")
     parser.add_argument(
         "--platform",
-        choices=("neutral", "codex", "opencode", "claude-code"),
+        choices=("neutral", "codex", "opencode", "claude-code", "dsh"),
         default="neutral",
         help="已安装的框架布局",
     )
@@ -189,7 +195,7 @@ def collect_skills(
                     f"{path.relative_to(target)} frontmatter name 必须与目录名 {path.parent.name} 一致"
                 )
             if not OPENCODE_SKILL_NAME.fullmatch(name):
-                errors.append(f"{path.relative_to(target)} name 不符合 OpenCode 命名规则: {name}")
+                errors.append(f"{path.relative_to(target)} name 不符合宿主 Skill 命名规则: {name}")
             if not 1 <= len(name) <= 64:
                 errors.append(f"{path.relative_to(target)} name 长度必须为 1-64: {len(name)}")
             description = metadata.get("description", "")
@@ -205,7 +211,7 @@ def collect_skills(
         if "## Safety Statement" not in text:
             errors.append(f"{path.relative_to(target)} 缺少 Safety Statement")
     if not skills:
-        errors.append(".agent/skills/ 下没有找到 Skill")
+        errors.append(f"{skill_root.as_posix()}/ 下没有找到 Skill")
     return skills, errors
 
 
@@ -352,7 +358,7 @@ def validate(target: Path, platform: str) -> tuple[list[str], list[str]]:
     skills, skill_errors = collect_skills(
         target,
         skill_root,
-        require_opencode_names=platform == "opencode",
+        require_opencode_names=platform in {"opencode", "dsh"},
         use_directory_names=platform == "claude-code",
     )
     errors.extend(skill_errors)

@@ -1,0 +1,41 @@
+{
+  "name": "dsh-idc",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Intent-Driven Coding task records, gates and skills for DeepSeek Harness.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "src",
+    "assets",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.0-rc.2 <0.3.0-0"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": ">=0.2.0-rc.2 <0.3.0-0"
+  },
+  "scripts": {
+    "test": "node --test test/parity.test.mjs test/workflow.test.mjs test/host.test.mjs",
+    "parity": "node --test test/parity.test.mjs",
+    "mirror-skills": "node scripts/mirror-skills.mjs"
+  }
+}

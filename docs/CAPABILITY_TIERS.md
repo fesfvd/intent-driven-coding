@@ -35,6 +35,18 @@ Code review and verification are different. Review asks whether the change conta
 
 Tier 1 capabilities belong in the project's capability pool when warranted. They do not form a permanent squad and do not all run on every task.
 
+### Machine-Checkable Skip Preconditions
+
+The "Do not over-route when" column is prose. Its machine form is [`contracts/capability-skip-preconditions.json`](../contracts/capability-skip-preconditions.json), which keeps each cell verbatim as `over_route_when_prose` and states the predicates that must hold before routing that capability would be over-routing. Repository validation requires one catalog entry per Tier 1 row and compares the prose verbatim, so the table and its machine form cannot drift apart.
+
+```powershell
+python scripts/check_skip_preconditions.py --project ../my-project
+```
+
+The check is three-valued and fails closed. It reports `skip`, `keep`, or `unknown` per capability, and only a proven precondition permits a skip: an unanswerable one is `unknown`, never permission. Absence of a declaration is not evidence of absence, so a predicate that asserts no boundary impact requires a recorded impact assessment, and a record that says nothing cannot skip a capability by saying nothing. A host-level exclusion, such as intent routing, stays `unknown` until the caller declares the environment fact, because a task record cannot answer a question about the host.
+
+`Verification` has no skip precondition. `skippable: false` encodes "Never omit" as a rule the validator enforces instead of a sentence a reader must remember.
+
 ## Tier 2: Conditional Specialists
 
 Add these only when repeated work or repository risk makes the judgment materially distinct:

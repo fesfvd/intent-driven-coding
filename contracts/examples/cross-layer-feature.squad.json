@@ -62,7 +62,12 @@
         ],
         "omitted_checks_allowed": true
       }
-    ]
+    ],
+    "acceptance": {
+      "artifact_envelope": "strict",
+      "prose_report": "advisory",
+      "conflict_resolution": "command-evidence-wins"
+    }
   },
   "authorization": {
     "required": true,

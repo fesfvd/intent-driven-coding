@@ -34,4 +34,8 @@ select = ["E4", "E7", "E9", "F"]
 
 [tool.ruff.lint.per-file-ignores]
 "scripts/idc.py" = ["E402"]
+"scripts/validate_contracts.py" = ["E402"]
+"scripts/check_skip_preconditions.py" = ["E402"]
+"tests/test_capability_skip_preconditions.py" = ["E402"]
+"tests/test_orchestration_acceptance.py" = ["E402"]
 "tests/test_repository.py" = ["E402"]

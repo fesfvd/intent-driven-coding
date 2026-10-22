@@ -24,11 +24,17 @@ HOST_FIXTURE_PREPARER = ROOT / "scripts" / "prepare_host_acceptance_fixture.py"
 ORCHESTRATOR = ROOT / "scripts" / "orchestrate_squad.py"
 IDC = ROOT / "scripts" / "idc.py"
 sys.path.insert(0, str(ROOT / "scripts"))
+from _project_paths import assert_test_project_path
 import orchestrate_squad
 
 
 class RepositoryTests(unittest.TestCase):
-    def run_script(self, script: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    def run_script(self, script: Path, *args: str, temporary_root: Path | None = None) -> subprocess.CompletedProcess[str]:
+        if temporary_root is not None:
+            for flag in ("--target", "--project"):
+                if flag in args:
+                    index = args.index(flag)
+                    assert_test_project_path(args[index + 1], temporary_root)
         return subprocess.run(
             [sys.executable, str(script), *args],
             cwd=ROOT,
@@ -36,6 +42,16 @@ class RepositoryTests(unittest.TestCase):
             capture_output=True,
             check=False,
         )
+
+    def test_writer_subprocess_rejects_repository_target_before_launch(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch("subprocess.run") as launched:
+                with self.assertRaises(AssertionError):
+                    self.run_script(
+                        BOOTSTRAP, "--target", str(ROOT), "--project-name", "Demo", "--apply",
+                        temporary_root=Path(temp_dir),
+                    )
+                launched.assert_not_called()
 
     def test_repository_validator_passes(self) -> None:
         result = self.run_script(VALIDATOR)
@@ -85,20 +101,22 @@ class RepositoryTests(unittest.TestCase):
 
         manifests = {
             platform: {destination.as_posix() for _, destination, _ in bootstrap.planned_files(platform)}
-            for platform in ("neutral", "codex", "opencode", "claude-code")
+            for platform in ("neutral", "codex", "opencode", "claude-code", "dsh")
         }
         skill_names = {
             "team", "architecture", "debug", "code-review", "verify",
             "meta-skill-designer", "skill-creator", "learning-curator",
         }
         for platform, manifest in manifests.items():
-            skill_root = {"neutral": ".agent", "codex": ".agents", "opencode": ".opencode", "claude-code": ".claude"}[platform]
+            skill_root = {"neutral": ".agent", "codex": ".agents", "opencode": ".opencode", "claude-code": ".claude", "dsh": ".dsh"}[platform]
             for name in skill_names:
                 self.assertIn(f"{skill_root}/skills/{name}/SKILL.md", manifest)
 
         self.assertEqual(sum(path.startswith(".opencode/agents/") for path in manifests["opencode"]), 8)
         self.assertEqual(sum(path.startswith(".claude/agents/") for path in manifests["claude-code"]), 7)
-        for platform, root in (("neutral", ".agent"), ("codex", ".agents"), ("opencode", ".opencode"), ("claude-code", ".claude")):
+        self.assertEqual(sum(path.startswith(".agent/") for path in manifests["dsh"]), 0)
+        self.assertEqual(sum(path.startswith(".dsh/agents/") for path in manifests["dsh"]), 0)
+        for platform, root in (("neutral", ".agent"), ("codex", ".agents"), ("opencode", ".opencode"), ("claude-code", ".claude"), ("dsh", ".dsh")):
             self.assertIn(f"{root}/evals/squad-routing.json", manifests[platform])
             self.assertIn(f"{root}/evals/skill-design.json", manifests[platform])
 
@@ -1735,7 +1753,9 @@ class RepositoryTests(unittest.TestCase):
     def test_contract_guide_validates_the_idc_parent_directory(self) -> None:
         contracts = (ROOT / "docs" / "CONTRACTS.md").read_text(encoding="utf-8")
         self.assertIn("python scripts/validate_contracts.py --contracts ../my-project/.idc\n", contracts)
-        self.assertIn("three document kinds", contracts)
+        self.assertIn("four document kinds", contracts)
+        self.assertIn("capability-skip-catalog", contracts)
+        self.assertIn("scripts/check_skip_preconditions.py", contracts)
         self.assertIn("scripts/evaluate_contracts.py", contracts)
 
     def test_quickstart_maps_claude_contract_paths(self) -> None:
@@ -1896,6 +1916,131 @@ class RepositoryTests(unittest.TestCase):
         result = self.run_script(AUDITOR)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_repository_validator_ignores_imported_hermes_reference_tree(self) -> None:
+        import validate_repository
+
+        paths = validate_repository.markdown_files()
+        self.assertFalse(any("hermes-agent-main" in path.parts for path in paths))
+        self.assertIn(ROOT / "docs" / "INSTALLATION.md", paths)
+
+    def test_bootstrap_report_records_planned_and_applied_actions(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            target = root / "project"
+            target.mkdir()
+            (target / "IDC.md").write_text("user guidance\n", encoding="utf-8")
+            report = root / "report.json"
+            dry = self.run_script(BOOTSTRAP, "--target", str(target), "--project-name", "Demo", "--report-json", str(report))
+            self.assertEqual(dry.returncode, 0, dry.stderr)
+            preview = json.loads(report.read_text(encoding="utf-8"))
+            self.assertEqual(preview["written"], 0)
+            self.assertTrue(preview["ok"])
+            self.assertTrue(all(a["outcome"] == "planned" for a in preview["actions"]))
+            self.assertFalse((target / "AGENTS.md").exists())
+            applied = self.run_script(BOOTSTRAP, "--target", str(target), "--project-name", "Demo", "--apply", "--report-json", str(report))
+            self.assertEqual(applied.returncode, 0, applied.stderr)
+            result = json.loads(report.read_text(encoding="utf-8"))
+            self.assertTrue(result["ok"])
+            self.assertIsNone(result["error"])
+            outcomes = {a["destination"]: a for a in result["actions"]}
+            self.assertEqual(outcomes["IDC.md"]["outcome"], "skipped")
+            self.assertIn("exists", outcomes["IDC.md"]["reason"])
+            self.assertEqual(outcomes["AGENTS.md"]["outcome"], "created")
+            self.assertEqual(result["written"], sum(a["outcome"] in {"created", "overwritten", "entry-integrated"} for a in result["actions"]))
+
+    def test_bootstrap_blocked_report_does_not_claim_other_writes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            target = root / "project"
+            target.mkdir()
+            (target / "AGENTS.md").write_text("<!-- IDC:BEGIN -->\n", encoding="utf-8")
+            report = root / "report.json"
+            result = self.run_script(BOOTSTRAP, "--target", str(target), "--project-name", "Demo", "--platform", "codex", "--apply", "--report-json", str(report))
+            self.assertEqual(result.returncode, 1)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            self.assertFalse(data["ok"])
+            self.assertEqual(data["written"], 0)
+            self.assertIn("blocked", {a["outcome"] for a in data["actions"]})
+            self.assertIn("not-applied", {a["outcome"] for a in data["actions"]})
+            self.assertFalse((target / "IDC.md").exists())
+
+    def test_bootstrap_report_rejects_scaffold_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir)
+            result = self.run_script(BOOTSTRAP, "--target", str(target), "--project-name", "Demo", "--apply", "--report-json", str(target / "IDC.md"))
+            self.assertEqual(result.returncode, 2)
+            self.assertFalse((target / "IDC.md").exists())
+            self.assertFalse((target / "AGENTS.md").exists())
+
+    def test_bootstrap_report_records_mid_apply_failure(self) -> None:
+        import bootstrap
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            target = root / "project"
+            target.mkdir()
+            report = root / "report.json"
+            original_copy = bootstrap.shutil.copyfile
+
+            def fail_copy(source, destination):
+                if Path(destination).name == "TASK_SCENARIOS.md":
+                    raise OSError("injected copy failure")
+                return original_copy(source, destination)
+
+            argv = ["bootstrap.py", "--target", str(target), "--project-name", "Demo", "--apply", "--report-json", str(report)]
+            with patch.object(sys, "argv", argv), patch.object(bootstrap.shutil, "copyfile", side_effect=fail_copy):
+                self.assertEqual(bootstrap.main(), 1)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            self.assertFalse(data["ok"])
+            self.assertIn("injected copy failure", data["error"])
+            self.assertGreater(data["written"], 0)
+            outcomes = [a["outcome"] for a in data["actions"]]
+            self.assertIn("failed", outcomes)
+            self.assertIn("not-applied", outcomes)
+            failed_action = next(action for action in data["actions"] if action["outcome"] == "failed")
+            self.assertTrue(failed_action["possibly_modified"])
+            self.assertEqual(data["written"], sum(o in {"created", "overwritten", "entry-integrated"} for o in outcomes))
+
+    def test_bootstrap_report_rejects_entry_source_and_scaffold_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir)
+            entry = ROOT / "templates" / "IDC_ENTRY.md"
+            original = entry.read_bytes()
+            source_result = self.run_script(BOOTSTRAP, "--target", str(target), "--project-name", "Demo", "--platform", "codex", "--report-json", str(entry))
+            self.assertEqual(source_result.returncode, 2)
+            self.assertEqual(entry.read_bytes(), original)
+            parent_result = self.run_script(BOOTSTRAP, "--target", str(target), "--project-name", "Demo", "--report-json", str(target / ".agent"))
+            self.assertEqual(parent_result.returncode, 2)
+            self.assertFalse((target / ".agent").exists())
+
+    def test_bootstrap_report_rejects_source_and_symlink_alias(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir)
+            source = ROOT / "templates" / "IDC.md"
+            original = source.read_bytes()
+            direct = self.run_script(BOOTSTRAP, "--target", str(target), "--project-name", "Demo", "--apply", "--report-json", str(source))
+            self.assertEqual(direct.returncode, 2)
+            self.assertEqual(source.read_bytes(), original)
+            alias = target / "alias.md"
+            try:
+                alias.symlink_to(target / "IDC.md")
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"symlink unavailable: {exc}")
+            indirect = self.run_script(BOOTSTRAP, "--target", str(target), "--project-name", "Demo", "--apply", "--report-json", str(alias))
+            self.assertEqual(indirect.returncode, 2)
+            self.assertFalse((target / "AGENTS.md").exists())
+
+    def test_bootstrap_report_write_failure_is_nonzero(self) -> None:
+        import bootstrap
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir)
+            report = target.parent / "failed-report.json"
+            argv = ["bootstrap.py", "--target", str(target), "--project-name", "Demo", "--report-json", str(report)]
+            with patch.object(sys, "argv", argv), patch.object(bootstrap, "_write_report", side_effect=OSError("no space")):
+                self.assertEqual(bootstrap.main(), 1)
+            self.assertFalse((target / "AGENTS.md").exists())
+
     def test_bootstrap_dry_run_writes_nothing(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             target = Path(temp_dir)
@@ -1996,6 +2141,76 @@ class RepositoryTests(unittest.TestCase):
             self.assertEqual(entry.read_text(encoding="utf-8"), installed)
             self.assertEqual(installed.count("<!-- IDC:BEGIN -->"), 1)
 
+    def test_platform_entries_install_mandatory_workflow_and_upgrade_old_blocks(self) -> None:
+        old_block = (
+            "<!-- IDC:BEGIN -->\n"
+            "This project uses Intent-Driven Coding (IDC). Read IDC.md and use idc start.\n"
+            "<!-- IDC:END -->"
+        )
+        prefix = "# Existing rules\n\nKeep the project conventions.\n\n"
+        suffix = "\n\n## Architecture\n\nKeep the architecture facts.\n"
+        for platform, filename in (
+            ("codex", "AGENTS.md"),
+            ("opencode", "AGENTS.md"),
+            ("claude-code", "CLAUDE.md"),
+            ("dsh", "AGENTS.md"),
+        ):
+            for existing in (False, True):
+                with self.subTest(platform=platform, existing=existing):
+                    with tempfile.TemporaryDirectory() as temp_dir:
+                        target = Path(temp_dir)
+                        entry = target / filename
+                        if existing:
+                            entry.write_text(prefix + old_block + suffix, encoding="utf-8")
+                        arguments = (
+                            "--target", str(target),
+                            "--project-name", "Example Project",
+                            "--platform", platform,
+                        )
+                        result = self.run_script(BOOTSTRAP, *arguments, "--apply")
+                        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                        installed = entry.read_text(encoding="utf-8")
+                        block = installed.split("<!-- IDC:BEGIN -->", 1)[1].split("<!-- IDC:END -->", 1)[0]
+                        for requirement in (
+                            "## IDC: Mandatory Agent Workflow",
+                            "MUST",
+                            'idc start --project . --summary "<request>"',
+                            "idc promote --project . --record <record-id>",
+                            "acceptance",
+                            "SQUADS.md",
+                            "events.jsonl",
+                            "dynamic obligations",
+                            "fresh verification",
+                            "explicit authorization",
+                            "idc learn-check --project . --json",
+                        ):
+                            self.assertIn(requirement, block)
+                        if existing:
+                            self.assertTrue(installed.startswith(prefix))
+                            self.assertTrue(installed.endswith(suffix))
+                            self.assertNotIn(old_block, installed)
+                        self.assertEqual(installed.count("<!-- IDC:BEGIN -->"), 1)
+                        repeated = self.run_script(BOOTSTRAP, *arguments, "--apply")
+                        self.assertEqual(repeated.returncode, 0, repeated.stdout + repeated.stderr)
+                        self.assertEqual(entry.read_text(encoding="utf-8"), installed)
+
+    def test_entry_templates_keep_common_rules_and_reject_missing_workflow(self) -> None:
+        import validate_repository
+
+        common = (ROOT / "templates" / "IDC_ENTRY.md").read_text(encoding="utf-8")
+        claude = (ROOT / "templates" / "claude" / "CLAUDE.md").read_text(encoding="utf-8")
+        self.assertEqual(claude, common)
+        old_block = "<!-- IDC:BEGIN -->\nRead IDC.md and use idc start.\n<!-- IDC:END -->\n"
+        self.assertTrue(hasattr(validate_repository, "entry_template_errors"))
+        with patch.object(Path, "read_text", return_value=old_block):
+            errors = validate_repository.entry_template_errors()
+        for relative in (
+            "templates/IDC_ENTRY.md",
+            "templates/claude/CLAUDE.md",
+            "templates/dsh/IDC_ENTRY.md",
+        ):
+            self.assertTrue(any(relative in error for error in errors), relative)
+
     def test_codex_scaffold_puts_idc_entry_before_architecture_template(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             target = Path(temp_dir)
@@ -2091,10 +2306,73 @@ class RepositoryTests(unittest.TestCase):
                 skill = (target / ".claude" / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
                 self.assertNotIn("allowed-tools:", skill)
 
+    def test_bootstrap_dsh_applies_native_layout(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir)
+            result = self.run_script(
+                BOOTSTRAP,
+                "--target", str(target),
+                "--project-name", "Example Project",
+                "--platform", "dsh",
+                "--apply",
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue((target / ".dsh" / "skills" / "team" / "SKILL.md").is_file())
+            self.assertTrue((target / ".dsh" / "templates" / "SQUAD.md").is_file())
+            self.assertTrue((target / ".dsh" / "evals" / "squad-routing.json").is_file())
+            self.assertTrue((target / "AGENTS.md").is_file())
+            self.assertTrue((target / "IDC.md").is_file())
+            self.assertTrue((target / "docs" / "TASK_SCENARIOS.md").is_file())
+            self.assertFalse((target / ".agent").exists())
+            self.assertFalse((target / ".claude").exists())
+            self.assertFalse((target / ".opencode").exists())
+
+            entry = (target / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertTrue(entry.startswith("<!-- IDC:BEGIN -->"))
+            self.assertIn("read the project-root `IDC.md`", entry)
+            self.assertIn("`idc start`", entry)
+            self.assertIn("`idc_start`", entry)
+            skill = (target / ".dsh" / "skills" / "verify" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertNotIn("allowed-tools:", skill)
+
+    def test_project_validator_accepts_dsh_framework(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir)
+            install = self.run_script(
+                BOOTSTRAP,
+                "--target",
+                str(target),
+                "--project-name",
+                "Example Project",
+                "--platform",
+                "dsh",
+                "--apply",
+            )
+            self.assertEqual(install.returncode, 0, install.stdout + install.stderr)
+            for path in (
+                target / "AGENTS.md",
+                target / "AI_ENGINEERING_PLAYBOOK.md",
+                target / "SQUADS.md",
+                target / ".dsh" / "templates" / "SQUAD.md",
+            ):
+                text = path.read_text(encoding="utf-8")
+                path.write_text(re.sub(r"\{\{[^{}]+\}\}", "configured-value", text), encoding="utf-8")
+
+            result = self.run_script(
+                PROJECT_VALIDATOR,
+                "--target",
+                str(target),
+                "--platform",
+                "dsh",
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("项目验证通过", result.stdout)
+
     def test_project_validator_rejects_missing_team_skill_for_native_adapters(self) -> None:
         for platform, skill_root in (
             ("opencode", Path(".opencode/skills")),
             ("claude-code", Path(".claude/skills")),
+            ("dsh", Path(".dsh/skills")),
         ):
             with self.subTest(platform=platform), tempfile.TemporaryDirectory() as temp_dir:
                 target = Path(temp_dir)

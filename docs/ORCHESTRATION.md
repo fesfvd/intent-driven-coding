@@ -69,6 +69,30 @@ The `python` entries require that exact literal executable name. Absolute interp
 
 Each verification command is bounded by `--verification-timeout-seconds` (120 seconds by default; a non-positive value is rejected). On timeout, the controller terminates that command's process tree, records `command-timeout` with the captured bounded output paths, appends `verification-timed-out`, and fails the run. A timeout has no command exit status and is not `command-evidence`.
 
+## Acceptance Rules
+
+A contract may declare the basis on which its run is accepted. The schema fixes every value as a constant, so a contract cannot declare a weaker basis:
+
+```json
+{
+  "verification": {
+    "acceptance": {
+      "artifact_envelope": "strict",
+      "prose_report": "advisory",
+      "conflict_resolution": "command-evidence-wins"
+    }
+  }
+}
+```
+
+Omitting the block means the same thing: v1 defines no second policy, and the controller rejects a deviating declaration as a policy block before dispatch.
+
+- **Artifact envelope is strict.** A worker that does not return exactly one JSON object with `artifact_id`, `summary`, `findings`, and `consumed_artifact_ids`, or that does not declare exactly the required upstream ids, is rejected before the next member is dispatched.
+- **Prose is advisory.** Narrative outside the envelope is never an input to acceptance. It is not required, and its absence does not block a run. The envelope's `summary` and `findings` are structural fields recorded as `agent-declared`; being required by the envelope does not upgrade them into evidence.
+- **Command evidence wins.** Acceptance is decided only by `command-evidence` records. A declared command with no passing record leaves the run unproven, and the controller fails it with `acceptance-unproven` instead of completing it on the strength of an Agent's summary.
+
+Rule three is why the manual `team -> debug -> verify` session recorded below proves a coordination path and not controller acceptance: the verify prose described a failing command as exit code zero, and prose is exactly the input that rule refuses to accept.
+
 ## State And Evidence
 
 The controller records these states in order when the path succeeds:

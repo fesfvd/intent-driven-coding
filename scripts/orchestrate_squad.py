@@ -26,6 +26,16 @@ ALLOWED_VERIFICATION_COMMANDS = (
     ("python", "-m", "unittest"),
 )
 
+#: v1 supports exactly one acceptance policy. A contract may declare it; the
+#: controller rejects a contract that declares anything else. Agent prose outside
+#: the artifact envelope is advisory: it is recorded but never decides
+#: acceptance. Command evidence is the only decider.
+DEFAULT_ACCEPTANCE = {
+    "artifact_envelope": "strict",
+    "prose_report": "advisory",
+    "conflict_resolution": "command-evidence-wins",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -142,7 +152,57 @@ def policy_errors(
             errors.append(f"verification command '{command['id']}' has a blocked effect")
     if execution_requested and not commands:
         errors.append("execution requires at least one declared verification command")
+    errors.extend(acceptance_errors(contract))
     return errors
+
+
+def acceptance_policy(contract: dict[str, Any]) -> dict[str, str]:
+    """Return the contract's acceptance policy, defaulting to the v1 policy."""
+    declared = contract.get("verification", {}).get("acceptance")
+    if not isinstance(declared, dict):
+        return dict(DEFAULT_ACCEPTANCE)
+    return {key: str(declared.get(key, "")) for key in DEFAULT_ACCEPTANCE}
+
+
+def acceptance_errors(contract: dict[str, Any]) -> list[str]:
+    """Reject any acceptance policy other than the supported v1 policy.
+
+    The contract schema already fixes these values as constants. This re-checks
+    them in code so the controller does not depend on schema validation being
+    installed, and so the rule is testable on its own.
+    """
+    declared = contract.get("verification", {}).get("acceptance")
+    if declared is None:
+        return []
+    if not isinstance(declared, dict):
+        return ["verification.acceptance must be an object"]
+    errors: list[str] = []
+    missing = sorted(set(DEFAULT_ACCEPTANCE) - set(declared))
+    extra = sorted(set(declared) - set(DEFAULT_ACCEPTANCE))
+    if missing:
+        errors.append(f"verification.acceptance is missing {missing}")
+    if extra:
+        errors.append(f"verification.acceptance has unsupported keys {extra}")
+    for key, expected in DEFAULT_ACCEPTANCE.items():
+        if key in declared and declared.get(key) != expected:
+            errors.append(f"verification.acceptance.{key} must be '{expected}'")
+    return errors
+
+
+def unproven_commands(run: dict[str, Any], contract: dict[str, Any]) -> list[str]:
+    """Return declared commands with no passing command-evidence record.
+
+    Acceptance is decided by command evidence only. Agent-declared summaries and
+    findings are recorded as `agent-declared` and never make a run acceptable, so
+    a run whose prose claims success while evidence is missing stays unproven.
+    """
+    declared = [command["id"] for command in contract["verification"].get("commands", [])]
+    passed = {
+        record.get("id")
+        for record in run.get("verification", [])
+        if record.get("kind") == "command-evidence" and record.get("returncode") == 0
+    }
+    return [command_id for command_id in declared if command_id not in passed]
 
 
 def agent_prompt(
@@ -374,6 +434,7 @@ def main() -> int:
         },
         "route": route,
         "authorization": contract["authorization"],
+        "acceptance": acceptance_policy(contract),
         "artifacts": [],
         "verification": [],
         "timeouts": {
@@ -631,6 +692,24 @@ def main() -> int:
             "verification-succeeded",
             {"command": command["id"]},
         )
+
+    missing_evidence = unproven_commands(run, contract)
+    if missing_evidence:
+        transition(
+            run,
+            snapshot_path,
+            events_path,
+            sequence,
+            "failed",
+            "acceptance-unproven",
+            {"missing_command_evidence": missing_evidence},
+        )
+        print(
+            "ERROR: acceptance requires passing command evidence for every declared "
+            f"command; missing {missing_evidence}.",
+            file=sys.stderr,
+        )
+        return 1
 
     transition(run, snapshot_path, events_path, sequence, "completed", "run-completed")
     print(f"Run completed: {run_dir}")

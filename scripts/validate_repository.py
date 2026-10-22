@@ -101,6 +101,7 @@ REQUIRED_FILES = (
     "schemas/idc-task-event-v1.schema.json",
     "contracts/examples/cross-layer-feature.squad.json",
     "contracts/examples/cross-layer-feature.evaluation.json",
+    "contracts/capability-skip-preconditions.json",
     "examples/requirement-translations.md",
     "requirements.txt",
     "scripts/bootstrap.py",
@@ -108,6 +109,7 @@ REQUIRED_FILES = (
     "scripts/validate_project.py",
     "scripts/validate_contracts.py",
     "scripts/evaluate_contracts.py",
+    "scripts/check_skip_preconditions.py",
     "scripts/orchestrate_squad.py",
     "scripts/idc.py",
     "scripts/__init__.py",
@@ -131,6 +133,7 @@ REQUIRED_FILES = (
     "idc_core/obligations.py",
     "idc_core/projector.py",
     "idc_core/render.py",
+    "idc_core/routing.py",
     "idc_core/workflow.py",
     "idc_core/task_index.py",
     "idc_core/resources/__init__.py",
@@ -176,7 +179,8 @@ FENCE_PATTERN = re.compile(r"^\s*(`{3,}|~{3,})")
 # Dependency caches can contain arbitrary third-party Markdown and links. They
 # are neither framework source nor generated artifacts we publish, so public
 # documentation validation must not recurse through them.
-MARKDOWN_EXCLUDED_PARTS = {".git", "node_modules", ".venv", "venv"}
+# An imported third-party reference checkout is not IDC documentation.
+MARKDOWN_EXCLUDED_PARTS = {".git", "node_modules", ".venv", "venv", "hermes-agent-main"}
 
 
 def markdown_files() -> list[Path]:
@@ -240,6 +244,111 @@ def parse_frontmatter(text: str) -> dict[str, str]:
     return result
 
 
+def _tier_one_rows(text: str) -> dict[str, str]:
+    """Return Tier 1 capability label -> 'Do not over-route when' cell."""
+    rows: dict[str, str] = {}
+    in_section = False
+    for line in text.splitlines():
+        if line.startswith("## "):
+            in_section = line.strip() == "## Tier 1: Universal Candidates"
+            continue
+        if not in_section or not line.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != 4 or cells[0] in {"Capability", ""}:
+            continue
+        if set(cells[0]) <= {"-", " "}:
+            continue
+        rows[cells[0]] = cells[3]
+    return rows
+
+
+def capability_skip_catalog_errors() -> list[str]:
+    """Bind the prose 'Do not over-route when' column to its machine form."""
+    relative_catalog = Path("contracts") / "capability-skip-preconditions.json"
+    path = ROOT / relative_catalog
+    if not path.is_file():
+        return [f"Missing capability skip catalog: {relative_catalog}"]
+
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        return [f"{relative_catalog}: invalid JSON ({exc})"]
+    if not isinstance(payload, dict) or payload.get("kind") != "capability-skip-catalog":
+        return [f"{relative_catalog}: kind must be 'capability-skip-catalog'"]
+
+    document = ROOT / str(payload.get("source_document", ""))
+    if not document.is_file():
+        return [
+            f"{relative_catalog}: source_document does not exist: {payload.get('source_document')}"
+        ]
+    relative_document = document.relative_to(ROOT)
+    text = document.read_text(encoding="utf-8")
+
+    errors: list[str] = []
+    if path.name not in text:
+        errors.append(f"{relative_document}: does not reference the catalog '{path.name}'")
+
+    rows = _tier_one_rows(text)
+    entries = {
+        str(entry.get("label")): entry
+        for entry in payload.get("capabilities", [])
+        if isinstance(entry, dict)
+    }
+    for label in sorted(set(rows) - set(entries)):
+        errors.append(f"{relative_document}: Tier 1 row '{label}' has no catalog entry")
+    for label in sorted(set(entries) - set(rows)):
+        errors.append(f"{relative_catalog}: catalog entry '{label}' has no Tier 1 row")
+
+    for label, entry in sorted(entries.items()):
+        row_prose = rows.get(label)
+        if row_prose is None:
+            continue
+        prose = str(entry.get("over_route_when_prose", ""))
+        if prose != row_prose:
+            errors.append(
+                f"{relative_catalog}: '{label}' prose does not match {relative_document} "
+                f"(catalog: {prose!r}, document: {row_prose!r})"
+            )
+    return errors
+
+
+def entry_template_errors() -> list[str]:
+    errors: list[str] = []
+    required = (
+        "## IDC: Mandatory Agent Workflow",
+        "MUST",
+        "IDC.md",
+        'idc start --project . --summary "<request>"',
+        "idc promote --project . --record <record-id>",
+        "acceptance",
+        "SQUADS.md",
+        ".idc/work-items/<record-id>/events.jsonl",
+        "dynamic obligations",
+        "fresh verification",
+        "explicit authorization",
+        "idc learn-check --project . --json",
+    )
+    for relative in (
+        "templates/IDC_ENTRY.md",
+        "templates/claude/CLAUDE.md",
+        "templates/dsh/IDC_ENTRY.md",
+    ):
+        path = ROOT / relative
+        if not path.is_file():
+            errors.append(f"Missing required entry template: {relative}")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if text.count("<!-- IDC:BEGIN -->") != 1 or text.count("<!-- IDC:END -->") != 1:
+            errors.append(f"{relative}: must have exactly one managed IDC block")
+            continue
+        block = text.split("<!-- IDC:BEGIN -->", 1)[1].split("<!-- IDC:END -->", 1)[0]
+        for requirement in required:
+            if requirement not in block:
+                errors.append(f"{relative}: missing entry requirement '{requirement}'")
+    return errors
+
+
 def validate() -> list[str]:
     errors: list[str] = []
 
@@ -297,6 +406,8 @@ def validate() -> list[str]:
 
     errors.extend(validate_contracts(DEFAULT_SCHEMA, DEFAULT_CONTRACTS))
     errors.extend(evaluate_contracts(DEFAULT_CONTRACTS, DEFAULT_RECORDS))
+    errors.extend(capability_skip_catalog_errors())
+    errors.extend(entry_template_errors())
 
     known_skills = {path.parent.name for path in (ROOT / "skills").glob("*/SKILL.md")}
     for path in sorted((ROOT / "evals").glob("*.json")):

@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from _project_paths import assert_test_project_path
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -53,6 +55,7 @@ class ProgressiveDistributionTests(unittest.TestCase):
         validator = ROOT / "scripts" / "validate_project.py"
         with tempfile.TemporaryDirectory() as temp_dir:
             target = Path(temp_dir)
+            assert_test_project_path(target, temp_dir)
             install = subprocess.run(
                 [
                     sys.executable,

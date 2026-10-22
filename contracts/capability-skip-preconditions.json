@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "kind": "capability-skip-catalog",
+  "id": "capability-skip-preconditions",
+  "source_document": "docs/CAPABILITY_TIERS.md",
+  "purpose": "Machine-checkable form of the 'Do not over-route when' column for Tier 1 capabilities. Each entry keeps the source prose verbatim and states the predicates that must hold before routing that capability would be over-routing.",
+  "capabilities": [
+    {
+      "capability": "intent-routing",
+      "label": "Intent routing",
+      "tier": 1,
+      "skill": "team",
+      "skippable": true,
+      "over_route_when_prose": "The host already has an equivalent thin control plane",
+      "skip_when": [
+        {
+          "id": "host-thin-control-plane",
+          "requires": [
+            {
+              "kind": "fact_declared",
+              "values": [
+                "host_thin_control_plane"
+              ]
+            }
+          ],
+          "rationale": "This exclusion describes the host, not the task record. It is skipped only when the caller declares the host fact, never inferred from a missing field."
+        }
+      ]
+    },
+    {
+      "capability": "debugging",
+      "label": "Debugging",
+      "tier": 1,
+      "skill": "debug",
+      "skippable": true,
+      "over_route_when_prose": "The cause and exact edit are already proven",
+      "skip_when": [
+        {
+          "id": "cause-already-discovered",
+          "requires": [
+            {
+              "kind": "uncertainty_absent",
+              "values": [
+                "unknown-cause"
+              ]
+            },
+            {
+              "kind": "activity_present",
+              "values": [
+                "discover"
+              ]
+            }
+          ],
+          "rationale": "A recorded discover activity with no declared unknown-cause means the cause was already established in this record, so a debug pass would re-derive it."
+        }
+      ]
+    },
+    {
+      "capability": "code-review",
+      "label": "Code review",
+      "tier": 1,
+      "skill": "code-review",
+      "skippable": true,
+      "over_route_when_prose": "The edit is mechanical, local, and fully covered by a narrow check",
+      "skip_when": [
+        {
+          "id": "mechanical-local-and-covered",
+          "requires": [
+            {
+              "kind": "scope_at_most",
+              "value": 1
+            },
+            {
+              "kind": "uncertainty_absent",
+              "values": [
+                "cross-boundary"
+              ]
+            },
+            {
+              "kind": "acceptance_covered"
+            }
+          ],
+          "rationale": "All three clauses of the source sentence must hold: one scoped item, no declared cross-boundary uncertainty, and passing evidence already covering every acceptance item."
+        }
+      ]
+    },
+    {
+      "capability": "verification",
+      "label": "Verification",
+      "tier": 1,
+      "skill": "verify",
+      "skippable": false,
+      "over_route_when_prose": "Never omit when claiming fixed, passing, ready, or complete"
+    },
+    {
+      "capability": "architecture-impact",
+      "label": "Architecture impact",
+      "tier": 1,
+      "skill": "architecture",
+      "skippable": true,
+      "over_route_when_prose": "The change is isolated and has no meaningful boundary impact",
+      "skip_when": [
+        {
+          "id": "isolated-change",
+          "requires": [
+            {
+              "kind": "uncertainty_absent",
+              "values": [
+                "cross-boundary"
+              ]
+            },
+            {
+              "kind": "scope_at_most",
+              "value": 1
+            },
+            {
+              "kind": "impact_absent",
+              "values": [
+                "external_effect",
+                "reversibility"
+              ]
+            }
+          ],
+          "rationale": "Reads 'isolated' as one scoped item and 'no meaningful boundary impact' as no assessed external-effect or reversibility dimension. Both bounds require the record to answer the question first, so an empty record cannot satisfy them vacuously."
+        }
+      ]
+    }
+  ]
+}

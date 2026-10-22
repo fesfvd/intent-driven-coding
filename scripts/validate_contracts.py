@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 try:
@@ -15,8 +16,14 @@ except ImportError:
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from idc_core.routing import PREDICATE_KINDS
+
+
 DEFAULT_SCHEMA = ROOT / "schemas" / "intent-driven-coding-contract-v1.schema.json"
-DEFAULT_CONTRACTS = ROOT / "contracts" / "examples"
+DEFAULT_CONTRACTS = ROOT / "contracts"
 REFERENCE_KEYWORDS = ("$ref", "$dynamicRef", "$recursiveRef")
 
 
@@ -49,7 +56,68 @@ def external_schema_references(value: object, location: str = "root") -> list[st
     return errors
 
 
+def catalog_semantic_errors(payload: dict[object, object]) -> list[str]:
+    errors: list[str] = []
+    capabilities = payload.get("capabilities")
+    if not isinstance(capabilities, list):
+        return errors
+    seen: set[object] = set()
+    for entry in capabilities:
+        if not isinstance(entry, dict):
+            continue
+        capability = entry.get("capability")
+        if capability in seen:
+            errors.append(f"duplicate capability '{capability}'")
+        seen.add(capability)
+        skill = entry.get("skill")
+        if isinstance(skill, str) and not (ROOT / "skills" / skill / "SKILL.md").is_file():
+            errors.append(f"capability '{capability}' references unknown skill '{skill}'")
+        precondition_ids: list[object] = []
+        for precondition in entry.get("skip_when") or []:
+            if not isinstance(precondition, dict):
+                continue
+            precondition_ids.append(precondition.get("id"))
+            for condition in precondition.get("requires") or []:
+                if not isinstance(condition, dict):
+                    continue
+                if condition.get("kind") not in PREDICATE_KINDS:
+                    errors.append(
+                        f"capability '{capability}' uses unsupported predicate kind "
+                        f"'{condition.get('kind')}'"
+                    )
+        duplicates = sorted(
+            {item for item in precondition_ids if precondition_ids.count(item) > 1}, key=str
+        )
+        for duplicate in duplicates:
+            errors.append(f"capability '{capability}' has duplicate skip precondition '{duplicate}'")
+    return errors
+
+
+def schema_vocabulary_errors(schema: dict[object, object]) -> list[str]:
+    """Keep the schema enum and the evaluator's closed vocabulary identical."""
+    kinds = (
+        schema.get("$defs", {})
+        .get("skipCondition", {})
+        .get("properties", {})
+        .get("kind", {})
+        .get("enum")
+    )
+    if not isinstance(kinds, list):
+        return ["schema is missing the skipCondition.kind enum"]
+    declared = {str(kind) for kind in kinds}
+    missing = sorted(PREDICATE_KINDS - declared)
+    extra = sorted(declared - PREDICATE_KINDS)
+    if missing or extra:
+        return [
+            "schema skipCondition.kind disagrees with idc_core.routing.PREDICATE_KINDS "
+            f"(missing {missing}, extra {extra})"
+        ]
+    return []
+
+
 def semantic_errors(payload: dict[object, object]) -> list[str]:
+    if payload.get("kind") == "capability-skip-catalog":
+        return catalog_semantic_errors(payload)
     if payload.get("kind") != "squad-contract":
         return []
 
@@ -163,6 +231,10 @@ def validate(schema_path: Path, contracts_path: Path) -> list[str]:
         Draft202012Validator.check_schema(schema)
     except (OSError, UnicodeError, json.JSONDecodeError, SchemaError) as exc:
         return [f"Invalid schema {schema_path}: {exc}"]
+
+    vocabulary_errors = schema_vocabulary_errors(schema)
+    if vocabulary_errors:
+        return vocabulary_errors
 
     paths = json_files(contracts_path)
     if not paths:

@@ -5,7 +5,8 @@
   "oneOf": [
     {"$ref": "#/$defs/squadContract"},
     {"$ref": "#/$defs/evaluationCase"},
-    {"$ref": "#/$defs/evaluationRecord"}
+    {"$ref": "#/$defs/evaluationRecord"},
+    {"$ref": "#/$defs/capabilitySkipCatalog"}
   ],
   "$defs": {
     "identifier": {
@@ -100,6 +101,130 @@
         }
       ]
     },
+    "acceptancePolicy": {
+      "description": "v1 supports exactly one acceptance policy. The values are const, so a contract cannot declare a weaker basis for acceptance than command evidence.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_envelope", "prose_report", "conflict_resolution"],
+      "properties": {
+        "artifact_envelope": {"const": "strict"},
+        "prose_report": {"const": "advisory"},
+        "conflict_resolution": {"const": "command-evidence-wins"}
+      }
+    },
+    "skipCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "uncertainty_absent",
+            "activity_present",
+            "impact_absent",
+            "fact_declared",
+            "scope_at_most",
+            "acceptance_covered"
+          ]
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "value": {"type": "integer", "minimum": 0}
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["kind"],
+            "properties": {"kind": {"enum": ["uncertainty_absent", "activity_present", "impact_absent", "fact_declared"]}}
+          },
+          "then": {"required": ["values"]}
+        },
+        {
+          "if": {
+            "required": ["kind"],
+            "properties": {"kind": {"const": "scope_at_most"}}
+          },
+          "then": {"required": ["value"]}
+        },
+        {
+          "if": {
+            "required": ["kind"],
+            "properties": {"kind": {"const": "acceptance_covered"}}
+          },
+          "then": {"not": {"anyOf": [{"required": ["values"]}, {"required": ["value"]}]}}
+        }
+      ]
+    },
+    "skipPrecondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "requires", "rationale"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "requires": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/skipCondition"}
+        },
+        "rationale": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
+    "capabilityRoutingEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability", "label", "tier", "skippable", "over_route_when_prose"],
+      "properties": {
+        "capability": {"$ref": "#/$defs/identifier"},
+        "label": {"$ref": "#/$defs/nonEmptyString"},
+        "tier": {"type": "integer", "minimum": 1, "maximum": 3},
+        "skill": {"$ref": "#/$defs/identifier"},
+        "skippable": {"type": "boolean"},
+        "over_route_when_prose": {"$ref": "#/$defs/nonEmptyString"},
+        "skip_when": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/skipPrecondition"}
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["skippable"],
+            "properties": {"skippable": {"const": true}}
+          },
+          "then": {
+            "required": ["skip_when"],
+            "properties": {"skip_when": {"minItems": 1}}
+          }
+        },
+        {
+          "if": {
+            "required": ["skippable"],
+            "properties": {"skippable": {"const": false}}
+          },
+          "then": {"properties": {"skip_when": {"maxItems": 0}}}
+        }
+      ]
+    },
+    "capabilitySkipCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "kind", "id", "source_document", "capabilities"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "kind": {"const": "capability-skip-catalog"},
+        "id": {"$ref": "#/$defs/identifier"},
+        "source_document": {"$ref": "#/$defs/nonEmptyString"},
+        "purpose": {"$ref": "#/$defs/nonEmptyString"},
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/capabilityRoutingEntry"}
+        }
+      }
+    },
     "squadContract": {
       "type": "object",
       "additionalProperties": false,
@@ -160,7 +285,8 @@
             "commands": {
               "type": "array",
               "items": {"$ref": "#/$defs/verificationCommand"}
-            }
+            },
+            "acceptance": {"$ref": "#/$defs/acceptancePolicy"}
           }
         },
         "authorization": {"$ref": "#/$defs/authorization"}

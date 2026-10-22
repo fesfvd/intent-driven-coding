@@ -1,1 +1,4 @@
 jsonschema<5,>=4.23
+
+[dev]
+ruff<1,>=0.6

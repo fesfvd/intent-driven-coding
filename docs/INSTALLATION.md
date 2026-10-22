@@ -53,6 +53,7 @@ The selected host adds:
 | `codex` | `.agents/skills/` | IDC entry merged into root `AGENTS.md`, `.agents/templates/SQUAD.md`, `.agents/evals/{squad-routing,skill-design}.json` |
 | `opencode` | `.opencode/skills/` | IDC entry merged into root `AGENTS.md`, eight `.opencode/agents/*.md`, `.opencode/templates/SQUAD.md`, `.opencode/evals/{squad-routing,skill-design}.json` |
 | `claude-code` | `.claude/skills/` | Root `CLAUDE.md` IDC entry, seven `.claude/agents/*.md`, `.claude/templates/SQUAD.md`, `.claude/evals/{squad-routing,skill-design}.json` |
+| `dsh` | `.dsh/skills/` | IDC entry merged into root `AGENTS.md`, `.dsh/templates/SQUAD.md`, `.dsh/evals/{squad-routing,skill-design}.json`; the optional `dsh-plugin/` bundle adds native `idc_*` tools |
 
 OpenCode Agents are `team`, `architecture`, `debug`, `code-review`, `verify`,
 `meta-skill-designer`, `skill-creator`, and `learning-curator`. Claude Code has
@@ -86,12 +87,26 @@ is used.
    | Claude Code | Install the plugin through the marketplace, or use `bootstrap.py --platform claude-code` to add a root `CLAUDE.md` entry, eight Skills, seven subagents, templates, and eval fixtures. |
    | OpenCode | Add the IDC plugin to the target `opencode.json`, or use `bootstrap.py --platform opencode` to add an IDC block to root `AGENTS.md` and generate eight Skills, eight Agents, templates, and eval fixtures. |
    | Codex CLI | Use `bootstrap.py --platform codex` to add an IDC block to root `AGENTS.md` and generate eight project Skills, a squad template, and eval fixtures. |
+   | DeepSeek Harness | Use `bootstrap.py --platform dsh` to add an IDC block to root `AGENTS.md` and generate eight Skills under `.dsh/skills/`, a squad template, and eval fixtures. Optionally install `dsh-plugin/` for native `idc_*` tools. |
    | Cursor, Copilot, and other assistants | Their native persistent entry is not installer-verified here; use their documented project instruction file and add the short IDC entry block after reviewing that file. |
 
    The bootstrapper preserves text outside `<!-- IDC:BEGIN -->` and
    `<!-- IDC:END -->` in existing `AGENTS.md` or `CLAUDE.md`. Dry-run shows
    the actual merged diff. It does not merge an unmarked IDC block into an
    existing file, and it does not configure third-party hosts automatically.
+
+   The managed block is headed `IDC: Mandatory Agent Workflow`. It directly
+   requires capture with an explicit project path, promotion before substantive
+   work, shaping scope and acceptance, on-demand routing, event-backed records,
+   dynamic obligations, fresh verification, effect-specific authorization, and
+   checkpoint learning. The agent can see these duties before following links
+   to detailed guidance. This is a persistent instruction, not proof of native
+   host enforcement or of the agent's compliance.
+
+   To upgrade an older marked entry, rerun bootstrap with the same platform and
+   `--apply` after reviewing its dry-run diff. Only the managed block is replaced;
+   surrounding project rules are preserved, and other existing scaffold files
+   remain skipped without `--force`.
 
 4. Install the CLI in the environment that will run `idc`:
 
@@ -119,12 +134,21 @@ is used.
    python scripts/bootstrap.py --target ../my-project --project-name "My Project" --apply
    ```
 
-   Add `--platform codex`, `--platform opencode`, or `--platform claude-code`
+   Add `--platform codex`, `--platform opencode`, `--platform claude-code`, or
+   `--platform dsh`
    to install the matching persistent entry. Review the dry-run diff before
    apply, especially when the root instruction file already contains project
    rules. Outside the managed IDC block those rules remain unchanged. Other
    existing scaffold files are skipped by default; avoid `--force` unless you
    intend to replace those files.
+
+   For automation or acceptance evidence, add `--report-json <path>` (keep the
+   report outside the target project). The report records planned actions during
+   dry-run and actual `created`, `overwritten`, `entry-integrated`, `skipped`,
+   or failed outcomes during apply, including reasons and partial-write errors.
+   A report is an execution record, not proof that the host loaded IDC; run
+   `validate_project.py` for structural checks and the host-acceptance procedure
+   for live discovery, routing, handoff, and permission behavior.
 
 7. Start the assistant at the target project root. Initialize the record store
    once before expecting `idc start` to capture tasks:
@@ -133,7 +157,8 @@ is used.
    idc init --project ../my-project --project-key MYPROJECT --platform codex
    ```
 
-   Use `--platform claude-code` or `--platform opencode` as appropriate.
+   Use `--platform claude-code`, `--platform opencode`, `--platform codex`, or
+   `--platform dsh` as appropriate.
    Then run `idc start --project ../my-project --summary "..."` to confirm the
    CLI can write a capture. The host entry instructs the agent to perform this
    capture; host acceptance is a separate check of whether the host actually
@@ -164,7 +189,8 @@ is used.
    python scripts/validate_project.py --target ../my-project
    ```
 
-   Use `--platform codex`, `--platform opencode`, or `--platform claude-code` when applicable.
+   Use `--platform codex`, `--platform opencode`, `--platform claude-code`, or
+   `--platform dsh` when applicable.
 
    `bootstrap.py` owns guidance and host layout only. `idc init` exclusively
    owns initial `.idc/config.json` creation, so the two tools cannot silently
